@@ -1,9 +1,14 @@
 #+BEGIN_HTML
 ---
-layout: default
-title: Benighted on the Ben.
-excerpt: An unplanned bivouac on Ben Nevis.
+title: meow
 ---
 #+END_HTML
+
 * Hello org-jekyll
-  - I am your faithful subject
+  Kitty pet utc
+  Meow meows
+  Mexssssadssad
+
+  - I am your faithful susasdssbjectsdsfsdasdasd
+    aewaasd
+    asdsd

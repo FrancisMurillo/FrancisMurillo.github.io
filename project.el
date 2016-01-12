@@ -1,32 +1,35 @@
-;;; Code:
+;; some project dependencies
+(require 'ox-html)
+(require 'ox-publish)
 
-(require 'org-publish)
+;; org-publish configuration
+(setq org-html-doctype "html5")
+(setq org-html-special-string-regexps nil)
+
+;; actual project confugration
 (setq org-publish-project-alist
       '(
-
-	;; ... add all the components here (see below)...
-	("org-notes"
-	 :base-directory "~/Fakespace/fn-dev/org/"
+	("fm-notes"
+	 :base-directory "~/Fakespace/francismurillo.github.io/org"
 	 :base-extension "org"
-	 :publishing-directory "~/Fakespace/fn-dev/jekyll/"
+	 :publishing-directory "~/Fakespace/francismurillo.github.io"
 	 :recursive t
-	 :publishing-function org-publish-org-to-html
+	 :publishing-function org-html-publish-to-html
 	 :html-extension "html"
 	 :headline-levels 4
 	 :body-only t
+	 :with-toc nil
 	 )
 
-	("org-static"
-	 :base-directory "~/Fakespace/fn-dev/org/"
+	("fm-static"
+	 :base-directory "~/Fakespace/francismurillo.github.io/org"
 	 :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-	 :publishing-directory "~/Fakespace/fn-dev/jekyll/"
+	 :publishing-directory "~/Fakespace/francismurillo.github.io"
 	 :recursive t
 	 :publishing-function org-publish-attachment
 	 )
 
-	("org"
-	 :components ("org-notes" "org-static")
+	("fm"
+	 :components ("fm-notes" "fm-static")
 	 )
-
-
 	))

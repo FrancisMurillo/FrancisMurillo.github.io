@@ -19,5 +19,6 @@ github_username:  FrancisMurillo
 # Build settings
 markdown: kramdown
 
-source: ./jekyll
-destination: ./site
+source: .
+destination: ./__site
+exclude: [org/]
