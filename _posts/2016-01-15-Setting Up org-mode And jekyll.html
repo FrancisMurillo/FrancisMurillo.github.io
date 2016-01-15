@@ -1,0 +1,172 @@
+---
+title: Setting Up org-mode And jekyll
+tagline: It seemed easy enough to do, but the details.
+layout: post
+author: Francis Murillo
+categories:
+- jekll
+- org
+- Emacs
+tags:
+- jekyll
+---
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Introduction</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<p>
+For my second blog post, I want to talk about how I setup this blog. I'm using the Emacs <a href="http://orgmode.org/">org-mode</a>, <a href="http://jekyllrb.com/docs/home/">jekyll</a> and <a href="https://pages.github.com/">GitHubPages</a> combo; this allows me write static web pages using the most versitile outliner I've seen. How I found and made this decision escapes me but I do remember the three days of coding and praying for a miracle for the configuration to work despite how easy the tutorial seems.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">Issues</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+<p>
+Everything else seems easy except for a few technical details that I wasn't told. I'm not sure which one fixed the configuration but these were things I did to make mine work.
+</p>
+
+<ul class="org-ul">
+<li><a href="#orgheadline2">org backward compatibility</a></li>
+<li><a href="#orgheadline3">External shadowing internal</a></li>
+<li><a href="#orgheadline4">org-html string escaping</a></li>
+</ul>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-3">
+<h3 id="orgheadline2">org backward compatibility</h3>
+<div class="outline-text-3" id="text-orgheadline2">
+<p>
+The builtin <code>org</code> version that came with my Emacs was 7, the external <code>org</code> package that can be downloaded was 8; the innocent upgrade made some compatibility issues with my configuration.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">org 7</th>
+<th scope="col" class="org-left">org 8</th>
+<th scope="col" class="org-left">line</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">org-html</td>
+<td class="org-left">ox-html</td>
+<td class="org-left"><code>(require 'ox-html)</code></td>
+</tr>
+
+<tr>
+<td class="org-left">org-publish</td>
+<td class="org-left">ox-publish</td>
+<td class="org-left"><code>(require 'ox-publish)</code></td>
+</tr>
+
+<tr>
+<td class="org-left">org-publish-org-to-html</td>
+<td class="org-left">org-html-publish-to-html</td>
+<td class="org-left"><code>:publishing-function org-html-publish-to-html</code></td>
+</tr>
+</tbody>
+</table>
+
+<p>
+So one thing that changed was the namespace change from <code>org</code> to <code>ox</code>. However, I thought that <code>ox</code> was the outdated version not <code>org</code> so it caused me some grief in that change. Same thing applied to <code>org-publish-org-to-html</code>, since it was similar to <code>org-publish-attachment</code> according to the tutorials; it would follow that it was the correct function to call but lightning strikes twice as the correct one is <code>org-html-publish-to-html</code>.
+</p>
+
+<p>
+Aside, there might be one more property to add to the setting. I am not sure if it is part of the change but it might be related.
+</p>
+
+<pre class="example">
+:with-toc nil
+</pre>
+
+<p>
+This property messes with the <code>Front Matter</code> section since it preprends a table of contents on the post if not set to <code>nil</code>. Just worth noting as well.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-3">
+<h3 id="orgheadline3">External shadowing internal</h3>
+<div class="outline-text-3" id="text-orgheadline3">
+<p>
+To use the publishing features of <code>org</code>, you had to download the <code>org-plus-contrib</code> package which somehow depends on an external <code>org</code> package to work. I didn't find this an issue elsewhere but it somehow conflicted with how <code>org-html</code> publishes files. The thing it primarily solved I think was the <code>&lt;div&gt;</code> that wrapped the exported <code>org</code> file but I am not sure.
+</p>
+
+<pre class="example">
+;; Helper functions
+(defun string/ends-with (s ending)
+  "Return non-nil if string S ends with ENDING."
+  (cond ((&gt;= (length s) (length ending))
+         (let ((elength (length ending)))
+           (string= (substring s (- 0 elength)) ending)))
+            (t nil)))
+
+(require 'cl)
+(setq load-path
+      (remove-if
+       (lambda (text) (string/ends-with text "org"))
+       load-path))
+</pre>
+
+<p>
+Aside from installing the said packages, I removed the builtin <code>org</code> package from the <code>load-path</code> which made <code>list-load-path-shadows</code> clean. It also made it easier to configure extra <code>org</code> packages and not have to hard code them when using an configuration under <code>org</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-3">
+<h3 id="orgheadline4">org-html string escaping</h3>
+<div class="outline-text-3" id="text-orgheadline4">
+<p>
+This issue is by far the most mischievous I had to track down.
+</p>
+
+<pre class="example">
+(setq org-html-special-string-regexps nil)
+</pre>
+
+<p>
+The variable <code>org-html-special-string-regexps</code> causes the <code>---</code> in the export to be converted to <code>&amp;#x2014;</code> effectively destroying the <a href="http://jekyllrb.com/docs/frontmatter/">Front Matter</a> section which jekyll needs to process the page completely. I had to set it to <code>nil</code> to process the section correctly.
+</p>
+
+<p>
+But this didn't fix it entirely since the whole exported file was wrapped with a <code>&lt;div&gt;</code> rendering the whole file moot again.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-2">
+<h2 id="orgheadline6">Conclusion</h2>
+<div class="outline-text-2" id="text-orgheadline6">
+<p>
+I hope you did not encounter the same problems I have because it is a pain. Writing a blog using <code>org</code> is still awesome but I wish there was a tutorial that was up to date so this mess might have been avoided.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-2">
+<h2 id="orgheadline7">Links</h2>
+<div class="outline-text-2" id="text-orgheadline7">
+<ul class="org-ul">
+<li><a href="http://www.gorgnegre.com/linux/using-emacs-orgmode-to-blog-with-jekyll.html">Gorg Negre's tutorial</a> maybe what got me started in doing this but at the time it seem pretty outdated.</li>
+<li><a href="http://orgmode.org/worg/org-tutorials/org-jekyll.html">The official org-mode tutorial</a> is excellent in setting up the site without <code>GitHubPages</code>.</li>
+<li><a href="http://jekyllrb.com/docs/github-pages/">The official jekyll GitHubPages tutorial</a> is informative enough on the nuances of hosting the site in <code>GitHubPages</code>.</li>
+<li><a href="http://orgmode.org/manual/Configuration.html#Configuration">The org-publish configuration page</a> is a good reference on the publishing options.</li>
+<li><a href="https://acaird.github.io/computers/2013/05/24/blogging-with-org-and-git/">Andrew Caird's tutorial</a> is the one I refer to for my workflow.</li>
+<li><a href="https://nickhigham.wordpress.com/2013/07/05/emacs-org-mode-version-8/">Nick Higham's post on org-mode 8</a> refers to a few compatibility issues.</li>
+</ul>
+</div>
+</div>

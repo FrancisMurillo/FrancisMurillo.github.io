@@ -8,12 +8,13 @@
 # Site settings
 title: fn/log
 email: francisavmurillo@gmail.com
-description: > # this means to ignore newlines until "baseurl:"
+description:
   Hello, I am Francis Murillo.
   If I were a robot, I would code for life.
-  But I have a living shell, so I can only do so much.
-  
-  I don't know why you're here but if you want to here my thoughts, you're in the right place.
+    But I have a living shell, so I can only do so much.
+
+  I don't know why you're here but if you want to here my thoughts
+    , you're in the right place.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://francismurillo.com" # the base hostname & protocol for your site
 twitter_username: FVMurillo

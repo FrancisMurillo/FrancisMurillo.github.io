@@ -11,9 +11,9 @@ dl, dd, ol, ul, figure {
  * Basic styling
  */
 body {
-  font: 400 16px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 400 16px/1.5 "DejaVu Sans Mono", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #111;
-  background-color: #fdfdfd;
+  background-color: white;
   -webkit-text-size-adjust: 100%;
   -webkit-font-feature-settings: "kern" 1;
   -moz-font-feature-settings: "kern" 1;
@@ -151,7 +151,8 @@ pre {
   border-top: 5px solid #424242;
   border-bottom: 1px solid #e8e8e8;
   min-height: 56px;
-  position: relative; }
+  position: relative;
+  background-color: #421c52; }
 
 .site-title {
   font-size: 26px;
@@ -159,9 +160,11 @@ pre {
   line-height: 56px;
   letter-spacing: -1px;
   margin-bottom: 0;
-  float: left; }
+  float: left;
+  color: #ffffff; }
   .site-title, .site-title:visited {
-    color: #424242; }
+    color: #ffffff;
+    text-decoration: none; }
 
 .site-nav {
   float: right;
@@ -178,7 +181,7 @@ pre {
       position: absolute;
       top: 9px;
       right: 15px;
-      background-color: #fdfdfd;
+      background-color: white;
       border: 1px solid #e8e8e8;
       border-radius: 5px;
       text-align: right; }
@@ -213,7 +216,9 @@ pre {
  */
 .site-footer {
   border-top: 1px solid #e8e8e8;
-  padding: 30px 0; }
+  padding: 30px 0;
+  background-color: #732c7b;
+  color: #bdaec6; }
 
 .footer-heading {
   font-size: 18px;

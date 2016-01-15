@@ -3,24 +3,203 @@
   <channel>
     <title>fn/log</title>
     <description>Hello, I am Francis Murillo. If I were a robot, I would code for life. But I have a living shell, so I can only do so much.
-I don&#39;t know why you&#39;re here but if you want to here my thoughts, you&#39;re in the right place.
-</description>
+I don&#39;t know why you&#39;re here but if you want to here my thoughts , you&#39;re in the right place.</description>
     <link>http://francismurillo.com/</link>
     <atom:link href="http://francismurillo.com/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 13 Jan 2016 12:22:34 +0800</pubDate>
-    <lastBuildDate>Wed, 13 Jan 2016 12:22:34 +0800</lastBuildDate>
+    <pubDate>Fri, 15 Jan 2016 22:19:14 +0800</pubDate>
+    <lastBuildDate>Fri, 15 Jan 2016 22:19:14 +0800</lastBuildDate>
     <generator>Jekyll v3.0.1</generator>
     
       <item>
-        <title>Hello Log</title>
+        <title>Setting Up org-mode And jekyll</title>
         <description>&lt;div id=&quot;outline-container-orgheadline1&quot; class=&quot;outline-2&quot;&gt;
-&lt;h2 id=&quot;orgheadline1&quot;&gt;&lt;span class=&quot;section-number-2&quot;&gt;1&lt;/span&gt; Hello Log&lt;/h2&gt;
-&lt;div class=&quot;outline-text-2&quot; id=&quot;text-1&quot;&gt;
+&lt;h2 id=&quot;orgheadline1&quot;&gt;Introduction&lt;/h2&gt;
+&lt;div class=&quot;outline-text-2&quot; id=&quot;text-orgheadline1&quot;&gt;
 &lt;p&gt;
-So I finally got the Emacs org-mode, jekyll, GitHub combo to work.
+For my second blog post, I want to talk about how I setup this blog. I&#39;m using the Emacs &lt;a href=&quot;http://orgmode.org/&quot;&gt;org-mode&lt;/a&gt;, &lt;a href=&quot;http://jekyllrb.com/docs/home/&quot;&gt;jekyll&lt;/a&gt; and &lt;a href=&quot;https://pages.github.com/&quot;&gt;GitHubPages&lt;/a&gt; combo; this allows me write static web pages using the most versitile outliner I&#39;ve seen. How I found and made this decision escapes me but I do remember the three days of coding and praying for a miracle for the configuration to work despite how easy the tutorial seems.
 &lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+
+&lt;div id=&quot;outline-container-orgheadline5&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;orgheadline5&quot;&gt;Issues&lt;/h2&gt;
+&lt;div class=&quot;outline-text-2&quot; id=&quot;text-orgheadline5&quot;&gt;
+&lt;p&gt;
+Everything else seems easy except for a few technical details that I wasn&#39;t told. I&#39;m not sure which one fixed the configuration but these were things I did to make mine work.
+&lt;/p&gt;
+
+&lt;ul class=&quot;org-ul&quot;&gt;
+&lt;li&gt;&lt;a href=&quot;#orgheadline2&quot;&gt;org backward compatibility&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#orgheadline3&quot;&gt;External shadowing internal&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#orgheadline4&quot;&gt;org-html string escaping&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;outline-container-orgheadline2&quot; class=&quot;outline-3&quot;&gt;
+&lt;h3 id=&quot;orgheadline2&quot;&gt;org backward compatibility&lt;/h3&gt;
+&lt;div class=&quot;outline-text-3&quot; id=&quot;text-orgheadline2&quot;&gt;
+&lt;p&gt;
+The builtin &lt;code&gt;org&lt;/code&gt; version that came with my Emacs was 7, the external &lt;code&gt;org&lt;/code&gt; package that can be downloaded was 8; the innocent upgrade made some compatibility issues with my configuration.
+&lt;/p&gt;
+
+&lt;table border=&quot;2&quot; cellspacing=&quot;0&quot; cellpadding=&quot;6&quot; rules=&quot;groups&quot; frame=&quot;hsides&quot;&gt;
+
+
+&lt;colgroup&gt;
+&lt;col  class=&quot;org-left&quot; /&gt;
+
+&lt;col  class=&quot;org-left&quot; /&gt;
+
+&lt;col  class=&quot;org-left&quot; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th scope=&quot;col&quot; class=&quot;org-left&quot;&gt;org 7&lt;/th&gt;
+&lt;th scope=&quot;col&quot; class=&quot;org-left&quot;&gt;org 8&lt;/th&gt;
+&lt;th scope=&quot;col&quot; class=&quot;org-left&quot;&gt;line&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td class=&quot;org-left&quot;&gt;org-html&lt;/td&gt;
+&lt;td class=&quot;org-left&quot;&gt;ox-html&lt;/td&gt;
+&lt;td class=&quot;org-left&quot;&gt;&lt;code&gt;(require &#39;ox-html)&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class=&quot;org-left&quot;&gt;org-publish&lt;/td&gt;
+&lt;td class=&quot;org-left&quot;&gt;ox-publish&lt;/td&gt;
+&lt;td class=&quot;org-left&quot;&gt;&lt;code&gt;(require &#39;ox-publish)&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td class=&quot;org-left&quot;&gt;org-publish-org-to-html&lt;/td&gt;
+&lt;td class=&quot;org-left&quot;&gt;org-html-publish-to-html&lt;/td&gt;
+&lt;td class=&quot;org-left&quot;&gt;&lt;code&gt;:publishing-function org-html-publish-to-html&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;
+So one thing that changed was the namespace change from &lt;code&gt;org&lt;/code&gt; to &lt;code&gt;ox&lt;/code&gt;. However, I thought that &lt;code&gt;ox&lt;/code&gt; was the outdated version not &lt;code&gt;org&lt;/code&gt; so it caused me some grief in that change. Same thing applied to &lt;code&gt;org-publish-org-to-html&lt;/code&gt;, since it was similar to &lt;code&gt;org-publish-attachment&lt;/code&gt; according to the tutorials; it would follow that it was the correct function to call but lightning strikes twice as the correct one is &lt;code&gt;org-html-publish-to-html&lt;/code&gt;.
+&lt;/p&gt;
+
+&lt;p&gt;
+Aside, there might be one more property to add to the setting. I am not sure if it is part of the change but it might be related.
+&lt;/p&gt;
+
+&lt;pre class=&quot;example&quot;&gt;
+:with-toc nil
+&lt;/pre&gt;
+
+&lt;p&gt;
+This property messes with the &lt;code&gt;Front Matter&lt;/code&gt; section since it preprends a table of contents on the post if not set to &lt;code&gt;nil&lt;/code&gt;. Just worth noting as well.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;outline-container-orgheadline3&quot; class=&quot;outline-3&quot;&gt;
+&lt;h3 id=&quot;orgheadline3&quot;&gt;External shadowing internal&lt;/h3&gt;
+&lt;div class=&quot;outline-text-3&quot; id=&quot;text-orgheadline3&quot;&gt;
+&lt;p&gt;
+To use the publishing features of &lt;code&gt;org&lt;/code&gt;, you had to download the &lt;code&gt;org-plus-contrib&lt;/code&gt; package which somehow depends on an external &lt;code&gt;org&lt;/code&gt; package to work. I didn&#39;t find this an issue elsewhere but it somehow conflicted with how &lt;code&gt;org-html&lt;/code&gt; publishes files. The thing it primarily solved I think was the &lt;code&gt;&amp;lt;div&amp;gt;&lt;/code&gt; that wrapped the exported &lt;code&gt;org&lt;/code&gt; file but I am not sure.
+&lt;/p&gt;
+
+&lt;pre class=&quot;example&quot;&gt;
+;; Helper functions
+(defun string/ends-with (s ending)
+  &quot;Return non-nil if string S ends with ENDING.&quot;
+  (cond ((&amp;gt;= (length s) (length ending))
+         (let ((elength (length ending)))
+           (string= (substring s (- 0 elength)) ending)))
+            (t nil)))
+
+(require &#39;cl)
+(setq load-path
+      (remove-if
+       (lambda (text) (string/ends-with text &quot;org&quot;))
+       load-path))
+&lt;/pre&gt;
+
+&lt;p&gt;
+Aside from installing the said packages, I removed the builtin &lt;code&gt;org&lt;/code&gt; package from the &lt;code&gt;load-path&lt;/code&gt; which made &lt;code&gt;list-load-path-shadows&lt;/code&gt; clean. It also made it easier to configure extra &lt;code&gt;org&lt;/code&gt; packages and not have to hard code them when using an configuration under &lt;code&gt;org&lt;/code&gt;.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;outline-container-orgheadline4&quot; class=&quot;outline-3&quot;&gt;
+&lt;h3 id=&quot;orgheadline4&quot;&gt;org-html string escaping&lt;/h3&gt;
+&lt;div class=&quot;outline-text-3&quot; id=&quot;text-orgheadline4&quot;&gt;
+&lt;p&gt;
+This issue is by far the most mischievous I had to track down.
+&lt;/p&gt;
+
+&lt;pre class=&quot;example&quot;&gt;
+(setq org-html-special-string-regexps nil)
+&lt;/pre&gt;
+
+&lt;p&gt;
+The variable &lt;code&gt;org-html-special-string-regexps&lt;/code&gt; causes the &lt;code&gt;---&lt;/code&gt; in the export to be converted to &lt;code&gt;&amp;amp;#x2014;&lt;/code&gt; effectively destroying the &lt;a href=&quot;http://jekyllrb.com/docs/frontmatter/&quot;&gt;Front Matter&lt;/a&gt; section which jekyll needs to process the page completely. I had to set it to &lt;code&gt;nil&lt;/code&gt; to process the section correctly.
+&lt;/p&gt;
+
+&lt;p&gt;
+But this didn&#39;t fix it entirely since the whole exported file was wrapped with a &lt;code&gt;&amp;lt;div&amp;gt;&lt;/code&gt; rendering the whole file moot again.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;outline-container-orgheadline6&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;orgheadline6&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;div class=&quot;outline-text-2&quot; id=&quot;text-orgheadline6&quot;&gt;
+&lt;p&gt;
+I hope you did not encounter the same problems I have because it is a pain. Writing a blog using &lt;code&gt;org&lt;/code&gt; is still awesome but I wish there was a tutorial that was up to date so this mess might have been avoided.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;outline-container-orgheadline7&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;orgheadline7&quot;&gt;Links&lt;/h2&gt;
+&lt;div class=&quot;outline-text-2&quot; id=&quot;text-orgheadline7&quot;&gt;
+&lt;ul class=&quot;org-ul&quot;&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.gorgnegre.com/linux/using-emacs-orgmode-to-blog-with-jekyll.html&quot;&gt;Gorg Negre&#39;s tutorial&lt;/a&gt; maybe what got me started in doing this but at the time it seem pretty outdated.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://orgmode.org/worg/org-tutorials/org-jekyll.html&quot;&gt;The official org-mode tutorial&lt;/a&gt; is excellent in setting up the site without &lt;code&gt;GitHubPages&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://jekyllrb.com/docs/github-pages/&quot;&gt;The official jekyll GitHubPages tutorial&lt;/a&gt; is informative enough on the nuances of hosting the site in &lt;code&gt;GitHubPages&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://orgmode.org/manual/Configuration.html#Configuration&quot;&gt;The org-publish configuration page&lt;/a&gt; is a good reference on the publishing options.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://acaird.github.io/computers/2013/05/24/blogging-with-org-and-git/&quot;&gt;Andrew Caird&#39;s tutorial&lt;/a&gt; is the one I refer to for my workflow.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://nickhigham.wordpress.com/2013/07/05/emacs-org-mode-version-8/&quot;&gt;Nick Higham&#39;s post on org-mode 8&lt;/a&gt; refers to a few compatibility issues.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+        <pubDate>Fri, 15 Jan 2016 00:00:00 +0800</pubDate>
+        <link>http://francismurillo.com/jekll/org/emacs/2016/01/15/Setting-Up-org-mode-And-jekyll.html</link>
+        <guid isPermaLink="true">http://francismurillo.com/jekll/org/emacs/2016/01/15/Setting-Up-org-mode-And-jekyll.html</guid>
+        
+        <category>jekyll</category>
+        
+        
+        <category>jekll</category>
+        
+        <category>org</category>
+        
+        <category>Emacs</category>
+        
+      </item>
+    
+      <item>
+        <title>Hello Log</title>
+        <description>&lt;p&gt;
+At last! I finally setup an org-mode Jekyll site in GitHub. After creating and deleting a bunch of GitHub repos, mindlessly making my Emacs configuration to an org-file, tackling the package initialization system, checking the source code of org-mode and more; I was able to pinit down.
+&lt;/p&gt;
+
+&lt;p&gt;
+Now that I have a blog setup, what to do now? My plan is to make to blog post every week, at least one on a weekend and weekday. What am I going to talk about? Well, random to be precise. Not really but it somewhat is, I will talk about my experiences in developing, coding and whatever the fudge I want. Except the last part, I simply want to share my experiences, maybe it will help mankind or myself.
+&lt;/p&gt;
+
+&lt;p&gt;
+But I still have a long way to go, I have to customize this site from it&#39;s base, manage how to use org-mode, learn how to format the post, add some more functionality and so forth. For now, this is a good start.
+&lt;/p&gt;
 </description>
         <pubDate>Wed, 13 Jan 2016 00:00:00 +0800</pubDate>
         <link>http://francismurillo.com/jekll/org/2016/01/13/Hello-Log.html</link>
