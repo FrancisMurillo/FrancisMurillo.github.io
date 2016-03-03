@@ -1,0 +1,78 @@
+---
+title: FormParam And Lists
+tagline: How to pass arrays through JAX-RS and @FormParam with jQuery.post
+layout: post
+author: Francis Murillo
+categories: Pain Point
+tags: jQuery, JAX-RS
+---
+
+<p>
+So I've been working with a web application with <code>JAX-RS</code> and <code>jQuery</code> and working fine. However, I came across a problem that took quite some time to resolve.
+</p>
+
+<p>
+Using the <code>jQuery.ajax</code> and it's variants, <code>jQuery.get</code>, <code>jQuery.post</code>, <code>jQuery.getJSON</code>, has provided some ease of use in interacting with the backend web services. When making a lookup web service with <code>POST</code>, the ideal glue code would to simply use <code>jQuery.post</code> like so.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-javascript">jQuery.post({
+    url: 'my/url',
+    data: { // Passing
+        param1: 1,
+        param2: 'b',
+        param3: [1,2,3]
+    }
+});
+</pre>
+</div>
+
+<p>
+The <code>JAX-RS</code> web service method to bind it would be
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-java">@POST
+public Response someEndpoint(@FormParam("param1") Long myLong, @FormParam("param2") String someString, @FormParam("param3") listOfLongs) {
+    // Do something meaningful
+    return Response.ok(42).build();
+}
+</pre>
+</div>
+
+<p>
+Looks just about right, it sends the correct and sensible <code>POST</code> request over the wire. However, the third parameter <code>listOfLongs</code> when checked with a debugger always returns an empty list despite being correct with the browser's network debugger. The other parameters are passed correctly but why not the one with the array or list? Finding a solution took quite some time and pain as something simple as a list should be easy to pass.
+</p>
+
+<p>
+A workaround for this is to <code>JSON.stringify</code> data and just send the <code>POST</code> as a <code>JSON</code> string and parsed as a object on the endpoint assuming a <code>JSON</code> converter is in place. I think it is bad taste to do this since it's passing simple arguments, not a list of higher objects. There has to be a better way.
+</p>
+
+<p>
+In fact, there is. The solution is only a change for the backend. Can you spot the difference?
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-java">@POST
+public Response someEndpoint(@FormParam("param1") Long myLong, @FormParam("param2") String someString, @FormParam("param3[]") listOfLongs) {
+    // Where's Waldo?
+    return Response.ok(42).build();
+}
+</pre>
+</div>
+
+<p>
+The trick is to make <code>param3</code> into <code>param3[]</code> and it will work as expected. I believe the reason is how the arrays are passed over the wire. When the <code>ajax</code> call encodes the array value it appends <code>[]</code> to its key or parameter, a transformation to distinguish atomic values with collection.
+</p>
+
+<p>
+Interesting but I didn't think it would affect the way it would be parsed or mapped with the endpoint. I believed that it would be mapped accordingly regardless of the implementation detail or whatever. The <code>[]</code> looks somewhat out of place but this is definitely better than the workaround.
+</p>
+
+<p>
+Another day in the life of a monkey.
+</p>
