@@ -3,12 +3,17 @@
 ---
 @charset "utf-8";
 
-// Color Scheme
-// http://www.colorcombos.com/color-schemes/171/ColorCombo171.html
+// My variables
+$monospace:     "DejaVu Sans Mono", "Courier";
+
+$background-color:  #eebb00;
+
+$link-color: #dddddd;
+
 
 // Our variables
-$base-font-family: "DejaVu Sans Mono", "Helvetica Neue", Helvetica, Arial, sans-serif;
-$base-font-size:   16px;
+$base-font-family: $monospace;
+$base-font-size:   1.1em;
 $base-font-weight: 400;
 $small-font-size:  $base-font-size * 0.875;
 $base-line-height: 1.5;
@@ -24,10 +29,9 @@ $secondary-font-color: #bdaec6;
 
 $tertiary-font-color: #ffffff;
 
-$spacing-unit:     30px;
+$spacing-unit:     15px;
 
 $text-color:       #111;
-$background-color: white;
 $brand-color:      #2a7ae2;
 
 $grey-color:       #828282;
@@ -59,7 +63,8 @@ $on-laptop:        800px;
 
 // Import partials from `sass_dir` (defaults to `_sass`)
 @import
-        "base",
-        "layout",
-        "syntax-highlighting"
+"base",
+"layout",
+"syntax-highlighting",
+"customization"
 ;

@@ -1,5 +1,5 @@
 /**
- * Site header
+ * ite header
  */
 .site-header {
     border-top: 5px solid $grey-color-dark;
@@ -22,11 +22,6 @@
 
     color: $main-font-color;
 
-    &,
-    &:visited {
-        color: $main-font-color;
-        text-decoration: none;
-    }
 }
 
 .site-nav {
@@ -187,10 +182,6 @@
 .post-list {
     margin-left: 0;
     list-style: none;
-
-    > li {
-        margin-bottom: $spacing-unit;
-    }
 }
 
 .post-meta {
@@ -201,6 +192,11 @@
 .post-link {
     display: block;
     font-size: 24px;
+    text-decoration: none;
+}
+
+.post-link:hover {
+    text-decoration: none;
 }
 
 
