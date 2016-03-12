@@ -121,7 +121,7 @@ ul + h2,
 ul + h3,
 ol + h1,
 ol + h2,
-ol + h3 {
+k  ol + h3 {
   margin-top: 1.5rem;
 }
 
@@ -359,11 +359,17 @@ tbody tr:nth-child(odd) th {
       }
     }
   }
+
+  &-post-tagline {
+    margin-bottom: .25rem;
+  }
+
   &-post-date {
     margin-bottom: 1rem;
     font-size: .75rem;
     text-transform: uppercase;
   }
+
 }
 
 .projects-list {

@@ -4,32 +4,29 @@
 @charset "utf-8";
 
 // My variables
-$monospace:     "DejaVu Sans Mono", "Courier";
 
-$background-color:  #eebb00;
+$background-color:  white;
 
-$link-color: #dddddd;
-
+$link-color: #268bd2;
 
 // Our variables
-$base-font-family: $monospace;
+$base-font-family: "Source Sans Pro", "Arial";
 $base-font-size:   1.1em;
 $base-font-weight: 400;
 $small-font-size:  $base-font-size * 0.875;
 $base-line-height: 1.5;
 
 $main-color:            #421c52;
+$secondary-color:        #333333;
 
-$secondary-color:        #732c7b;
-
-$main-font-color:  #9c8aa5;
-$main-font-color:  #ffffff;
+$main-font-color:  black;
 
 $secondary-font-color: #bdaec6;
 
+
 $tertiary-font-color: #ffffff;
 
-$spacing-unit:     15px;
+$spacing-unit:     1em;
 
 $text-color:       #111;
 $brand-color:      #2a7ae2;

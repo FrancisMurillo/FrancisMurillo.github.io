@@ -1,32 +1,41 @@
 /**
- * ite header
+ * Site header
  */
 .site-header {
-    border-top: 5px solid $grey-color-dark;
-    border-bottom: 1px solid $grey-color-light;
+    margin-top: 2 * $base-font-size;
+
     min-height: 56px;
 
     // Positioning context for the mobile navigation icon
     position: relative;
 
-    background-color: $main-color;
 }
 
 .site-title {
-    font-size: 26px;
-    font-weight: 300;
-    line-height: 56px;
+    font-size: 2 * $base-font-size;
+    font-weight: 2 * $base-font-weight;
     letter-spacing: -1px;
     margin-bottom: 0;
-    float: left;
 
     color: $main-font-color;
+
+    a {
+        color: $main-font-color;
+    }
+
+    a:hover {
+            text-decoration: none;
+    }
 
 }
 
 .site-nav {
-    float: right;
-    line-height: 56px;
+    margin-bottom: 1.1 * $base-font-size;
+
+    a {
+        color: $grey-color;
+    }
+
 
     .menu-icon {
         display: none;
@@ -91,7 +100,6 @@
         }
     }
 }
-
 
 
 /**

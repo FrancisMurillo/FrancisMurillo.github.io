@@ -1,8 +1,11 @@
 ---
-title: About
+layout: page
+title: Who Am I?
 permalink: /about/
 ---
 
-<p class="lead"><a href="http://github.com/gfjaru/Kiko">Kiko</a> is a theme for <a href="http://jekyllrb.com">Jekyll</a>, the static site generator.</p>
+I'm Francis Murillo and I am a mediocre developer.
 
-Kiko is simple, lightweight theme. It's designed and developed by [@gfjaru](https://twitter.com/gfjaru).
+{% include email-me.html %}
+{% include icon-github.html username=site.github_username %}
+{% include icon-twitter.html username=site.twitter_username %}

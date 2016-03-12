@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
-	<channel>
-		<title>Kiko</title>
-		<link>//kiko.gfjaru.com</link>
-		<atom:link href="//kiko.gfjaru.com/feed.xml" rel="self" type="application/rss+xml" />
-		
-			<item>
-				<title>My First Code Camp</title>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fn/Log</title>
+    <description>The diary of a mediocre developer</description>
+    <link>//francismurillo.github.io/</link>
+    <atom:link href="//francismurillo.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Sat, 12 Mar 2016 20:07:15 +0800</pubDate>
+    <lastBuildDate>Sat, 12 Mar 2016 20:07:15 +0800</lastBuildDate>
+    <generator>Jekyll v3.0.1</generator>
+    
+      <item>
+        <title>My First Code Camp</title>
         <description>&lt;p&gt;
 After hearing about a code camp on Python &lt;a href=&quot;http://docs.fabfile.org/en/1.10/&quot;&gt;fabric&lt;/a&gt; and as a developer, I owe it to myself to join. I&#39;ve seen a lot of PyCon videos and I had an impression or expectation what a code camp would be or better. It was held in an usual corporate venue and you knew it was a little of recruitment as well but you can expect that when they pay for your meal and knowledge.
 &lt;/p&gt;
@@ -57,13 +61,19 @@ Actually, my objective for the code camp was not really to learn anything but to
 The week after this, I am going to attend a community meeting in another known company but this time for Javascript. I don&#39;t know if it another recruitment drive but I want to see the community. I think developers are glued together by code and their experience with it. In that sense for me, I want to see how people code and how it affects them. Code and community, I want to see more of it.
 &lt;/p&gt;
 </description>
-				<pubDate>Sat, 12 Mar 2016 00:00:00 +0800</pubDate>
-				<link>//kiko.gfjaru.com/2016/03/12/My-First-Code-Camp/</link>
-				<guid isPermaLink="true">//kiko.gfjaru.com/2016/03/12/My-First-Code-Camp/</guid>
-			</item>
-		
-			<item>
-				<title>(Excel)Spreadsheets As Tools</title>
+        <pubDate>Sat, 12 Mar 2016 00:00:00 +0800</pubDate>
+        <link>//francismurillo.github.io/2016/03/12/My-First-Code-Camp/</link>
+        <guid isPermaLink="true">//francismurillo.github.io/2016/03/12/My-First-Code-Camp/</guid>
+        
+        <category>Event</category>
+        
+        
+        <category>Event</category>
+        
+      </item>
+    
+      <item>
+        <title>(Excel)Spreadsheets As Tools</title>
         <description>&lt;p&gt;
 I recently watched the video &lt;a href=&quot;https://www.youtube.com/watch?v=0CKru5d4GPk&quot;&gt;Spreadsheets For Developers&lt;/a&gt; and it echoed within my experiences developing tools within Microsoft Excel.
 &lt;/p&gt;
@@ -119,13 +129,19 @@ As it stands today, I can no longer work with Excel since I am on a Linux machin
 Spreadsheet is indeed code. It&#39;s just nice that someone made a thesis and talk about it to rectify my actions of being obsessed with a language such as Excel.
 &lt;/p&gt;
 </description>
-				<pubDate>Sat, 05 Mar 2016 00:00:00 +0800</pubDate>
-				<link>//kiko.gfjaru.com/2016/03/05/(Excel)Spreadsheets-As-Tools/</link>
-				<guid isPermaLink="true">//kiko.gfjaru.com/2016/03/05/(Excel)Spreadsheets-As-Tools/</guid>
-			</item>
-		
-			<item>
-				<title>FormParam And Lists</title>
+        <pubDate>Sat, 05 Mar 2016 00:00:00 +0800</pubDate>
+        <link>//francismurillo.github.io/2016/03/05/(Excel)Spreadsheets-As-Tools/</link>
+        <guid isPermaLink="true">//francismurillo.github.io/2016/03/05/(Excel)Spreadsheets-As-Tools/</guid>
+        
+        <category>Excel</category>
+        
+        
+        <category>Musings</category>
+        
+      </item>
+    
+      <item>
+        <title>FormParam And Lists</title>
         <description>&lt;p&gt;
 So I&#39;ve been working with a web application with &lt;code&gt;JAX-RS&lt;/code&gt; and &lt;code&gt;jQuery&lt;/code&gt; and working fine. However, I came across a problem that took quite some time to resolve.
 &lt;/p&gt;
@@ -196,13 +212,23 @@ Interesting but I didn&#39;t think it would affect the way it would be parsed or
 Another day in the life of a monkey.
 &lt;/p&gt;
 </description>
-				<pubDate>Thu, 03 Mar 2016 00:00:00 +0800</pubDate>
-				<link>//kiko.gfjaru.com/2016/03/03/@FormParam-And-Lists/</link>
-				<guid isPermaLink="true">//kiko.gfjaru.com/2016/03/03/@FormParam-And-Lists/</guid>
-			</item>
-		
-			<item>
-				<title>Setting Up org-mode And jekyll</title>
+        <pubDate>Thu, 03 Mar 2016 00:00:00 +0800</pubDate>
+        <link>//francismurillo.github.io/2016/03/03/@FormParam-And-Lists/</link>
+        <guid isPermaLink="true">//francismurillo.github.io/2016/03/03/@FormParam-And-Lists/</guid>
+        
+        <category>jQuery,</category>
+        
+        <category>JAX-RS</category>
+        
+        
+        <category>Pain</category>
+        
+        <category>Point</category>
+        
+      </item>
+    
+      <item>
+        <title>Setting Up org-mode And jekyll</title>
         <description>&lt;div id=&quot;outline-container-orgheadline1&quot; class=&quot;outline-2&quot;&gt;
 &lt;h2 id=&quot;orgheadline1&quot;&gt;Introduction&lt;/h2&gt;
 &lt;div class=&quot;outline-text-2&quot; id=&quot;text-orgheadline1&quot;&gt;
@@ -363,13 +389,23 @@ I hope you did not encounter the same problems I have because it is a pain. Writ
 &lt;/div&gt;
 &lt;/div&gt;
 </description>
-				<pubDate>Fri, 15 Jan 2016 00:00:00 +0800</pubDate>
-				<link>//kiko.gfjaru.com/2016/01/15/Setting-Up-org-mode-And-jekyll/</link>
-				<guid isPermaLink="true">//kiko.gfjaru.com/2016/01/15/Setting-Up-org-mode-And-jekyll/</guid>
-			</item>
-		
-			<item>
-				<title>Hello Log</title>
+        <pubDate>Fri, 15 Jan 2016 00:00:00 +0800</pubDate>
+        <link>//francismurillo.github.io/2016/01/15/Setting-Up-org-mode-And-jekyll/</link>
+        <guid isPermaLink="true">//francismurillo.github.io/2016/01/15/Setting-Up-org-mode-And-jekyll/</guid>
+        
+        <category>jekyll</category>
+        
+        
+        <category>jekll</category>
+        
+        <category>org</category>
+        
+        <category>Emacs</category>
+        
+      </item>
+    
+      <item>
+        <title>Hello Log</title>
         <description>&lt;p&gt;
 At last! I finally setup an org-mode Jekyll site in GitHub. After creating and deleting a bunch of GitHub repos, mindlessly making my Emacs configuration to an org-file, tackling the package initialization system, checking the source code of org-mode and more; I was able to pinit down.
 &lt;/p&gt;
@@ -382,10 +418,18 @@ Now that I have a blog setup, what to do now? My plan is to make to blog post ev
 But I still have a long way to go, I have to customize this site from it&#39;s base, manage how to use org-mode, learn how to format the post, add some more functionality and so forth. For now, this is a good start.
 &lt;/p&gt;
 </description>
-				<pubDate>Wed, 13 Jan 2016 00:00:00 +0800</pubDate>
-				<link>//kiko.gfjaru.com/2016/01/13/Hello-Log/</link>
-				<guid isPermaLink="true">//kiko.gfjaru.com/2016/01/13/Hello-Log/</guid>
-			</item>
-		
-	</channel>
+        <pubDate>Wed, 13 Jan 2016 00:00:00 +0800</pubDate>
+        <link>//francismurillo.github.io/2016/01/13/Hello-Log/</link>
+        <guid isPermaLink="true">//francismurillo.github.io/2016/01/13/Hello-Log/</guid>
+        
+        <category>jekyll</category>
+        
+        
+        <category>jekll</category>
+        
+        <category>org</category>
+        
+      </item>
+    
+  </channel>
 </rss>
