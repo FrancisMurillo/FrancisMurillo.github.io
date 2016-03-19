@@ -18,10 +18,10 @@ Using the <code>jQuery.ajax</code> and it's variants, <code>jQuery.get</code>, <
 <div class="org-src-container">
 
 <pre class="src src-javascript">jQuery.post({
-    url: 'my/url',
-    data: { // Passing
+    url: <span style="color: #ffa07a;">'my/url'</span>,
+    data: { <span style="color: #cd853f;">// </span><span style="color: #cd853f;">Passing</span>
         param1: 1,
-        param2: 'b',
+        param2: <span style="color: #ffa07a;">'b'</span>,
         param3: [1,2,3]
     }
 });
@@ -34,10 +34,10 @@ The <code>JAX-RS</code> web service method to bind it would be
 
 <div class="org-src-container">
 
-<pre class="src src-java">@POST
-public Response someEndpoint(@FormParam("param1") Long myLong, @FormParam("param2") String someString, @FormParam("param3") listOfLongs) {
-    // Do something meaningful
-    return Response.ok(42).build();
+<pre class="src src-java"><span style="color: #1e90ff;">@POST</span>
+<span style="color: #20b2aa; font-weight: bold;">public</span> <span style="color: #9370db;">Response</span> <span style="color: #00ff7f;">someEndpoint</span>(<span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param1"</span>) <span style="color: #9370db;">Long</span> <span style="color: #9acd32;">myLong</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param2"</span>) <span style="color: #9370db;">String</span> <span style="color: #9acd32;">someString</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param3"</span>) <span style="color: #9370db;">listOfLongs</span>) {
+    <span style="color: #cd853f;">// </span><span style="color: #cd853f;">Do something meaningful</span>
+    <span style="color: #20b2aa; font-weight: bold;">return</span> Response.ok(42).build();
 }
 </pre>
 </div>
@@ -57,10 +57,10 @@ In fact, there is. The solution is only a change for the backend. Can you spot t
 
 <div class="org-src-container">
 
-<pre class="src src-java">@POST
-public Response someEndpoint(@FormParam("param1") Long myLong, @FormParam("param2") String someString, @FormParam("param3[]") listOfLongs) {
-    // Where's Waldo?
-    return Response.ok(42).build();
+<pre class="src src-java"><span style="color: #1e90ff;">@POST</span>
+<span style="color: #20b2aa; font-weight: bold;">public</span> <span style="color: #9370db;">Response</span> <span style="color: #00ff7f;">someEndpoint</span>(<span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param1"</span>) <span style="color: #9370db;">Long</span> <span style="color: #9acd32;">myLong</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param2"</span>) <span style="color: #9370db;">String</span> <span style="color: #9acd32;">someString</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param3[]"</span>) <span style="color: #9370db;">listOfLongs</span>) {
+    <span style="color: #cd853f;">// </span><span style="color: #cd853f;">Where's Waldo?</span>
+    <span style="color: #20b2aa; font-weight: bold;">return</span> Response.ok(42).build();
 }
 </pre>
 </div>

@@ -8,10 +8,19 @@
       </p>
     </div>
 
+    <div class="site-subtitle">
+      <p>
+        <span>Made with</span>
+        <a href="https://www.gnu.org/software/emacs/emacs">Emacs</a>
+        <a href="https://orgmode.org">org-mode</a> and
+        <a href="https://jekyllrb.com">Jekyll</a>
+      </p>
+    </div>
+
     <nav class="site-nav">
-      {% for nav in site.nav %}
-          <a href="{{ nav.href }}">{{ nav.name }}</a>
-    {% endfor %}
+        {% for nav in site.nav %}
+        <a href="{{ nav.href }}">{{ nav.name }}</a>
+        {% endfor %}
     </nav>
 
   </div>
