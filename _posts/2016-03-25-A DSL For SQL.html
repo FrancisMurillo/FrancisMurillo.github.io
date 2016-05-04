@@ -86,25 +86,25 @@ it is easy.
 <pre class="src src-python"><span style="color: #9acd32;">birth_date</span> = Field(<span style="color: #ffa07a;">'birth_date'</span>) <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Short constructor, positional</span>
 
 <span style="color: #9acd32;">person</span> = Table.make( <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Long constructor, keywords</span>
-    name = <span style="color: #ffa07a;">'person'</span>,
-    alias = <span style="color: #ffa07a;">'p'</span>, <span style="color: #cd853f;"># </span><span style="color: #cd853f;">For later</span>
-    fields = [
-        Field.make(
-            name = <span style="color: #ffa07a;">'person_id'</span>
-        ),
-        Field(<span style="color: #ffa07a;">'last_name'</span>),
-        Field(<span style="color: #ffa07a;">'first_date'</span>),
-        birth_date
-    ]
+<span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'person'</span>,
+<span style="background-color: #1a1a1a;"> </span>   alias = <span style="color: #ffa07a;">'p'</span>, <span style="color: #cd853f;"># </span><span style="color: #cd853f;">For later</span>
+<span style="background-color: #1a1a1a;"> </span>   fields = [
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   Field.make(
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'person_id'</span>
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   ),
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   Field(<span style="color: #ffa07a;">'last_name'</span>),
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   Field(<span style="color: #ffa07a;">'first_date'</span>),
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   birth_date
+<span style="background-color: #1a1a1a;"> </span>   ]
 )
 
 <span style="color: #9acd32;">relationship</span> = Table(
-    name = <span style="color: #ffa07a;">'person_relationship'</span>,
-    alias = <span style="color: #ffa07a;">'pr'</span>,
-    fields = [
-        Field.make(<span style="color: #ffa07a;">'person_id'</span>),
-        Field.make(<span style="color: #ffa07a;">'related_person_id'</span>)
-    ]
+<span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'person_relationship'</span>,
+<span style="background-color: #1a1a1a;"> </span>   alias = <span style="color: #ffa07a;">'pr'</span>,
+<span style="background-color: #1a1a1a;"> </span>   fields = [
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   Field.make(<span style="color: #ffa07a;">'person_id'</span>),
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   Field.make(<span style="color: #ffa07a;">'related_person_id'</span>)
+<span style="background-color: #1a1a1a;"> </span>   ]
 )
 </pre>
 </div>
@@ -137,20 +137,20 @@ So our next step is to create the query for each one. Let's see.
 <span style="color: #cd853f;"># </span><span style="color: #cd853f;">out &gt;&gt; select pr.person_id, pr.related_person_id from person_relationship pr</span>
 
 <span style="color: #9acd32;">all_person</span> = Query.make(
-    name = <span style="color: #ffa07a;">'everyone'</span>, <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Name functions as an id</span>
-    tables = [
-        person
-    ]
+<span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'everyone'</span>, <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Name functions as an id</span>
+<span style="background-color: #1a1a1a;"> </span>   tables = [
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   person
+<span style="background-color: #1a1a1a;"> </span>   ]
 )
 
 <span style="color: #20b2aa; font-weight: bold;">print</span>(Query.craft(all_person)) <span style="color: #cd853f;"># </span><span style="color: #cd853f;">ditto</span>
 
 <span style="color: #9acd32;">people_relationships</span> = Query.make(
-    name = <span style="color: #ffa07a;">'everyelse'</span>,
-    tables = [
-        person,
-        relationship
-    ]
+<span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'everyelse'</span>,
+<span style="background-color: #1a1a1a;"> </span>   tables = [
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   person,
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   relationship
+<span style="background-color: #1a1a1a;"> </span>   ]
 )
 
 <span style="color: #20b2aa; font-weight: bold;">print</span>(Query.craft(people_relationships)) <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Outer join</span>
@@ -164,28 +164,28 @@ So our next step is to create the query for each one. Let's see.
 <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Astute readers will realize that there are two person_ids here which will fail</span>
 
 <span style="color: #9acd32;">person_relations</span> = Link.make( <span style="color: #cd853f;"># </span><span style="color: #cd853f;">A way to refactor ON clauses</span>
-    name = <span style="color: #ffa07a;">'p_and_pr'</span>,
-    source = Table.getField(<span style="color: #ffa07a;">'person_id'</span>, person), <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Still experimental</span>
-    target = Table.getField(<span style="color: #ffa07a;">'person_id'</span>, people_relationships)
+<span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'p_and_pr'</span>,
+<span style="background-color: #1a1a1a;"> </span>   source = Table.getField(<span style="color: #ffa07a;">'person_id'</span>, person), <span style="color: #cd853f;"># </span><span style="color: #cd853f;">Still experimental</span>
+<span style="background-color: #1a1a1a;"> </span>   target = Table.getField(<span style="color: #ffa07a;">'person_id'</span>, people_relationships)
 )
 
 <span style="color: #9acd32;">relations_person</span> = Link.make(
-    name = <span style="color: #ffa07a;">'pr_and_p'</span>,
-    source = people_relationships,
-    target = person
+<span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'pr_and_p'</span>,
+<span style="background-color: #1a1a1a;"> </span>   source = people_relationships,
+<span style="background-color: #1a1a1a;"> </span>   target = person
 )
 
 <span style="color: #9acd32;">everyone</span> = Query.make(
-    name = <span style="color: #ffa07a;">'everyone'</span>,
-    table = [
-        person,
-        relationship,
-        Table.setAlias(<span style="color: #ffa07a;">'np'</span>, person)
-    ],
-    link = [
-        person_relations,
-        relations_person
-    ]
+<span style="background-color: #1a1a1a;"> </span>   name = <span style="color: #ffa07a;">'everyone'</span>,
+<span style="background-color: #1a1a1a;"> </span>   table = [
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   person,
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   relationship,
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   Table.setAlias(<span style="color: #ffa07a;">'np'</span>, person)
+<span style="background-color: #1a1a1a;"> </span>   ],
+<span style="background-color: #1a1a1a;"> </span>   link = [
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   person_relations,
+<span style="background-color: #1a1a1a;"> </span>   <span style="background-color: #1a1a1a;"> </span>   relations_person
+<span style="background-color: #1a1a1a;"> </span>   ]
 )
 
 <span style="color: #20b2aa; font-weight: bold;">print</span>(Query.craft(everyone))
