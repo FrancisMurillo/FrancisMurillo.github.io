@@ -17,14 +17,14 @@ Using the <code>jQuery.ajax</code> and it's variants, <code>jQuery.get</code>, <
 
 <div class="org-src-container">
 
-<pre class="src src-javascript">jQuery.post({
-    url: <span style="color: #ffa07a;">'my/url'</span>,
-    data: { <span style="color: #cd853f;">// </span><span style="color: #cd853f;">Passing</span>
+<pre class="src src-javascript">jQuery.post<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">{</span>
+    url: <span style="color: #C5E1A5;">'my/url'</span>,
+    data: <span style="color: #7fff00;">{</span> <span style="color: #757575;">// </span><span style="color: #757575;">Passing</span>
         param1: 1,
-        param2: <span style="color: #ffa07a;">'b'</span>,
-        param3: [1,2,3]
-    }
-});
+        param2: <span style="color: #C5E1A5;">'b'</span>,
+        param3: <span style="color: #00bfff;">[</span>1,2,3<span style="color: #00bfff;">]</span>
+    <span style="color: #7fff00;">}</span>
+<span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>;
 </pre>
 </div>
 
@@ -34,11 +34,11 @@ The <code>JAX-RS</code> web service method to bind it would be
 
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #1e90ff;">@POST</span>
-<span style="color: #20b2aa; font-weight: bold;">public</span> <span style="color: #9370db;">Response</span> <span style="color: #00ff7f;">someEndpoint</span>(<span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param1"</span>) <span style="color: #9370db;">Long</span> <span style="color: #9acd32;">myLong</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param2"</span>) <span style="color: #9370db;">String</span> <span style="color: #9acd32;">someString</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param3"</span>) <span style="color: #9370db;">listOfLongs</span>) {
-    <span style="color: #cd853f;">// </span><span style="color: #cd853f;">Do something meaningful</span>
-    <span style="color: #20b2aa; font-weight: bold;">return</span> Response.ok(42).build();
-}
+<pre class="src src-java"><span style="color: #C5CAE9;">@POST</span>
+<span style="color: #E1BEE7;">public</span> <span style="color: #FFCC80;">Response</span> <span style="color: #64B5F6;">someEndpoint</span><span style="color: #ff8c00;">(</span><span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param1"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">Long</span> <span style="color: #80CBC4;">myLong</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param2"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">String</span> <span style="color: #80CBC4;">someString</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param3"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">listOfLongs</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #757575;">// </span><span style="color: #757575;">Do something meaningful</span>
+    <span style="color: #E1BEE7;">return</span> Response.ok<span style="color: #ff1493;">(</span>42<span style="color: #ff1493;">)</span>.build<span style="color: #ff1493;">()</span>;
+<span style="color: #ff8c00;">}</span>
 </pre>
 </div>
 
@@ -57,11 +57,11 @@ In fact, there is. The solution is only a change for the backend. Can you spot t
 
 <div class="org-src-container">
 
-<pre class="src src-java"><span style="color: #1e90ff;">@POST</span>
-<span style="color: #20b2aa; font-weight: bold;">public</span> <span style="color: #9370db;">Response</span> <span style="color: #00ff7f;">someEndpoint</span>(<span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param1"</span>) <span style="color: #9370db;">Long</span> <span style="color: #9acd32;">myLong</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param2"</span>) <span style="color: #9370db;">String</span> <span style="color: #9acd32;">someString</span>, <span style="color: #1e90ff;">@FormParam</span>(<span style="color: #ffa07a;">"param3[]"</span>) <span style="color: #9370db;">listOfLongs</span>) {
-    <span style="color: #cd853f;">// </span><span style="color: #cd853f;">Where's Waldo?</span>
-    <span style="color: #20b2aa; font-weight: bold;">return</span> Response.ok(42).build();
-}
+<pre class="src src-java"><span style="color: #C5CAE9;">@POST</span>
+<span style="color: #E1BEE7;">public</span> <span style="color: #FFCC80;">Response</span> <span style="color: #64B5F6;">someEndpoint</span><span style="color: #ff8c00;">(</span><span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param1"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">Long</span> <span style="color: #80CBC4;">myLong</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param2"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">String</span> <span style="color: #80CBC4;">someString</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param3[]"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">listOfLongs</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #757575;">// </span><span style="color: #757575;">Where's Waldo?</span>
+    <span style="color: #E1BEE7;">return</span> Response.ok<span style="color: #ff1493;">(</span>42<span style="color: #ff1493;">)</span>.build<span style="color: #ff1493;">()</span>;
+<span style="color: #ff8c00;">}</span>
 </pre>
 </div>
 
