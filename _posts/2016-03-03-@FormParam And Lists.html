@@ -15,32 +15,9 @@ So I've been working with a web application with <code>JAX-RS</code> and <code>j
 Using the <code>jQuery.ajax</code> and it's variants, <code>jQuery.get</code>, <code>jQuery.post</code>, <code>jQuery.getJSON</code>, has provided some ease of use in interacting with the backend web services. When making a lookup web service with <code>POST</code>, the ideal glue code would to simply use <code>jQuery.post</code> like so.
 </p>
 
-<div class="org-src-container">
-
-<pre class="src src-javascript">jQuery.post<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">{</span>
-    url: <span style="color: #C5E1A5;">'my/url'</span>,
-    data: <span style="color: #7fff00;">{</span> <span style="color: #757575;">// </span><span style="color: #757575;">Passing</span>
-        param1: 1,
-        param2: <span style="color: #C5E1A5;">'b'</span>,
-        param3: <span style="color: #00bfff;">[</span>1,2,3<span style="color: #00bfff;">]</span>
-    <span style="color: #7fff00;">}</span>
-<span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>;
-</pre>
-</div>
-
 <p>
 The <code>JAX-RS</code> web service method to bind it would be
 </p>
-
-<div class="org-src-container">
-
-<pre class="src src-java"><span style="color: #C5CAE9;">@POST</span>
-<span style="color: #E1BEE7;">public</span> <span style="color: #FFCC80;">Response</span> <span style="color: #64B5F6;">someEndpoint</span><span style="color: #ff8c00;">(</span><span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param1"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">Long</span> <span style="color: #80CBC4;">myLong</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param2"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">String</span> <span style="color: #80CBC4;">someString</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param3"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">listOfLongs</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #757575;">// </span><span style="color: #757575;">Do something meaningful</span>
-    <span style="color: #E1BEE7;">return</span> Response.ok<span style="color: #ff1493;">(</span>42<span style="color: #ff1493;">)</span>.build<span style="color: #ff1493;">()</span>;
-<span style="color: #ff8c00;">}</span>
-</pre>
-</div>
 
 <p>
 Looks just about right, it sends the correct and sensible <code>POST</code> request over the wire. However, the third parameter <code>listOfLongs</code> when checked with a debugger always returns an empty list despite being correct with the browser's network debugger. The other parameters are passed correctly but why not the one with the array or list? Finding a solution took quite some time and pain as something simple as a list should be easy to pass.
@@ -53,17 +30,6 @@ A workaround for this is to <code>JSON.stringify</code> data and just send the <
 <p>
 In fact, there is. The solution is only a change for the backend. Can you spot the difference?
 </p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-java"><span style="color: #C5CAE9;">@POST</span>
-<span style="color: #E1BEE7;">public</span> <span style="color: #FFCC80;">Response</span> <span style="color: #64B5F6;">someEndpoint</span><span style="color: #ff8c00;">(</span><span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param1"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">Long</span> <span style="color: #80CBC4;">myLong</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param2"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">String</span> <span style="color: #80CBC4;">someString</span>, <span style="color: #C5CAE9;">@FormParam</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"param3[]"</span><span style="color: #ff1493;">)</span> <span style="color: #FFCC80;">listOfLongs</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #757575;">// </span><span style="color: #757575;">Where's Waldo?</span>
-    <span style="color: #E1BEE7;">return</span> Response.ok<span style="color: #ff1493;">(</span>42<span style="color: #ff1493;">)</span>.build<span style="color: #ff1493;">()</span>;
-<span style="color: #ff8c00;">}</span>
-</pre>
-</div>
 
 <p>
 The trick is to make <code>param3</code> into <code>param3[]</code> and it will work as expected. I believe the reason is how the arrays are passed over the wire. When the <code>ajax</code> call encodes the array value it appends <code>[]</code> to its key or parameter, a transformation to distinguish atomic values with collection.
