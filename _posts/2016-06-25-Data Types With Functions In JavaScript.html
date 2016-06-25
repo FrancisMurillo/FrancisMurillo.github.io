@@ -175,10 +175,52 @@ me formalize it a bit.
 <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Type</span> = <span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
     <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">generateSymbol</span> = Object.create.bind<span style="color: #7fff00;">(</span><span style="color: #C5CAE9;">null</span>, <span style="color: #C5CAE9;">null</span><span style="color: #7fff00;">)</span>;
 
+    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">stateHolder</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #7fff00;">(</span><span style="color: #80CBC4;">emptyValue</span>, <span style="color: #80CBC4;">token</span>, <span style="color: #80CBC4;">state</span><span style="color: #7fff00;">)</span> <span style="color: #7fff00;">{</span> <span style="color: #757575;">// </span><span style="color: #757575;">Let's enhance it a bit</span>
+        <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">accessToken</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #E1BEE7;">return</span> accessToken === token ? state : emptyValue;
+        <span style="color: #00bfff;">}</span>;
+    <span style="color: #7fff00;">}</span>;
+
     <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Module</span> = generateSymbol<span style="color: #7fff00;">()</span>;
+
+    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">emptyTypeValue</span> = generateSymbol<span style="color: #7fff00;">()</span>;
+
+    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">typeHolder</span> = stateHolder.bind<span style="color: #7fff00;">(</span><span style="color: #C5CAE9;">null</span>, emptyTypeValue<span style="color: #7fff00;">)</span>;
+
+    Object.assign<span style="color: #7fff00;">(</span>Module, <span style="color: #00bfff;">{</span>
+        <span style="color: #64B5F6;">typeValue</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">token</span>, <span style="color: #80CBC4;">value</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
+            <span style="color: #E1BEE7;">return</span> typeHolder<span style="color: #da70d6;">(</span>token, value<span style="color: #da70d6;">)</span>;
+        <span style="color: #ffff00;">}</span>,
+
+        <span style="color: #64B5F6;">define</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">constructor</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
+            <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">typeToken</span> = generateSymbol<span style="color: #da70d6;">()</span>;
+
+            <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">typeDefinition</span> = constructor<span style="color: #da70d6;">(</span>typeToken<span style="color: #da70d6;">)</span>;
+
+            <span style="color: #E1BEE7;">return</span> Object.freeze<span style="color: #da70d6;">(</span>typeDefinition<span style="color: #da70d6;">)</span>;
+        <span style="color: #ffff00;">}</span>
+    <span style="color: #00bfff;">}</span><span style="color: #7fff00;">)</span>;
 
     <span style="color: #E1BEE7;">return</span> Object.freeze<span style="color: #7fff00;">(</span>Module<span style="color: #7fff00;">)</span>;
 <span style="color: #ff1493;">}()</span><span style="color: #ff8c00;">)</span>;
+
+<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Pairs</span> = Type.define<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">typeToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">pairValue</span> = Type.typeValue.bind<span style="color: #7fff00;">(</span><span style="color: #C5CAE9;">null</span>, typeToken<span style="color: #7fff00;">)</span>;
+
+    <span style="color: #E1BEE7;">return</span> <span style="color: #7fff00;">{</span>
+        <span style="color: #64B5F6;">create</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">first</span>, <span style="color: #80CBC4;">second</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #E1BEE7;">return</span> pairValue<span style="color: #ffff00;">(</span>Object.freeze<span style="color: #da70d6;">(</span><span style="color: #00ff7f;">[</span>first, second<span style="color: #00ff7f;">]</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>;
+        <span style="color: #00bfff;">}</span>,
+
+        <span style="color: #64B5F6;">first</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #E1BEE7;">return</span> pair<span style="color: #ffff00;">(</span>typeToken<span style="color: #ffff00;">)[</span>0<span style="color: #ffff00;">]</span>;
+        <span style="color: #00bfff;">}</span>,
+
+        <span style="color: #64B5F6;">second</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #E1BEE7;">return</span> pair<span style="color: #ffff00;">(</span>typeToken<span style="color: #ffff00;">)[</span>1<span style="color: #ffff00;">]</span>;
+        <span style="color: #00bfff;">}</span>
+    <span style="color: #7fff00;">}</span>;
+<span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>;
 </pre>
 </div>
 
