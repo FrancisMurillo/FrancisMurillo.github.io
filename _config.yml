@@ -15,7 +15,7 @@ twitter:
 
 # URL
 baseurl:            ""
-permalink:          /:year/:month/:day/:title/
+permalink:          /:year-:month-:day-:title/ # required for org-export
 
 # Markdown
 markdown:           kramdown
