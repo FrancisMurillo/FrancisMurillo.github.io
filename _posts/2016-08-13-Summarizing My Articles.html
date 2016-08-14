@@ -344,7 +344,9 @@ core code that does it appropriately.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defface</span> <span style="color: #80CBC4;">fn/article-aid-face</span>  '<span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>t <span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:weight</span> bold <span style="color: #80DEEA;">:height</span> 1.1 <span style="color: #80DEEA;">:box</span> <span style="color: #ffff00;">(</span><span style="color: #80DEEA;">:line-width</span> 2 <span style="color: #80DEEA;">:color</span> <span style="color: #C5E1A5;">"grey75"</span> <span style="color: #80DEEA;">:style</span> released-button<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">dash</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defface</span> <span style="color: #80CBC4;">fn/article-aid-face</span>  '<span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>t <span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:weight</span> bold <span style="color: #80DEEA;">:height</span> 1.1 <span style="color: #80DEEA;">:box</span> <span style="color: #ffff00;">(</span><span style="color: #80DEEA;">:line-width</span> 2 <span style="color: #80DEEA;">:color</span> <span style="color: #C5E1A5;">"grey75"</span> <span style="color: #80DEEA;">:style</span> released-button<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
   <span style="color: #9E9E9E;">"Article aid face"</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defvar</span> <span style="color: #80CBC4;">fn/article-aid-face</span> 'fn/article-aid-face
@@ -353,7 +355,7 @@ core code that does it appropriately.
 
 <span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defvar</span> <span style="color: #80CBC4;">fn/prev-summarizing-request</span> nil
   <span style="color: #9E9E9E;">"The previous request made, this is to prevent extra request being made.</span>
-<span style="color: #9E9E9E;">This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #9E9E9E;">    This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
   <span style="color: #9E9E9E;">"Show a summary for each article I visit"</span>
@@ -368,19 +370,26 @@ core code that does it appropriately.
       summary
       <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">with-current-buffer</span> gnus-article-buffer
+          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">with-current-buffer</span> gnus-summary-buffer
             <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">let</span> <span style="color: #ff8247;">(</span><span style="color: #80DEEA;">(</span>summarizies summarizies<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>mapc <span style="color: #80DEEA;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #ff8c00;">(</span>summary-text<span style="color: #ff8c00;">)</span>
-                      <span style="color: #ff8c00;">(</span>add-to-list
-                       'gnus-article-emphasis-alist
-                       <span style="color: #ff1493;">(</span>list
-                        <span style="color: #7fff00;">(</span>regexp-quote summary-text<span style="color: #7fff00;">)</span>
-                        0
-                        0
-                        'fn/article-aid-face<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span>
-                    summarizies<span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>message <span style="color: #C5E1A5;">"Emphasizing article aids"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>article-emphasize<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+              <span style="color: #ff8247;">(</span><span style="color: #E1BEE7;">setq</span> gnus-article-emphasis-alist
+                    <span style="color: #80DEEA;">(</span>-concat
+                     <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #7fff00;">(</span>summary-text<span style="color: #7fff00;">)</span>
+                               <span style="color: #7fff00;">(</span>list
+                                <span style="color: #00bfff;">(</span>regexp-quote summary-text<span style="color: #00bfff;">)</span>
+                                0
+                                0
+                                'fn/article-aid-face<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                             summarizies<span style="color: #ff8c00;">)</span>
+                     gnus-article-emphasis-alist<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">with-current-buffer</span> gnus-article-buffer
+            <span style="color: #00ff7f;">(</span>message <span style="color: #C5E1A5;">"Emphasizing article aids"</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>article-emphasize<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">with-current-buffer</span> gnus-summary-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">setq</span> gnus-article-emphasis-alist
+                  <span style="color: #ff8247;">(</span>-filter <span style="color: #80DEEA;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #ff8c00;">(</span>emphasis<span style="color: #ff8c00;">)</span>
+                             <span style="color: #ff8c00;">(</span>not <span style="color: #ff1493;">(</span>eq <span style="color: #7fff00;">(</span>nth 3 emphasis<span style="color: #7fff00;">)</span> fn/article-aid-face <span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span>
+                           gnus-article-emphasis-alist<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">()</span>
           <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -413,6 +422,7 @@ code for <code>article-emphasize</code> which is quite deceptive.
 
 <p>
 Long story short, you have to mutate it within the
+<code>gnus-summary-buffer</code> and call <code>article-emphasize</code> on
 <code>gnus-article-buffer</code> which is weird or have I not read the manual
 enough? Probably the latter but with that out of the way, the code
 followed.
@@ -421,7 +431,15 @@ followed.
 <p>
 I do admit the hacked code is a little annoying that it pushed down
 the text I was reading from time to time, so this correct code is much
-better. And now I can definitely get back to reading my mail.
+better. Sadly there is an extra requirement, <code>dash</code>, and the weird
+<code>with-current-buffer</code> juggling and state management of
+<code>gnus-article-emphasis-alist</code> so that it doesn't stack up during
+prolonged use.
+</p>
+
+<p>
+Well, state. Maybe a macro can do this but I don't know which one yet.
+Whatever. And now I can definitely get back to reading my mail.
 </p>
 </div>
 </div>
