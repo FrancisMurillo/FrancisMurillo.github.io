@@ -1,0 +1,833 @@
+---
+title: Analyzing Elisp
+tagline: Making an Elisp parser just to see what code can be written
+layout: post
+author: Francis Murillo
+categories: Emacs
+tags: Emacs
+---
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Idea</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<p>
+I like poetry. It is art and I love it. I like reading. It is writing
+and I love it. So are programmers not writers? Sort of.
+</p>
+
+<p>
+Recently, I just read <a href="https://www.amazon.com/Your-Code-Crime-Scene-Bottlenecks/dp/1680500384">Your Code As A Crime Scene</a> and I am breathless
+on what you can do by analyzing source code. It has practical value in
+getting a project landscape as well as being smarter on how code
+evolves on a project. The concepts such as <b>coupling</b>, <b>churn</b> and
+<b>ownership</b> are really compelling. As such, I am planning to implement
+a <a href="https://github.com/FrancisMurillo/code-maater.el">code-maater.el</a> library so I can practice how to make a major mode in
+Emacs as well as get a grip on how to use <a href="https://github.com/adamtornhill/code-maat">code-maat</a> and its tools.
+</p>
+
+<p>
+This motivated me also to analyze Elisp code as a tribute to it and
+experiment. My fundamental question is: <b>is there complexity analysis
+in Elisp?</b> Before you get excited, in all honesty I have no idea what
+I am getting at. Merely creating a parser albeit a simple one for lisp
+is what drove me here. I'm good but not that good.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2">Code Ideas</h2>
+<div class="outline-text-2" id="text-orgheadline2">
+<p>
+So here the things I though of when thinking about static Elisp
+analysis
+</p>
+
+<dl class="org-dl">
+<dt><b>Atom Frequency</b></dt><dd>What atoms are in a file. And probably there frequency.</dd>
+<dt><b>Expression Complexity</b></dt><dd>Is there a simple metric involving atoms and depth as a way to
+measure complexity?</dd>
+<dt><b>Code Manipulation</b></dt><dd>Can you manipulate the source tree? A common question and concept.</dd>
+</dl>
+
+<p>
+With that in mind, I will need a parser and a project to analyze.
+Maybe a shameless plug, I will use my created Elisp parser project
+<a href="https://github.com/FrancisMurillo/elk.el">elk.el</a> and analyze the source code with it. We programmers love the
+meta programming or analysis.
+</p>
+
+<p>
+Again, I have no idea what I'm doing so just enjoy the flow of questions.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3">Parser</h2>
+<div class="outline-text-2" id="text-orgheadline3">
+<p>
+So while I was a making this parser, I learned how to use <a href="https://github.com/cask/cask">cask</a> and
+<a href="https://travis-ci.org/">travis-ci</a> to make this project. What I did is to separate the parsing
+module against the token analysis library which I dub <a href="https://github.com/FrancisMurillo/elk-magic.el">elk-magic.el</a> and
+not another shameless plug.
+</p>
+
+<p>
+Since this parser is just something to get me started analyzing source
+code, I did not take the terminology of the facts and figures probably
+right. I know how to implement the parser using recursion. At this
+time, I really don't know what it is called or what I am doing. All I
+expect is a function that accepts a source code and churns out tokens
+in a stream. Such is a functional programmer in me but if I may make
+mistakes in terminology or concept, I would be happy to be corrected.
+I really just want to see what happens in the source code, I am not
+planning to create an interpreter.
+</p>
+
+<p>
+Here are some terminology that I came across.
+</p>
+
+<dl class="org-dl">
+<dt><b>Tokens</b></dt><dd>Everything the source code might be interested in. This is the
+main data type expressed as a plist.</dd>
+<dt><b>Comment</b></dt><dd>Lines starting with <code>; Comment\n</code></dd>
+<dt><b>Whitespace</b></dt><dd>Everything between the tokens</dd>
+<dt><b>Text</b></dt><dd>A text or string if you'd like to call it that ="Hello World"=</dd>
+<dt><b>Atom</b></dt><dd>A symbol or a number, basically what you put in <code>(atom atom atom)</code></dd>
+<dt><b>Quotes</b></dt><dd>The unary expression in Elisp <code>`back-quoting</code>, ='quoting= or <code>#'function-quote</code></dd>
+<dt><b>Expressions</b></dt><dd>The s-exp of the source code, recursion is prevalent here.</dd>
+</dl>
+
+<p>
+I am aware that <b>Numbers</b> are not in the list but I do not care about
+the actual data type for this analysis. One could put a mapper on the
+tokens just to analyze what data type an atom would be but I am
+interested in the syntax tokens rather than what they really are and I
+know that is more complicated I needed.
+</p>
+
+<p>
+Honestly, you don't need to care about the problems when I implemented
+the parser but for those interested.
+</p>
+
+<dl class="org-dl">
+<dt><b>Character Escaping</b></dt><dd>Handling <code>\</code>, <code>?</code> or <code>?\</code> made this project harder to implement
+but should have expected that.</dd>
+<dt><b>Infinite Recursion</b></dt><dd>Sometimes the code hangs when there is an error recursively
+tokenizing the code. Unit testing and modularity would have
+helped me a lot in my development time</dd>
+</dl>
+
+<p>
+And probably more but those two I should have considered while I was
+thinking about it. Beside that, implementation of a recursive parser
+is easy enough but obviously not perfect. After creating the unit
+tests, I am confident enough that it parses source code 90% of the
+time.
+</p>
+
+<p>
+As an experiment, I tried parsing <code>alert</code>, <code>helm-projectile</code>,
+<code>prodigy</code> and my own source code and it doesn't hang and gets it
+right. So with this meaningless parser prelude, let's get into the
+meat of the topic. Source code analysis. All experimental source code
+is in <code>elk-magic.el</code> with the tag <a href="https://github.com/FrancisMurillo/elk-magic.el/tree/analyzing-elisp-post">analyzing-elisp-post</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4">Atom Frequency</h2>
+<div class="outline-text-2" id="text-orgheadline4">
+<p>
+Let's start with a simple list.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>a b c a<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+The main parsing function, <code>elk-parse</code>, will yield the hypothetical
+list of tokens or plists. The structure should be evident or reflect
+lisp itself with some extra annotation.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>elk-parse <span style="color: #C5E1A5;">"(a b c)"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #757575;">;; </span><span style="color: #757575;">Too lazy to pretty it properly</span>
+<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #80DEEA;">:type</span> expression
+        <span style="color: #80DEEA;">:tokens</span>
+        <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:type</span> atom
+                <span style="color: #80DEEA;">:tokens</span>
+                nil
+                <span style="color: #80DEEA;">:start-pos</span>
+                1
+                <span style="color: #80DEEA;">:end-pos</span>
+                2
+                <span style="color: #80DEEA;">:index</span>
+                0
+                <span style="color: #80DEEA;">:level</span>
+                2
+                <span style="color: #80DEEA;">:id</span>
+                2
+                <span style="color: #80DEEA;">:parent-id</span>
+                1
+                <span style="color: #80DEEA;">:text</span>
+                <span style="color: #C5E1A5;">"a"</span>
+                <span style="color: #80DEEA;">:data-type</span>
+                symbol<span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:type</span> whitespace
+                <span style="color: #80DEEA;">:tokens</span>
+                nil
+                <span style="color: #80DEEA;">:start-pos</span>
+                2
+                <span style="color: #80DEEA;">:end-pos</span>
+                3
+                <span style="color: #80DEEA;">:index</span>
+                1
+                <span style="color: #80DEEA;">:level</span>
+                2
+                <span style="color: #80DEEA;">:id</span>
+                3
+                <span style="color: #80DEEA;">:parent-id</span>
+                1
+                <span style="color: #80DEEA;">:text</span>
+                <span style="color: #C5E1A5;">" "</span><span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:type</span> atom
+                <span style="color: #80DEEA;">:tokens</span>
+                nil
+                <span style="color: #80DEEA;">:start-pos</span>
+                3
+                <span style="color: #80DEEA;">:end-pos</span>
+                4
+                <span style="color: #80DEEA;">:index</span>
+                2
+                <span style="color: #80DEEA;">:level</span>
+                2
+                <span style="color: #80DEEA;">:id</span>
+                4
+                <span style="color: #80DEEA;">:parent-id</span>
+                1
+                <span style="color: #80DEEA;">:text</span>
+                <span style="color: #C5E1A5;">"b"</span>
+                <span style="color: #80DEEA;">:data-type</span>
+                symbol<span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:type</span> whitespace
+                <span style="color: #80DEEA;">:tokens</span>
+                nil
+                <span style="color: #80DEEA;">:start-pos</span>
+                4
+                <span style="color: #80DEEA;">:end-pos</span>
+                5
+                <span style="color: #80DEEA;">:index</span>
+                3
+                <span style="color: #80DEEA;">:level</span>
+                2
+                <span style="color: #80DEEA;">:id</span>
+                5
+                <span style="color: #80DEEA;">:parent-id</span>
+                1
+                <span style="color: #80DEEA;">:text</span>
+                <span style="color: #C5E1A5;">" "</span><span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:type</span> atom
+                <span style="color: #80DEEA;">:tokens</span>
+                nil
+                <span style="color: #80DEEA;">:start-pos</span>
+                5
+                <span style="color: #80DEEA;">:end-pos</span>
+                6
+                <span style="color: #80DEEA;">:index</span>
+                4
+                <span style="color: #80DEEA;">:level</span>
+                2
+                <span style="color: #80DEEA;">:id</span>
+                6
+                <span style="color: #80DEEA;">:parent-id</span>
+                1
+                <span style="color: #80DEEA;">:text</span>
+                <span style="color: #C5E1A5;">"c"</span>
+                <span style="color: #80DEEA;">:data-type</span>
+                symbol<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+        <span style="color: #80DEEA;">:start-pos</span>
+        0
+        <span style="color: #80DEEA;">:end-pos</span>
+        -1
+        <span style="color: #80DEEA;">:index</span>
+        0
+        <span style="color: #80DEEA;">:level</span>
+        1
+        <span style="color: #80DEEA;">:id</span>
+        1
+        <span style="color: #80DEEA;">:parent-id</span>
+        0<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Take your time in guessing the structure of the token because it takes
+too much time to explain. I do want to point your attention to the
+plists with type ='atom=. Given this structure, how do we get all the
+tokens in this list. Do think about it while I present the first code
+from <code>elk-magic.el</code>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">elk--select-type</span> <span style="color: #ff1493;">(</span>type tokens<span style="color: #ff1493;">)</span>
+  <span style="color: #9E9E9E;">"Filter tokens by a specified type"</span>
+  <span style="color: #ff1493;">(</span>funcall <span style="color: #7fff00;">(</span>-compose
+            <span style="color: #00bfff;">(</span>-partial #'-filter
+                      <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>token<span style="color: #da70d6;">)</span>
+                        <span style="color: #da70d6;">(</span>eq <span style="color: #00ff7f;">(</span>plist-get token <span style="color: #80DEEA;">:type</span><span style="color: #00ff7f;">)</span> type<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+            #'elk--flatten-tokens<span style="color: #7fff00;">)</span>
+           tokens<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">elk--extract-atoms</span> <span style="color: #ff1493;">(</span>tokens<span style="color: #ff1493;">)</span>
+  <span style="color: #9E9E9E;">"Get atoms in tokens"</span>
+  <span style="color: #ff1493;">(</span>funcall <span style="color: #7fff00;">(</span>-compose
+            <span style="color: #00bfff;">(</span>-partial #'-map <span style="color: #ffff00;">(</span>-rpartial #'plist-get <span style="color: #80DEEA;">:text</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+            <span style="color: #00bfff;">(</span>-partial #'elk--select-type 'atom<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+           tokens<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>elk--extract-atoms <span style="color: #7fff00;">(</span>elk-parse <span style="color: #C5E1A5;">"(a b c)"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #C5E1A5;">"a"</span> <span style="color: #C5E1A5;">"b"</span> <span style="color: #C5E1A5;">"c"</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Using the functional style of recursion and mapping, I traverse the
+tree and get the source code text and the function does return an
+expected list that reflects the actual structure of the code. But this
+is not exciting. As promised, let's apply this to <code>elk.el</code>. Here is
+the output while I group and sort it by frequency.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defconst</span> <span style="color: #80CBC4;">elk-file-url</span> <span style="color: #C5E1A5;">"https://raw.githubusercontent.com/FrancisMurillo/elk.el/analyzing-elisp-post/elk.el"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defconst</span> <span style="color: #80CBC4;">elk-file</span> <span style="color: #C5E1A5;">"~/Downloads/elk.el"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">f</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>elk-magic-summarize-atoms <span style="color: #7fff00;">(</span>elk-parse <span style="color: #00bfff;">(</span>f-read-text elk-file<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #757575;">;; </span><span style="color: #757575;">So here is the token frequency</span>
+<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"stream"</span> . 61<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--use-stream"</span> . 37<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"defun"</span> . 34<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"token"</span> . 32<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"tokens"</span> . 29<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"letter"</span> . 27<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"current-char"</span> . 25<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"nil"</span> . 24<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"text"</span> . 24<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"this-char"</span> . 23<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"setf"</span> . 22<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"lambda"</span> . 18<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"start-pos"</span> . 18<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"recurser"</span> . 18<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"current"</span> . 17<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"sub-tokens"</span> . 16<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"type"</span> . 14<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":tokens"</span> . 13<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"when"</span> . 12<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"incremented-index"</span> . 10<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"not"</span> . 9<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"-copy"</span> . 9<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"stop"</span> . 8<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--create-token"</span> . 8<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"end-pos"</span> . 7<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":type"</span> . 7<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"letrec"</span> . 7<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"new-token"</span> . 7<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"marked-token"</span> . 7<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"lexical-let"</span> . 6<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"quote-text"</span> . 6<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"expression"</span> . 6<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"index"</span> . 5<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"command"</span> . 5<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"pcase"</span> . 5<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"require"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"current-value"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"0"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"&amp;optional"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"t"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"base-value"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--stream-next-p"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--quote-p"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"next-char"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--dispatch-stream-consumers"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"value"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"-map"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"leveled-token"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"_"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"seed"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"indexed-token"</span> . 4<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--text-stream"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"current-text"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"text-length"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"increment"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"peek"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":end-pos"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--whitespace-p"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--text-quote-p"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--text-escape-p"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--letter-escape-p"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--atom-letter-p"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"start-letter"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"expression-tokens"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":text"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"level"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"generator"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"texify"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk-current-tokens"</span> . 3<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--stream-consumers"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--consume-whitespace"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--consume-comment"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--consume-text"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--consume-quote"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--consume-atom"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--consume-expression"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"base"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"incrementer"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"default"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"-1"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--stream-stop-p"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":start-pos"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--comment-p"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--newline-p"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--function-quote-p"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--back-quote-p"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--expression-start-p"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--expression-close-p"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"whitespace"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"comment"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"base-token"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":quote-text"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"push"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"handler"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--attach-source"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--attach-level"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"1"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--attach-token-id"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"incremental-sequence"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"start"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"parent-id"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":id"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--attach-expression-index"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--attach-atom-type"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"typer"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"number"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--parsing"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--parse"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"parsing"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"-compose"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"-partial"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"text-tokens"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"source-text"</span> . 2<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"cl-lib"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"dash"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"dash-functional"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"s"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"defgroup"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":prefix"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":group"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"tools"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":link"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"url-link"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":tag"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--started-stream"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"s-matches-p"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"unless"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":level"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":parent-id"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"-map-indexed"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":index"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"zerop"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"symbol"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">":data-type"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk--codify"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"s-join"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"-flatten"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elk-parse"</span> . 1<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"region-active-p"</span> . 1<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+A lot of tokens indeed! So the question is: <b>what does this tell us?</b>
+First of, there is already a lot of junk such function
+parameters(<code>:level</code>, <code>&amp;optional</code>), numbers(<code>0</code>, <code>1</code>) and other known
+functions(<code>defun</code>, <code>not</code>). So to say this is expected but again what
+does it mean for a token to be frequent or otherwise?
+</p>
+
+<p>
+Honestly, I don't know. I do want to know what keywords best identify
+a source code. I guess I am merely grasping at straws here. I could
+tighten up the filter for what is a meaningful atom but I could still
+run in the same problem.
+</p>
+
+<p>
+An unoriginal idea would be to create an linter on what keywords or
+names should be allowed such as enforcing a schema but I don't want to
+go there.
+</p>
+
+<p>
+So first idea is a bust.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">Expression Complexity</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+<p>
+This is another wild idea but the gist is that <b>given an s-exp, is
+there a metric to compute complexity?</b> I am not computer science
+professor but a simple metric can go like this and remember atoms have
+a level property.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">elk-magic--token-depth</span> <span style="color: #ff1493;">(</span>token<span style="color: #ff1493;">)</span>
+  <span style="color: #9E9E9E;">"Find out the TOKEN depth or the maximum number of level it has."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">letrec</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>recurser
+       <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>token<span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>token-level <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:level</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>sub-tokens <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:tokens</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>sub-token-depths
+              <span style="color: #80DEEA;">(</span>-map recurser sub-tokens<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+           <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">if</span> sub-token-depths
+               <span style="color: #ff8247;">(</span>-max sub-token-depths<span style="color: #ff8247;">)</span>
+             token-level<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>funcall recurser token<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">elk-magic--token-atoms</span> <span style="color: #ff1493;">(</span>token<span style="color: #ff1493;">)</span>
+  <span style="color: #9E9E9E;">"Find out the TOKEN child atoms up to the last depth."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">letrec</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>recurser
+       <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>token<span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>token-type <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:type</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>sub-tokens <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:tokens</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+           <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">if</span> <span style="color: #ff8247;">(</span>eq token-type 'atom<span style="color: #ff8247;">)</span>
+               <span style="color: #ff8247;">(</span>list token<span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>apply #'append <span style="color: #80DEEA;">(</span>-map recurser sub-tokens<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>funcall recurser token<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">elk-magic--token-complexity</span> <span style="color: #ff1493;">(</span>token<span style="color: #ff1493;">)</span>
+  <span style="color: #9E9E9E;">"Compute expression or TOKEN complexity."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>atoms <span style="color: #ffff00;">(</span>elk-magic--token-atoms token<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>root-level <span style="color: #ffff00;">(</span>plist-get token <span style="color: #80DEEA;">:level</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>atom-complexity <span style="color: #ffff00;">(</span>/ <span style="color: #da70d6;">(</span>float <span style="color: #00ff7f;">(</span>length atoms<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>-sum
+     <span style="color: #00bfff;">(</span>-map <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>atom<span style="color: #da70d6;">)</span>
+             <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>depth <span style="color: #80DEEA;">(</span>- <span style="color: #ff8c00;">(</span>plist-get atom <span style="color: #80DEEA;">:level</span><span style="color: #ff8c00;">)</span> root-level<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+                 <span style="color: #ff8247;">(</span>depth-complexity depth<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+               <span style="color: #00ff7f;">(</span>* atom-complexity depth-complexity<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+           atoms<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+In short, the sum of <code>((/ number-of-tokens) * (/ current-atom-level
+  main-expression-level))</code>. The idea is weighted atom levels. By giving
+each atom a weight based on the number of atoms in total and factoring
+in on how nested that atom is, it should be a good guess of
+complexity. I guess. So for a quick gist, let's apply it to the
+snippet above.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #757575;">;; </span><span style="color: #757575;">Code from above</span>
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defconst</span> <span style="color: #80CBC4;">snippet-code</span> <span style="color: #ff1493;">(</span>buffer-substring-no-properties <span style="color: #7fff00;">(</span>region-beginning<span style="color: #7fff00;">)</span> <span style="color: #7fff00;">(</span>region-end<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity <span style="color: #7fff00;">(</span>elk-parse snippet-code<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #757575;">;; </span><span style="color: #757575;">0 are the whitespace, whitespace has no complexity or is there?</span>
+<span style="color: #ff8c00;">(</span>0
+ 6.357142857142854 <span style="color: #757575;">; </span><span style="color: #757575;">elk-magic--token-depth</span>
+ 0
+ 6.599999999999997 <span style="color: #757575;">; </span><span style="color: #757575;">elk-magic--token-atoms</span>
+ 0
+ 5.727272727272726 <span style="color: #757575;">; </span><span style="color: #757575;">elk-magic--token-complexity</span>
+ <span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Again what does a 5 or 6 tell us? We need more context.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #757575;">;; </span><span style="color: #757575;">A normal list</span>
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity
+                        <span style="color: #7fff00;">(</span>elk-parse <span style="color: #C5E1A5;">"(1 2 3 4)"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Result</span>
+<span style="color: #ff8c00;">(</span>1.0<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity
+                        <span style="color: #7fff00;">(</span>elk-parse <span style="color: #C5E1A5;">"'a-regular-atom"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Result</span>
+<span style="color: #ff8c00;">(</span>1.0<span style="color: #ff8c00;">)</span> <span style="color: #757575;">; </span><span style="color: #757575;">Baseline</span>
+
+
+<span style="color: #757575;">;; </span><span style="color: #757575;">A require</span>
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity
+                        <span style="color: #7fff00;">(</span>elk-parse <span style="color: #C5E1A5;">"(require 'elk)"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Result</span>
+<span style="color: #ff8c00;">(</span>1.5<span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #757575;">;; </span><span style="color: #757575;">A normal function</span>
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity
+                        <span style="color: #7fff00;">(</span>elk-parse <span style="color: #C5E1A5;">"(defun hello-elk () (interactive) (message \"Hello Elk\"))"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Result</span>
+<span style="color: #ff8c00;">(</span>1.5<span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #757575;">;; </span><span style="color: #757575;">A battle of recursion</span>
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">subr-x</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity
+                        <span style="color: #7fff00;">(</span>elk-parse <span style="color: #00bfff;">(</span>string-trim-left <span style="color: #C5E1A5;">"</span>
+<span style="color: #C5E1A5;">(defun factorial-linear (n)</span>
+<span style="color: #C5E1A5;">  (interactive)</span>
+<span style="color: #C5E1A5;">  (let ((value 1)</span>
+<span style="color: #C5E1A5;">        (counter 1 ))</span>
+<span style="color: #C5E1A5;">    (while (&lt;= counter n)</span>
+<span style="color: #C5E1A5;">      (setf value (* value counter))</span>
+<span style="color: #C5E1A5;">      (setf counter (1+ counter)))))"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Result</span>
+<span style="color: #ff8c00;">(</span>3.6363636363636376<span style="color: #ff8c00;">)</span> <span style="color: #757575;">; </span><span style="color: #757575;">Impretive is not that complicated</span>
+
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity
+                        <span style="color: #7fff00;">(</span>elk-parse <span style="color: #00bfff;">(</span>string-trim-left <span style="color: #C5E1A5;">"</span>
+<span style="color: #C5E1A5;">(defun factorial-recursive (n)</span>
+<span style="color: #C5E1A5;">  (interactive)</span>
+<span style="color: #C5E1A5;">  (if (zerop n) 1</span>
+<span style="color: #C5E1A5;">    (* n (factorial-recursive (1- n))))</span>
+<span style="color: #C5E1A5;">  )"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Result</span>
+<span style="color: #ff8c00;">(</span>2.769230769230769<span style="color: #ff8c00;">)</span> <span style="color: #757575;">; </span><span style="color: #757575;">Functional is less complicated!?</span>
+
+
+<span style="color: #757575;">;; </span><span style="color: #757575;">Very nested</span>
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>mapcar #'elk-magic--token-complexity
+                        <span style="color: #7fff00;">(</span>elk-parse <span style="color: #00bfff;">(</span>string-trim-left <span style="color: #C5E1A5;">"</span>
+<span style="color: #C5E1A5;">(1 (2 (3 (4 (5 (6 (7 (8 (9 (10 (11 (12 (13 (14 (15 (16))))))))))))))))"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Result</span>
+<span style="color: #ff8c00;">(</span>8.5<span style="color: #ff8c00;">)</span> <span style="color: #757575;">; </span><span style="color: #757575;">Complicated indeed</span>
+</pre>
+</div>
+
+<p>
+So the results are more encouraging than the previous but again what
+does this tell us? I still don't know but here is what I think.
+</p>
+
+<ul class="org-ul">
+<li><b>If it is around 1 to 5</b>, the code is considered <b>simple</b></li>
+<li><b>If it is around 6 to 8</b>, the code is <b>non-trivial</b></li>
+<li><b>Anything higher than 8</b>, the code is <b>complex</b></li>
+</ul>
+
+<p>
+The case may vary and no one can really say if the code should be
+complex or simple, that is in experience but having a simple metric is
+kinda nice. I do want to say that this metric has its flaws and can be
+faked but again it is nice. One can compute the average complexity of
+a code and then track it over time or simply get the a static
+complexity landscape. Or one can just do an ocular and say this code
+needs refactoring. Nothing beats experience I think.
+</p>
+
+<p>
+Quite encouraging for a simple experiment. I say as well that this
+might beat whitespace analysis if people prefer condensed code. I
+don't know but for now this is good.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-2">
+<h2 id="orgheadline6">Code Manipulation</h2>
+<div class="outline-text-2" id="text-orgheadline6">
+<p>
+If you have the syntax tree then you can manipulate it, right? This is
+the common use of a syntax tree but can also be used as a formatter
+but Elisp already has this. I can give two trivial examples which
+kinda makes this implementing in a more Emacs way fun.
+</p>
+
+<ul class="org-ul">
+<li>Nearest top level expression at point</li>
+<li>Manipulating the code</li>
+</ul>
+
+<p>
+The first one is very easy.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">elk-magic--nearest-top-expression-at-point</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #9E9E9E;">"Get token expression that is nearest to the highest point"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>source-text <span style="color: #ffff00;">(</span>buffer-substring-no-properties <span style="color: #da70d6;">(</span>point-min<span style="color: #da70d6;">)</span> <span style="color: #da70d6;">(</span>point-max<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span>tokens <span style="color: #ffff00;">(</span>elk-parse source-text<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span>expression-token <span style="color: #ffff00;">(</span>-first <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #00ff7f;">(</span>token<span style="color: #00ff7f;">)</span>
+                                     <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">and</span> <span style="color: #ff8247;">(</span>= <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:level</span><span style="color: #80DEEA;">)</span> 1<span style="color: #ff8247;">)</span>
+                                          <span style="color: #ff8247;">(</span>eq <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:type</span><span style="color: #80DEEA;">)</span> 'expression<span style="color: #ff8247;">)</span>
+                                          <span style="color: #ff8247;">(</span>&lt;= <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:start-pos</span><span style="color: #80DEEA;">)</span> <span style="color: #80DEEA;">(</span>point<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+                                          <span style="color: #ff8247;">(</span>&gt;= <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:end-pos</span><span style="color: #80DEEA;">)</span> <span style="color: #80DEEA;">(</span>point<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+                                   tokens<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">if</span> expression-token
+        <span style="color: #00bfff;">(</span>goto-char <span style="color: #ffff00;">(</span>1+ <span style="color: #da70d6;">(</span>plist-get expression-token <span style="color: #80DEEA;">:start-pos</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>message <span style="color: #C5E1A5;">"No near top level expression at point"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #757575;">; </span><span style="color: #757575;">Complexity: 6.377777777777779 (Non-trivial)</span>
+</pre>
+</div>
+
+<p>
+Just simply parse the code, filter the highest level expressions with
+the ones between the point, and simply point at the <code>start-pos</code>. The
+sad thing is that if the code is large this has to parse the whole
+code just to figure out where to land. There is an easier way with
+<code>paredit</code>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">paredit--nearest-top-level-expression-at-point</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #9E9E9E;">"Above but using paredit"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">condition-case</span> ex
+      <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">while</span> t <span style="color: #00bfff;">(</span>paredit-backward-up<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>'error nil<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Complexity: 2.5(Simple)</span>
+</pre>
+</div>
+
+<p>
+Even, the complexity metric says this. Wow... just goes to show Emacs
+rocks. You don't need the syntax tree just to move around the code.
+But how about something more juicy but not really useful
+</p>
+
+<p>
+Let's say we have this snippet.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">x</span> <span style="color: #ff1493;">()</span> nil<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defvar</span> <span style="color: #80CBC4;">y</span> nil<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Nothing special right? Yeah. For the sake of example, how about we
+want to namespace it... say with <code>z</code>? Let's use the syntax tree.
+</p>
+
+<p>
+This be way harder than just doing a macro replace, I am not selling
+myself that much huh?
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">namespacer</span> <span style="color: #ff1493;">(</span>namespace<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>source-code <span style="color: #ffff00;">(</span>buffer-substring-no-properties <span style="color: #da70d6;">(</span>point-min<span style="color: #da70d6;">)</span> <span style="color: #da70d6;">(</span>point-max<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>raw-tokens <span style="color: #ffff00;">(</span>elk-parse source-code<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>token-table <span style="color: #ffff00;">(</span>elk-magic--create-token-table raw-tokens<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>just-tokens <span style="color: #ffff00;">(</span>elk-magic--discard-filler raw-tokens<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>interface-expression-p
+       <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>expression<span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>sub-tokens <span style="color: #80DEEA;">(</span>plist-get expression <span style="color: #80DEEA;">:tokens</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>header-atom <span style="color: #80DEEA;">(</span>nth 0 sub-tokens<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>name-atom <span style="color: #80DEEA;">(</span>nth 1 sub-tokens<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>header-text <span style="color: #80DEEA;">(</span>plist-get header-atom <span style="color: #80DEEA;">:text</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>name-text <span style="color: #80DEEA;">(</span>plist-get name-atom <span style="color: #80DEEA;">:text</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+           <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">or</span> <span style="color: #ff8247;">(</span>string-equal header-text <span style="color: #C5E1A5;">"defun"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>string-equal header-text <span style="color: #C5E1A5;">"defvar"</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>interface-expressions
+       <span style="color: #ffff00;">(</span>-filter
+        <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #00ff7f;">(</span>token<span style="color: #00ff7f;">)</span>
+          <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">and</span> <span style="color: #ff8247;">(</span>eq <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:type</span><span style="color: #80DEEA;">)</span> 'expression<span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>= <span style="color: #80DEEA;">(</span>plist-get token <span style="color: #80DEEA;">:level</span><span style="color: #80DEEA;">)</span> 1<span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>funcall interface-expression-p token<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+        just-tokens<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>interace-atoms
+       <span style="color: #ffff00;">(</span>-map
+        <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #00ff7f;">(</span>token<span style="color: #00ff7f;">)</span>
+          <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">let*</span> <span style="color: #ff8247;">(</span><span style="color: #80DEEA;">(</span>interface-atom <span style="color: #ff8c00;">(</span>nth 1 <span style="color: #ff1493;">(</span>plist-get token <span style="color: #80DEEA;">:tokens</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span>
+              <span style="color: #80DEEA;">(</span>interface-text <span style="color: #ff8c00;">(</span>plist-get interface-atom <span style="color: #80DEEA;">:text</span><span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span>
+              <span style="color: #80DEEA;">(</span>new-interface-text <span style="color: #ff8c00;">(</span>concat namespace interface-text<span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span>plist-put interface-atom <span style="color: #80DEEA;">:text</span> new-interface-text<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+        interface-expressions<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>elk--codify raw-tokens<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #757575;">; </span><span style="color: #757575;">Complexity: 7.2065217391304355(Non-trivial?)</span>
+</pre>
+</div>
+
+<p>
+The code is indeed complicated but it works. Applying it to this code
+with <code>(namespace "my-namespace-")</code>, would prefix namespacer with
+<code>my-namespace-namespacer</code>. I could paste the code but would be merely
+a one line change.
+</p>
+
+<p>
+The sad thing is that you can do this with a macro and probably be
+safer but this shows how you can manipulate the code using the tokens.
+This is more of a PoC than anything else. There is too much boiler
+plate just to change the function name, there might be a better
+paradigm. <a href="http://esprima.org/">Esprima</a> anyone?
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-2">
+<h2 id="orgheadline7">Conclusion</h2>
+<div class="outline-text-2" id="text-orgheadline7">
+<p>
+So nothing much to be impressed... for now. I haven't finished the
+book yet but now I have a tool to apply some analysis for Elisp. I'm
+still looking for ideas about analyzing code at face, not by context.
+Code analysis has been done too much, what I am looking at is how code
+can be analyzed as a paragraph or as a poem. Automatic summarization
+and language processing, is there an analogy for code? We have code
+generation and other stuff but how about things that tell you about
+the structure or abstract.
+</p>
+
+<p>
+Maybe I am talking in riddles but I can say this is a fun project
+although will little returns. Hmm... I wonder what else I can analyze
+about the tokens or there proximity.
+</p>
+
+<p>
+I am a writer. I am a coder. I am a writer and a coder
+</p>
+</div>
+</div>
