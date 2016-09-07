@@ -26,6 +26,34 @@ body {
 }
 
 
+/**
+ * Section
+ */
+.navbar{
+    box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-default{
+    background: #093750 !important;
+    border: none !important;
+}
+
+.navbar-default .navbar-nav > li > a{
+    color:#abc0ca !important;
+}
+.navbar-default .navbar-nav > li > a:hover{
+    color:#03a4fb !important;
+
+}
+.navbar-default .navbar-nav > li > a:focus{
+    color:#03a4fb !important;
+}
+.navbar-default .navbar-brand{
+    color:#abc0ca !important;
+}
+
+
+
 
 /**
  * Set `margin-bottom` to maintain vertical rhythm
@@ -72,7 +100,7 @@ ul, ol {
 li {
     > ul,
     > ol {
-         margin-bottom: 0;
+        margin-bottom: 0;
     }
 }
 
@@ -130,11 +158,28 @@ pre {
 }
 
 
+pre{
+    background-color: #081724 !important;
+    border:none !important;
+    border-radius: 0px !important;
+    font-size: 20px !important;
+    padding: 1.5em !important;
+    color: #d3f9ee !important;
+}
+
+code{
+    background-color: #081724 !important;
+    color: #d3f9ee !important;
+    border: none !important;
+    border-radius: 0px !important;
+}
+
 
 /**
  * Wrapper
  */
 .wrapper {
+
     max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit} * 2));
     max-width:         calc(#{$content-width} - (#{$spacing-unit} * 2));
     margin-right: auto;
@@ -149,6 +194,13 @@ pre {
         padding-right: $spacing-unit / 2;
         padding-left: $spacing-unit / 2;
     }
+
+}
+
+.container {
+    border: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 
@@ -182,4 +234,36 @@ pre {
             fill: $grey-color;
         }
     }
+}
+
+/**
+ * Separator
+ */
+
+
+.right-triangle {
+    overflow: hidden;
+}
+
+.right-triangle:after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    margin-top: -500px;
+    margin-left: -500px;
+
+    border-top: 500px solid transparent;
+    border-bottom: 500px solid transparent;
+    border-left: 500px solid #4679BD;
+}
+
+.brand {
+    background-color: green;
+    width: 30%;
+}
+
+.triangle-right {
+    border-top: 1px solid transparent;
+    border-right: 10px solid #4679BD;
 }

@@ -1,28 +1,58 @@
-<header class="site-header">
+<section class="mode-line">
+    <ul>
+        <li class="segment segment-title segment-first">
+            <span>
+                {% if page.title %}
+                % &nbsp;
+                {% endif %}
+            </span>
+            <a  href="{{ site.baseurl }}/">
+                {{ site.title }}
+            </a>
+        </li>
 
-  <div class="wrapper">
+        <li class="segment segment-separator segment-first-separator">
+            &nbsp;
+        </li>
 
-    <div class="site-title">
-      <p>
-        <a  href="{{ site.baseurl }}/">{{ site.title }}</a>
-      </p>
-    </div>
+        {% if page.title %}
+        <li class="segment segment-post-title segment-second">
+            <p>
+                {{ page.title }}
+            </p>
+        </li>
+        {% else %}
+        <li class="segment segment-description segment-second">
+            <p>
+                {{ site.description }}
+            </p>
+        </li>
+        {% endif %}
 
-    <div class="site-subtitle">
-      <p>
-        <span>Made with</span>
-        <a href="https://www.gnu.org/software/emacs/emacs">Emacs</a>
-        <a href="https://orgmode.org">org-mode</a> and
-        <a href="https://jekyllrb.com">Jekyll</a>
-      </p>
-    </div>
+        <li class="segment segment-separator segment-second-separator">
+            &nbsp;
+        </li>
 
-    <nav class="site-nav">
-        {% for nav in site.nav %}
-        <a href="{{ nav.href }}">{{ nav.name }}</a>
-        {% endfor %}
-    </nav>
+        <li class="segment segment-major-mode segment-third">
+            {% if page.major_mode %}
+            {{ page.major_mode }}
+            {% elsif page.categories %}
+            {{ page.categories | first | capitalize }}
+            {% else %}
+            {{ site.major_mode }}
+            {% endif %}
+        </li>
 
-  </div>
+        <li class="segment segment-separator segment-third-separator">
+            &nbsp;
+        </li>
+    </ul>
+</section>
 
-</header>
+<section class="mode-line" style="position: inherit;">
+    <ul>
+        <li class="segment">
+            &nbsp;
+        </li>
+    </ul>
+</section>

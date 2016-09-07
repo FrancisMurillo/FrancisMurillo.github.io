@@ -1,7 +1,7 @@
 # Basic
 name:               "Fn/Log"
 title:              "Fn/Log"
-description:        "The diary of a mediocre developer"
+description:        "* The diary of a mediocre developer *"
 
 email:              "francisavmurillo@gmail.com"
 github_username:    "FrancisMurillo"
@@ -19,6 +19,9 @@ permalink:          /:year-:month-:day-:title/ # required for org-export
 
 # Markdown
 markdown:           kramdown
+
+# Var
+major_mode:          Fundamental
 
 # Navigation
 nav:
@@ -46,3 +49,8 @@ defaults:
 
 gems:
   - jekyll-seo-tag
+  - jekyll-paginate
+
+# Pagination
+paginate: 12
+paginate_path: "/:num/"

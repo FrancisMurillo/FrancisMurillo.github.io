@@ -4,19 +4,18 @@
 @charset "utf-8";
 
 // My variables
-
-$background-color:  white;
+$background-color: #093750;
 
 $link-color: #268bd2;
 
 // Our variables
-$base-font-family: "Source Sans Pro", "Arial";
-$base-font-size:   1.1em;
+$base-font-family: "Deja Vu Sans Mono" "Source Sans Pro", "Arial";
+$base-font-size:   1.0em;
 $base-font-weight: 400;
 $small-font-size:  $base-font-size * 0.875;
 $base-line-height: 1.5;
 
-$main-color:            #421c52;
+$main-color:            #abc0ca;
 $secondary-color:        #333333;
 
 $main-font-color:  black;
@@ -28,12 +27,23 @@ $tertiary-font-color: #ffffff;
 
 $spacing-unit:     1em;
 
-$text-color:       #111;
-$brand-color:      #2a7ae2;
+$text-color:                  #abc0ca;
+$segment-text-color:        #0b1925;
+$emphasized-text-color:       #abc0ca;
+
+$brand-color:      #abc0ca;
 
 $grey-color:       #828282;
 $grey-color-light: lighten($grey-color, 40%);
 $grey-color-dark:  darken($grey-color, 25%);
+
+// Mode Line
+$mode-line-color: #666666;
+$mode-segment-first-color: #eead0e;
+$mode-segment-second-color: #2872b2;
+$mode-segment-third-color: #383838;
+$mode-segment-right-color: $mode-segment-first-color;
+
 
 // Width of the content area
 $content-width:    800px;
