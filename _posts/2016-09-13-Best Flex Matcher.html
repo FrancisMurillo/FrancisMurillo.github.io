@@ -1,0 +1,978 @@
+---
+title: Best Flex Matcher
+tagline: Or the smallest matching string you can get.
+layout: post
+author: Francis Murillo
+categories: Experiment
+tags: Emacs
+---
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Problem</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<p>
+I've been using <a href="https://www.gnu.org/software/emacs">Emacs</a> for quite some time now and used both <a href="https://github.com/nonsequitur/smex">smex</a> and
+<a href="https://github.com/emacs-helm/helm">helm</a> as my commander. (pun somewhat intended.) But when I started, it
+was just <a href="https://www.emacswiki.org/emacs/InteractivelyDoThings">ido</a> and the phenomenal <a href="https://github.com/lewang/flx">flex matching</a> feature which makes
+command searching faster and easier. I encourage you to read or use flex
+matching before continuing but the easiest explanation I can give is
+that *given a list of function names and a search text, return all the
+functions that contain all the letters of the search text in the
+function name, sequentially*.
+</p>
+
+<p>
+Not the best perhaps but I do want to stress the word <b>sequential</b>
+because it is not the typical substring search. Maybe one or two
+examples might help.
+</p>
+
+<p>
+Let's say we have a function <code>emacs-lisp</code>, we can match it with the
+substring <code>emacs</code>, <code>lisp</code> or <code>cs-li</code> but not <code>el</code> or <code>ep</code>; however, flex
+matching will match <code>el</code> because <code>e</code> and <code>l</code> appear sequentially in the
+name and likewise <code>ep</code> but not <code>me</code> although both letters appear in the
+name but are not sequential. I love to call this kind of matching
+<b>forward character matching</b> but that's just me.
+</p>
+
+<p>
+After getting used to this kind matching and a thousand functions to
+scan, one naturally asks the question <b>what is the smallest search text
+that will match a target?</b> My sample target is <code>emacs-lisp-mode</code> and
+what I hope to understand is whether <code>elmo</code> is one of the flex matching
+candidate for the job.
+</p>
+
+<p>
+To limit the problem so that it doesn't explode, the question is roughly
+<b>using <code>smex</code>, what are the smallest matching search text for a
+command?</b> So if you don't use <b>Emacs</b> or <b>smex</b> as your flex matcher,
+reading this article might have little mileage for you but if you want
+to hear the journey, let's ride.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2">Before Coding</h2>
+<div class="outline-text-2" id="text-orgheadline2">
+<p>
+For those who want the code instead of a boring explanation, here it <a href="https://gist.github.com/FrancisMurillo/8d2d895f01d502a6d1d572190b9ef820">is</a>.
+</p>
+
+<p>
+Here is an outline of how things would go. Given a function name, do the following
+</p>
+
+<ol class="org-ol">
+<li>Check if the function exists, bail if there is not</li>
+<li>Generate all possible flex matching "substring" from that name</li>
+<li>For each substring, get the possible matches and rate it by order</li>
+<li>Filter out those matches with the highest order</li>
+</ol>
+
+<p>
+Looks simple but there is one critical thing hard with this. The word
+<b>generate</b> whispers <a href="https://en.wikipedia.org/wiki/Combinatorial_explosion">combinatorial explosion</a> which screams <a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)">garbage
+collection</a> which pretty much means performance and memory problems. In
+doing this in the <a href="http://c2.com/cgi/wiki?EmacsAsOperatingSystem">best OS</a>, this will block the UI which is bad like in
+<b>JavaScript</b>. There are probably many ways to address this but the way I
+go about it is with <a href="https://github.com/Reactive-Extensions/RxJS">lazy streams</a> and <a href="http://clojure.org/reference/transducers">transducers</a> which tries to
+emulate <a href="https://tc39.github.io/ecmascript-asyncawait/">async await</a>. Or I can just let the UI block for minutes while I
+twiddle my thumb and be done with it but that wouldn't be fun to explore
+would it?
+</p>
+
+<p>
+Truly, this is article is more of an exploration of doing asynchronous
+computation in <b>Emacs</b> that is inspired by solving the best flex
+matching candidates. As another shameless plugs, I made the aptly named
+libraries <a href="https://github.com/FrancisMurillo/stream.el">stream.el</a>, <a href="https://github.com/FrancisMurillo/transducer.el">transducer.el</a> and <a href="https://github.com/FrancisMurillo/promise.el">promise.el</a> to support this
+endeavor. We will explore the role of each one and how it will achieve
+our goals.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline3" class="outline-2">
+<h2 id="orgheadline3">Streams</h2>
+<div class="outline-text-2" id="text-orgheadline3">
+<p>
+Lists. The basic form of collection. As the collection grows, mapping
+over it takes longer which is natural. Dealing with a permutation of a
+long text, the number of candidates can grow to millions and if a
+mapping function takes time then it is compounded. What we want is to
+map over a huge list without blocking, what we are really asking is to
+defer the computation or be lazy. How about a snippet?
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Use your imagination</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> xs <span style="color: #ff1493;">(</span>list <span style="color: #68f6cb;">"a"</span> <span style="color: #68f6cb;">"list"</span> <span style="color: #68f6cb;">"of"</span> <span style="color: #68f6cb;">"..."</span> <span style="color: #68f6cb;">"a "</span> <span style="color: #68f6cb;">"million "</span> <span style="color: #68f6cb;">"items"</span><span style="color: #ff1493;">)</span> <span style="color: #2872b2;">; </span><span style="color: #2872b2;">Millions of items</span>
+      mapper <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>x<span style="color: #7fff00;">)</span> <span style="color: #7fff00;">(</span>list <span style="color: #68f6cb;">"a"</span> <span style="color: #68f6cb;">"long"</span> <span style="color: #68f6cb;">"operation"</span> <span style="color: #68f6cb;">"on"</span> x<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span> <span style="color: #2872b2;">; </span><span style="color: #2872b2;">A long operation</span>
+      <span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>mapcar mapper xs<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">; </span><span style="color: #2872b2;">Get a cup of coffee</span>
+</pre>
+</div>
+
+<p>
+With <code>stream.el</code>, we can do it in a deferred fashion.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">stream</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> xs-stream <span style="color: #ff1493;">(</span>stream-from-list <span style="color: #7fff00;">(</span>list 1 2 3 4 5<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Start the stream</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; steam-start</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Streams as just a function invokation</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 1</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Invoking the stream function yields the next value</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 2</span>
+
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 3</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 4</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 5</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">End of the stream</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; stream-stop</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">No more values</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall xs-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; stream-stop</span>
+</pre>
+</div>
+
+<p>
+It is a little more contrived but we can say when we want the next value
+with a function call. With that in mind, let's map over the stream.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> xs <span style="color: #ff1493;">(</span>list 1 2 3 4 5<span style="color: #ff1493;">)</span>
+      mapper #'1+
+      xs-stream <span style="color: #ff1493;">(</span>stream-from-list xs<span style="color: #ff1493;">)</span>
+      ys-stream
+      <span style="color: #ff1493;">(</span>stream
+       <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span><span style="color: #f5b55f;">&amp;rest</span> _<span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ffff00;">(</span><span style="color: #da70d6;">(</span>x <span style="color: #00ff7f;">(</span>funcall xs-stream<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+           <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Common stream idiom</span>
+           <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Ignore start-value</span>
+           <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #da70d6;">(</span>stream-start-value-p x<span style="color: #da70d6;">)</span>
+             <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> x <span style="color: #00ff7f;">(</span>funcall xs-stream<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+           <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Handle stop-value</span>
+           <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #da70d6;">(</span>stream-stop-value-p x<span style="color: #da70d6;">)</span>
+               stream-stop
+             <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Actually map over it</span>
+             <span style="color: #da70d6;">(</span>funcall mapper x<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>funcall ys<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; stream-start</span>
+<span style="color: #ff8c00;">(</span>funcall ys<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 2</span>
+<span style="color: #ff8c00;">(</span>funcall ys<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 3</span>
+<span style="color: #ff8c00;">(</span>funcall ys<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 4</span>
+<span style="color: #ff8c00;">(</span>funcall ys<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 5</span>
+<span style="color: #ff8c00;">(</span>funcall ys<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 6</span>
+<span style="color: #ff8c00;">(</span>funcall ys<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; stream-stop</span>
+</pre>
+</div>
+
+<p>
+Even if <code>xs</code> is a small or huge list, we can control when the value is
+computed and thus avoid blocking although the code is more verbose.
+Let's apply this to our problem of generating the flex matching
+candidates. Our problem of finding all flex match substrings is roughly
+equivalent to printing out all binary strings of a certain length. With
+the help of inductive reasoning and recursion, we have the following
+implementation.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">transducer</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fbo/text-forward-permutations</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">letrec</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>recurser
+            <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>sub-text<span style="color: #da70d6;">)</span>
+              <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">cond</span>
+               <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>string-empty-p sub-text<span style="color: #ff8247;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Base cases</span>
+                <span style="color: #ff8247;">(</span>list <span style="color: #68f6cb;">""</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+               <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>= <span style="color: #9cb6ad;">(</span>length sub-text<span style="color: #9cb6ad;">)</span> 1<span style="color: #ff8247;">)</span>
+                <span style="color: #ff8247;">(</span>list sub-text <span style="color: #68f6cb;">""</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+               <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>= <span style="color: #9cb6ad;">(</span>length sub-text<span style="color: #9cb6ad;">)</span> 2<span style="color: #ff8247;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Optimized non-trivial case</span>
+                <span style="color: #ff8247;">(</span>list
+                 <span style="color: #68f6cb;">""</span>
+                 <span style="color: #9cb6ad;">(</span>substring-no-properties sub-text 0 1<span style="color: #9cb6ad;">)</span>
+                 <span style="color: #9cb6ad;">(</span>substring-no-properties sub-text 1 2<span style="color: #9cb6ad;">)</span>
+                 sub-text<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+               <span style="color: #00ff7f;">(</span>t   <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Inductive case</span>
+                <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #9cb6ad;">(</span><span style="color: #ff8c00;">(</span>first-text
+                                <span style="color: #ff1493;">(</span>substring-no-properties sub-text 0 1<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                               <span style="color: #ff8c00;">(</span>rest-text
+                                <span style="color: #ff1493;">(</span>substring-no-properties sub-text 1<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+                  <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span>rest-permutations <span style="color: #7fff00;">(</span>funcall recurser rest-text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                    <span style="color: #ff8c00;">(</span>append
+                     <span style="color: #ff1493;">(</span>transducer-transduce
+                      <span style="color: #7fff00;">(</span>transducer-map <span style="color: #00bfff;">(</span>-partial #'concat first-text<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+                      <span style="color: #7fff00;">(</span>transducer-list-reducer<span style="color: #7fff00;">)</span>
+                      rest-permutations<span style="color: #ff1493;">)</span>
+                     rest-permutations<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>funcall recurser text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This is the original implementation with <code>transducers</code> which in this
+case is an equivalent of <code>mapcar</code>. Take your time to grok it or use it
+if you can. Now if you do, try running <code>(fbo/text-forward-permutations
+"emacs-lisp-mode")</code> and tell me how long it took to complete it? If it
+ran without blocking a bit, then I envy your hardware specs. Now let us
+see convert the blocking lists to lazy streams.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">transducer</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/text-forward-permutations</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">letrec</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>recurser
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>sub-text<span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">cond</span>
+          <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>string-empty-p sub-text<span style="color: #ff8247;">)</span>
+           <span style="color: #ff8247;">(</span>stream-from-list <span style="color: #9cb6ad;">(</span>list <span style="color: #68f6cb;">""</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+          <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>= <span style="color: #9cb6ad;">(</span>length sub-text<span style="color: #9cb6ad;">)</span> 1<span style="color: #ff8247;">)</span>
+           <span style="color: #ff8247;">(</span>stream-from-list <span style="color: #9cb6ad;">(</span>list sub-text <span style="color: #68f6cb;">""</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+          <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>= <span style="color: #9cb6ad;">(</span>length sub-text<span style="color: #9cb6ad;">)</span> 2<span style="color: #ff8247;">)</span>
+           <span style="color: #ff8247;">(</span>stream-from-list
+            <span style="color: #9cb6ad;">(</span>list
+             <span style="color: #68f6cb;">""</span>
+             <span style="color: #ff8c00;">(</span>substring-no-properties sub-text 0 1<span style="color: #ff8c00;">)</span>
+             <span style="color: #ff8c00;">(</span>substring-no-properties sub-text 1 2<span style="color: #ff8c00;">)</span>
+             sub-text<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+          <span style="color: #00ff7f;">(</span>t
+           <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #9cb6ad;">(</span><span style="color: #ff8c00;">(</span>first-text
+                <span style="color: #ff1493;">(</span>substring-no-properties sub-text 0 1<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span>rest-text
+                <span style="color: #ff1493;">(</span>substring-no-properties sub-text 1<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span>rest-permutations <span style="color: #7fff00;">(</span>funcall recurser rest-text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                 <span style="color: #ff1493;">(</span>repeat-permutations <span style="color: #7fff00;">(</span>stream-copy 'empty rest-permutations<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                 <span style="color: #ff1493;">(</span>base-stream <span style="color: #7fff00;">(</span>car repeat-permutations<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                 <span style="color: #ff1493;">(</span>next-stream <span style="color: #7fff00;">(</span>cdr repeat-permutations<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span>stream-append
+                <span style="color: #ff1493;">(</span>transducer-transduce-stream
+                 <span style="color: #7fff00;">(</span>transducer-map <span style="color: #00bfff;">(</span>-partial #'concat first-text<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+                 base-stream<span style="color: #ff1493;">)</span>
+                next-stream<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>funcall recurser text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Did you notice the difference? At the surface, it just basically wrapped
+the list return as streams. At a deeper look, there is an additional
+<code>stream-copy</code> function and the destructuring of it with <code>base-stream</code>
+and <code>next-stream</code>. This is the fundamental difference between lists and
+streams: <b>lists can be consumed repeatedly while streams are not.</b> In
+the <code>stream</code> example above, once you reach <code>stream-stop</code> you cannot go
+back to the beginning which implies that a stream can only be consumed
+once. So if you want to reuse the stream with their values, one has to
+copy it with <code>stream-copy</code>. The other thing is how it is consumed; lists
+are data structures while streams are function closures. Despite these
+two fundamental differences, it was easy to switch from a list to a
+stream implementation thanks to the abstraction of <code>transducers</code>.
+</p>
+
+<p>
+So what we have now is the first part of the algorithm, now we can move
+on to figuring out how to get the candidates or matches given a
+substring.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline4" class="outline-2">
+<h2 id="orgheadline4">Transducers</h2>
+<div class="outline-text-2" id="text-orgheadline4">
+<p>
+So we have lazy streams but that doesn't stop it from consuming a list
+of million items and taking its sweet time mapping over it. Let's
+checkout how to get the candidates of a flex match with <code>smex</code> while
+suspending your disbelief for <code>transducers</code> for now.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">stream</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">transducer</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/function-symbol-stream</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #ff1493;">(</span>transducer-transduce-stream
+   <span style="color: #7fff00;">(</span>transducer-map #'car<span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span>stream-from-list smex-cache<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/flex-match-text</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>concat
+   <span style="color: #7fff00;">(</span>regexp-quote <span style="color: #00bfff;">(</span>string <span style="color: #ffff00;">(</span>aref text 0<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span>mapconcat
+    <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ffff00;">(</span>c<span style="color: #ffff00;">)</span>
+      <span style="color: #ffff00;">(</span>concat <span style="color: #68f6cb;">"[</span><span style="color: #ff694d;">^</span><span style="color: #68f6cb;">"</span> <span style="color: #da70d6;">(</span>string c<span style="color: #da70d6;">)</span> <span style="color: #68f6cb;">"]*"</span>
+              <span style="color: #da70d6;">(</span>regexp-quote <span style="color: #00ff7f;">(</span>string c<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+    <span style="color: #00bfff;">(</span>substring text 1<span style="color: #00bfff;">)</span> <span style="color: #68f6cb;">""</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+The main idea is to convert the <code>smex-cache</code> into a list of function
+names with <code>fb/function-symbol-stream</code> which is our source of truth. Of
+course, it is stream that emits symbols, so we massaged or mapped it a
+bit from the <code>smex-cache</code> cons list.
+</p>
+
+<p>
+Now how do we filter which is our candidates? We convert the search text
+into a regex with <code>fb/flex-match-text</code> and filter the source stream with
+it, which I just plundered from <code>ido</code>. To get a grasp of this, let's use
+<code>elmo</code> as a substring. Using <code>(fb/flex-match-text "elmo")</code>, it would
+output <code>e[^l]*l[^m]*m[^o]*o</code>, looks weird but it does its job. Testing
+it out with <code>(s-match "e[^l]*l[^m]*m[^o]*o" "emacs-lisp-mode")</code> outputs
+<code>("emacs-lisp-mo")</code>, so it works, hopefully.
+</p>
+
+<p>
+So we now have a filterer, all we need is a <code>stream-filter</code>. It would
+just take a few lines of code to implement. If in the future we want to
+switch from a <code>stream</code> to a <code>list</code> because streams is a bit more
+complicated, we will have no reuse and have to replace every instance of
+<code>stream-filter</code> and <code>stream-map</code> to <code>-filter</code> and <code>-map</code>. So how do we
+abstract the operation over the collection?
+</p>
+
+<p>
+<code>transducers</code>. If you been using <code>map</code>, <code>filter</code>, or <code>reduce</code> in your
+code, then <code>transducers</code> allows the trio of operations on most
+collection data types such as <code>vector</code>, <code>sequence</code> and more. This is
+admittedly another abstraction over the collection that might not be
+warranted if you noticed the verbosity of the code but I assure you
+there is another benefit we can reap from it.
+</p>
+
+<p>
+Well, I am not the authority to talk about it and I just took it from
+Rich Hickey's explanation of Closure transducer and I might as well have
+used an Emacs to Clojure library instead of creating my own. As a
+budding lisper, I found the challenge of implementing both <code>stream.el</code>
+and <code>transducer.el</code> as a way to improve my elisp coding and
+understanding transducers at an implementation level. Transducers are
+great and a nice thing to study and use as well as the inspiration from
+it. Rolling with <code>transducer.el</code>, let's see how it is used.
+</p>
+
+<p>
+I urge you to read transducers from Clojure before continuing since I
+might not do it justice. What I can show you is a comparison of the
+standard and transducing way.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">transducer</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Mapping</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> xs <span style="color: #ff1493;">(</span>list 1 2 3 4 5<span style="color: #ff1493;">)</span>
+      mapper #'number-to-string<span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Standard mapping</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>-map mapper xs<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 2 3 4 5 6</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Transducer mapping</span>
+<span style="color: #ff8c00;">(</span>princ
+ <span style="color: #ff1493;">(</span>transducer-transduce
+  <span style="color: #7fff00;">(</span>transducer-map mapper<span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>transducer-list-reducer<span style="color: #7fff00;">)</span>
+  xs<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Filtering</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> ys <span style="color: #ff1493;">(</span>list 1 2 3 4 5<span style="color: #ff1493;">)</span>
+      filterer #'oddp<span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Standard filtering</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>-filter filterer ys<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 1 3 5</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Transducer filtering</span>
+<span style="color: #ff8c00;">(</span>princ
+ <span style="color: #ff1493;">(</span>transducer-transduce
+  <span style="color: #7fff00;">(</span>transducer-filter filterer<span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>transducer-list-reducer<span style="color: #7fff00;">)</span>
+  ys<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Composition</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> zs <span style="color: #ff1493;">(</span>list 1 2 3 4 5<span style="color: #ff1493;">)</span>
+      mapper #'1+
+      filterer #'evenp<span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Standard composition</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">We can't use `</span><span style="color: #afc0fd; font-weight: bold;">-compose</span><span style="color: #2872b2;">'</span>
+<span style="color: #ff8c00;">(</span>princ
+ <span style="color: #ff1493;">(</span>-filter
+  filterer
+  <span style="color: #7fff00;">(</span>-map
+   mapper
+   xs<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 2 4 6</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Transducer composition</span>
+<span style="color: #ff8c00;">(</span>princ
+ <span style="color: #ff1493;">(</span>transducer-transduce
+  <span style="color: #7fff00;">(</span>transducer-composes
+   <span style="color: #00bfff;">(</span>transducer-map mapper<span style="color: #00bfff;">)</span>
+   <span style="color: #00bfff;">(</span>transducer-filter filterer<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>transducer-list-reducer<span style="color: #7fff00;">)</span>
+  xs<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So with just plain mapping and filtering, the standard way seem better
+too. The time it shines when there is composition of operation, the form
+is much more readable and better. This works for streams as promised
+with a slight variation.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> xs <span style="color: #ff1493;">(</span>list 1 2 3 4 5<span style="color: #ff1493;">)</span>
+      xs-stream <span style="color: #ff1493;">(</span>stream-from-list xs<span style="color: #ff1493;">)</span>
+      mapper #'1+
+      filterer #'evenp<span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Transducer composition with a stream</span>
+<span style="color: #ff8c00;">(</span>princ
+ <span style="color: #ff1493;">(</span>stream-to-list
+  <span style="color: #7fff00;">(</span>transducer-trgansduce-stream
+   <span style="color: #00bfff;">(</span>transducer-composes
+    <span style="color: #ffff00;">(</span>transducer-map mapper<span style="color: #ffff00;">)</span>
+    <span style="color: #ffff00;">(</span>transducer-filter filterer<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+   <span style="color: #00bfff;">(</span>stream-from-list xs<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+As you can see it looks similar with streams and thus everything can be
+carried over. Cool. But the most striking of all benefits of a
+transducer is that it is lazy or more composable. As a lead, how about
+filtering a collection of numbers with two predicates.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> less-than-ten-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>n<span style="color: #7fff00;">)</span> <span style="color: #7fff00;">(</span>&lt; n 10<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+      more-than-five-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>n<span style="color: #7fff00;">)</span> <span style="color: #7fff00;">(</span>&gt; n 5<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+      xs <span style="color: #ff1493;">(</span>number-sequence 0 10<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>princ <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Remember me?</span>
+ <span style="color: #ff1493;">(</span>-filter
+  less-than-ten-p
+  <span style="color: #7fff00;">(</span>-filter
+   more-than-five-p
+   xs<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 6 7 8 9</span>
+</pre>
+</div>
+
+<p>
+What this does is filter the whole collection and then filter again the
+smaller collection. Of course, you can optimize this by composing the
+predicates so that it would only filter once. However, the composition
+of transducers and the laziness of streams, this is already inherent
+about it. No need to optimize how the operations interact, it will be
+optimized most of the time. This performance benefit alone is why I am
+advocating transducers so that majority of the symbol stream can be
+skipped and avoid heavily computing the candidates if possible. I think
+<a href="https://github.com/Reactive-Extensions/RxJS">RxJS</a> has a better explanation of the optimization the API does when
+composing mappings and predicates.
+</p>
+
+<p>
+So with that, here is the long awaited candidate rater.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/rate-flex-match</span> <span style="color: #ff1493;">(</span>search target<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>transducer-transduce-stream
+   <span style="color: #7fff00;">(</span>transducer-composes
+    <span style="color: #00bfff;">(</span>transducer-map-indexed #'cons<span style="color: #00bfff;">)</span>
+    <span style="color: #00bfff;">(</span>transducer-first
+     <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>pair<span style="color: #da70d6;">)</span>
+       <span style="color: #da70d6;">(</span>string-equal <span style="color: #00ff7f;">(</span>cdr pair<span style="color: #00ff7f;">)</span> target<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span>fb/flex-match-symbol-stream
+    search
+    <span style="color: #00bfff;">(</span>fb/function-symbol-stream<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+What this returns is a single valued stream of a cons pair where the car
+is the index of the target function in the sorted candidate list
+generated by <code>smex</code>. The index will be our rating: if the target appears
+first on the list, the rating would be 0. What we want is a rating of 0
+but you can be a bit more loose if you don't mind scrolling a bit to
+select the command. Since the return value is a stream, you have to
+unwrap with preferably <code>stream-to-list</code> and get the first value, just
+take note.
+</p>
+
+<p>
+So let's take all this to one proof.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline5" class="outline-2">
+<h2 id="orgheadline5">Checkpoint</h2>
+<div class="outline-text-2" id="text-orgheadline5">
+<p>
+With the generator and the rater, we can now make a working code.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Just a simple check if the target function exists.</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/function-symbol-p</span> <span style="color: #ff1493;">(</span>name<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>not
+   <span style="color: #7fff00;">(</span>null <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Since the result is a list, we have to unwrap it</span>
+    <span style="color: #00bfff;">(</span>stream-to-list
+     <span style="color: #ffff00;">(</span>transducer-transduce-stream
+        <span style="color: #da70d6;">(</span>transducer-first <span style="color: #00ff7f;">(</span>-partial #'string-equal name<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+        <span style="color: #da70d6;">(</span>fb/function-symbol-stream<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/rate-flex-matcher</span> <span style="color: #ff1493;">(</span>search-size target<span style="color: #ff1493;">)</span>
+  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">If the function does not exists, return a default stream value</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #7fff00;">(</span>not <span style="color: #00bfff;">(</span>fb/function-symbol-p target<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+      <span style="color: #7fff00;">(</span>stream-stopped<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span>
+        <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>rater <span style="color: #da70d6;">(</span>-rpartial #'fb/rate-flex-match target<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+         <span style="color: #ffff00;">(</span>rate-stream
+          <span style="color: #da70d6;">(</span>transducer-transduce-stream
+           <span style="color: #00ff7f;">(</span>transducer-composes
+            <span style="color: #ff8247;">(</span>transducer-filter
+             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>search<span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span>
+                <span style="color: #ff1493;">(</span>not <span style="color: #7fff00;">(</span>string-empty-p search<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                <span style="color: #ff1493;">(</span>&lt;= <span style="color: #7fff00;">(</span>length search<span style="color: #7fff00;">)</span> search-size<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+            <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">My own filters</span>
+            <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">I prefer the first letter of the candidates be the same as the target</span>
+            <span style="color: #ff8247;">(</span>transducer-filter
+             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>search<span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span>string-equal
+                <span style="color: #ff1493;">(</span>substring-no-properties search 0 1<span style="color: #ff1493;">)</span>
+                <span style="color: #ff1493;">(</span>substring-no-properties target 0 1<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+            <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">No separators please</span>
+            <span style="color: #ff8247;">(</span>transducer-filter
+             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>search<span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span>not
+                <span style="color: #ff1493;">(</span>s-contains-p
+                 <span style="color: #68f6cb;">"-"</span>
+                 search<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+            <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">End of my own filters</span>
+            <span style="color: #ff8247;">(</span>transducer-map
+             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>search<span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span>cons
+                search
+                <span style="color: #ff1493;">(</span>stream-to-list <span style="color: #7fff00;">(</span>funcall rater search<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span>transducer-filter
+             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>pair<span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span>
+                <span style="color: #ff1493;">(</span>not <span style="color: #7fff00;">(</span>null <span style="color: #00bfff;">(</span>cdr pair<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">If a candidate was found</span>
+                <span style="color: #ff1493;">(</span>= 0 <span style="color: #7fff00;">(</span>car <span style="color: #00bfff;">(</span>car <span style="color: #ffff00;">(</span>cdr pair<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Iff the rating 0</span>
+            <span style="color: #ff8247;">(</span>transducer-map
+             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>pair<span style="color: #ff8c00;">)</span>
+               <span style="color: #ff8c00;">(</span>car pair<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+           <span style="color: #00ff7f;">(</span>fb/text-forward-permutations target<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      rate-stream<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+A little mouthful here but the outline is still the same: given a target
+function name, generate all possible substrings, rate them, filter by
+the highest rating and then tell me. The other thing here is that there
+is <code>search-size</code> which limits the number of substrings to process.
+Ideally, you want to type as little as possible so you should set it
+near half the length of the target text but open for configuration.
+</p>
+
+<p>
+There are other optimizations on my part. One, I would like the candidate and
+target to have the first same letter as a hint. For example, with
+<code>emacs-lisp-mode</code>, I want my candidates to begin with <code>e</code> so I can
+easily remember it as being natural. Two, I would like no command
+separator in the candidate because I don't type them. You can remove
+both if you like.
+</p>
+
+<p>
+Regardless of the logic, let's try it with the long awaited
+<code>emacs-lisp-mode</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">cl-lib</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>stream-to-list <span style="color: #7fff00;">(</span>fb/rate-flex-matcher 3 <span style="color: #68f6cb;">"emacs-lisp-mode"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"ema"</span> <span style="color: #2872b2;">; </span><span style="color: #2872b2;">Take your pick for =emacs-lisp-mode=</span>
+ <span style="color: #68f6cb;">"emc"</span>
+ <span style="color: #68f6cb;">"emp"</span>
+ <span style="color: #68f6cb;">"eac"</span>
+ <span style="color: #68f6cb;">"eas"</span>
+ <span style="color: #68f6cb;">"eas"</span>
+ <span style="color: #68f6cb;">"eam"</span>
+ <span style="color: #68f6cb;">"ecs"</span>
+ <span style="color: #68f6cb;">"ecs"</span>
+ <span style="color: #68f6cb;">"ecm"</span>
+ <span style="color: #68f6cb;">"ecd"</span>
+ <span style="color: #68f6cb;">"esi"</span>
+ <span style="color: #68f6cb;">"esp"</span>
+ <span style="color: #68f6cb;">"esp"</span>
+ <span style="color: #68f6cb;">"epm"</span>
+ <span style="color: #68f6cb;">"epd"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Can we go lower?</span>
+<span style="color: #ff8c00;">(</span>cl-prettyprint <span style="color: #ff1493;">(</span>stream-to-list <span style="color: #7fff00;">(</span>fb/rate-flex-matcher 2 <span style="color: #68f6cb;">"emacs-lisp-mode"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+nil <span style="color: #2872b2;">; </span><span style="color: #2872b2;">No dice</span>
+</pre>
+</div>
+
+<p>
+Cool, it works. And at this point, you can try this out and walk out. If
+you did try this out, you might experience several garbage collection if
+you set <code>garbage-collection-messages</code> to <code>t</code> to see how many times. I
+don't know about you but mine happened a lot but it didn't take too much
+time but it is indicative of memory issues. Not a biggie but if it
+garbage collects, it blocks the UI which is the whole point in the first
+place.
+</p>
+
+<p>
+However, the one thing we want is that it should not block the UI or be
+asynchronous... sort of. Time for the bonus round.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline6" class="outline-2">
+<h2 id="orgheadline6">Promises</h2>
+<div class="outline-text-2" id="text-orgheadline6">
+<p>
+This is the last piece to build delayed and buffered streams and this
+might get hairy as I am running out of documentation. The only
+assumption I have for you is that you know how to use <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">promises</a>. Read
+about if you don't or we can just jump in.
+</p>
+
+<p>
+Again if we have a list of a million items, it would still take time
+processing all of it. What if we can buffer it by time? Given a time
+period and stream, accumulate values into a list until the period is
+done. This can be implemented like so.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/stream-time-buffered</span> <span style="color: #ff1493;">(</span>buffer-time stream<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>stream
+   <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span><span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #00bfff;">)</span>
+     <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #ffff00;">(</span><span style="color: #da70d6;">(</span>initial-value <span style="color: #00ff7f;">(</span>apply stream args<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+                   <span style="color: #da70d6;">(</span>done nil<span style="color: #da70d6;">)</span>
+                   <span style="color: #da70d6;">(</span>now <span style="color: #00ff7f;">(</span>current-time<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #da70d6;">(</span>stream-start-value-p initial-value<span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> initial-value <span style="color: #00ff7f;">(</span>apply stream args<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #da70d6;">(</span>stream-stop-value-p initial-value<span style="color: #da70d6;">)</span>
+           stream-stop
+         <span style="color: #da70d6;">(</span>promise
+          <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8247;">(</span>res rej<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #9cb6ad;">(</span><span style="color: #ff8c00;">(</span>buffered-values <span style="color: #ff1493;">(</span>list initial-value<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                          <span style="color: #ff8c00;">(</span>elapsed-time <span style="color: #ff1493;">(</span>float-time <span style="color: #7fff00;">(</span>time-subtract <span style="color: #00bfff;">(</span>current-time<span style="color: #00bfff;">)</span> now<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                          <span style="color: #ff8c00;">(</span>current-value initial-value<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+              <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">while</span> <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> <span style="color: #ff1493;">(</span>not done<span style="color: #ff1493;">)</span>
+                          <span style="color: #ff1493;">(</span>&lt; elapsed-time buffer-time<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #ff1493;">(</span>stream-stop-value-p current-value<span style="color: #ff1493;">)</span>
+                    <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> done t<span style="color: #ff1493;">)</span>
+                  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">push</span> current-value buffered-values<span style="color: #ff1493;">)</span>
+                  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> current-value <span style="color: #7fff00;">(</span>apply stream args<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> elapsed-time <span style="color: #7fff00;">(</span>float-time <span style="color: #00bfff;">(</span>time-subtract <span style="color: #ffff00;">(</span>current-time<span style="color: #ffff00;">)</span> now<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+              <span style="color: #9cb6ad;">(</span>funcall res <span style="color: #ff8c00;">(</span>reverse buffered-values<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Much in the implementation of a stream but the idea is in
+<code>buffered-values</code> and <code>elapsed-time</code> and probably <code>promises</code>. Let's see
+this with a huge list.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> range <span style="color: #ff1493;">(</span>number-sequence 1 100000<span style="color: #ff1493;">)</span>
+      stream <span style="color: #ff1493;">(</span>stream-from-list range<span style="color: #ff1493;">)</span>
+      period <span style="color: #ff1493;">(</span>/ 30.0<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">; </span><span style="color: #2872b2;">30fps</span>
+      buffered-stream <span style="color: #ff1493;">(</span>fb/stream-time-buffered period stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Your results might vary</span>
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall buffered-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; stream-started</span>
+
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall buffered-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 1 ... 4928</span>
+
+<span style="color: #ff8c00;">(</span>princ <span style="color: #ff1493;">(</span>funcall buffered-stream<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">&gt; 4929 ... 9753</span>
+</pre>
+</div>
+
+<p>
+Ideally, the combination of this and <code>run-with-idle-timer</code> prevents
+blocking the UI. And here comes <code>promise.el</code> or it can be replaced with
+the mature <a href="https://github.com/kiwanami/emacs-deferred">deferred</a> elisp library but the idea here is that it returns a
+promise like value when completed returns the number of values
+accumulated. Generalizing this.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fb/async-write-stream</span> <span style="color: #ff1493;">(</span>file stream<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-temp-file</span> file
+    <span style="color: #7fff00;">(</span>erase-buffer<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">letrec</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>async-stream
+            <span style="color: #ffff00;">(</span>fb/stream-time-buffered
+             fb/frame-rate
+             stream<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+           <span style="color: #00bfff;">(</span>recurser
+            <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
+              <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>value <span style="color: #9cb6ad;">(</span>funcall async-stream<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+                <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #ff8247;">(</span>stream-start-value-p value<span style="color: #ff8247;">)</span>
+                  <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> value <span style="color: #9cb6ad;">(</span>funcall async-stream<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+                <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #ff8247;">(</span>stream-stop-value-p value<span style="color: #ff8247;">)</span>
+                    <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Done"</span><span style="color: #ff8247;">)</span>
+                  <span style="color: #ff8247;">(</span>promise-then
+                   value
+                   <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>values<span style="color: #ff8c00;">)</span>
+                     <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> values
+                       <span style="color: #ff1493;">(</span>append-to-file
+                        <span style="color: #7fff00;">(</span>concat
+                         <span style="color: #00bfff;">(</span>string-join
+                          values
+                          <span style="color: #68f6cb;">"\n"</span><span style="color: #00bfff;">)</span>
+                         <span style="color: #68f6cb;">"\n"</span><span style="color: #7fff00;">)</span>
+                        nil
+                        file<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                     <span style="color: #ff8c00;">(</span>run-with-idle-timer
+                      fb/frame-rate
+                      nil
+                      recurser<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>funcall recurser<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+What this does is write the buffered values to a file of a stream. It is
+a bit rudimentary since you can't stop it once you start it but this is
+the main attempt to buffer and asynchronously write values... sort of.
+You don't need to understand but the idea here is with the promise
+stream, you get one value, wait for it to fulfill, write the fulfilled
+values, wait for some delay to avoid blocking the UI, get another
+promise value and repeat until it is consumed. But let me try it for
+you.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>fb/async-write-stream
+ <span style="color: #68f6cb;">"~/result"</span>
+ <span style="color: #ff1493;">(</span>fb/rate-flex-matcher 4 <span style="color: #68f6cb;">"emacs-lisp-mode"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">After you see the "Done" message</span>
+<span style="color: #ff8c00;">(</span>insert-file-contents <span style="color: #68f6cb;">"~/result"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Output here</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emac</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emas</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emas</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emai</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emai</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emas</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emap</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emam</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emao</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emad</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emad</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emcs</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emcs</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emci</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emci</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emcs</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emcp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emco</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emco</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emc</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emcd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emsl</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emsl</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emsi</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emsp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emsp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emlp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emlp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emis</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emio</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emio</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emid</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">empm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">empm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">empo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">emp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">empd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eacs</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eacs</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eaci</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eaci</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eacs</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eacp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eaco</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eaco</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eac</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eacd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easl</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easl</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easi</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eas</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eals</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eals</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ealm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eais</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eais</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eaim</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eas</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">easd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ease</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eapd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eapd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eamo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eam</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eamd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eame</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eaod</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsl</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsl</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecss</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecss</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecso</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecls</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecls</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eclm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecis</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecis</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecim</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecsm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecso</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecs</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecse</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecse</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecpm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecmo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecmo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecmd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecme</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecod</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ecd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esli</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esli</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esis</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esis</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esip</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esim</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esio</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esi</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esie</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esie</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elis</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elis</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elid</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elpm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elpm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eisp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eisp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">eipm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">esp</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">espd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">epmo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">epmo</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">epm</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">epmd</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">epme</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">epod</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">epd</span>
+</pre>
+</div>
+
+<p>
+It sort of works if you try it, the only thing I can add is to change
+the promise delay by higher idle time as well as account for garbage
+collection time. However, the idea of non-blocking Emacs might not be
+far off but it does take some effort to do so. I do want to stress for
+this final leg, that promises or deferred objects are used in
+conjunction with streams so that computation time is not noticeable to
+appear blocking. Again, the garbage collection looms if you have it
+turned on and that the responsiveness takes a dip from time to time.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline7" class="outline-2">
+<h2 id="orgheadline7">Notes</h2>
+<div class="outline-text-2" id="text-orgheadline7">
+<p>
+So we achieved our goal of getting the best candidates for flex matched
+commands and then toyed around with streams and transducers and a little
+bit of promises with inspirations from Clojure and Javascript. I feel
+the latter was more fun to experiment on further but I have written too
+much now for just a little problem in efficiency. Much ado about nothing.
+</p>
+</div>
+</div>
