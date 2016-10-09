@@ -27,25 +27,25 @@ Some code might make this easier to visualize.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript"><span style="color: #757575;">// </span><span style="color: #757575;">A data type to represent an list of size two</span>
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Pair</span> = <span style="color: #ff8c00;">{</span>
-    <span style="color: #64B5F6;">create</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">first</span>, <span style="color: #80CBC4;">second</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-        <span style="color: #E1BEE7;">return</span> Object.freeze<span style="color: #7fff00;">(</span><span style="color: #00bfff;">[</span>first, second<span style="color: #00bfff;">]</span><span style="color: #7fff00;">)</span>; <span style="color: #757575;">// </span><span style="color: #757575;">You think it's untouchable?</span>
+<pre class="src src-javascript"><span style="color: #2872b2;">// </span><span style="color: #2872b2;">A data type to represent an list of size two</span>
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">Pair</span> = <span style="color: #ff8c00;">{</span>
+    <span style="color: #bad6e2;">create</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">first</span>, <span style="color: #ff694d;">second</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> Object.freeze<span style="color: #7fff00;">(</span><span style="color: #00bfff;">[</span>first, second<span style="color: #00bfff;">]</span><span style="color: #7fff00;">)</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">You think it's untouchable?</span>
     <span style="color: #ff1493;">}</span>,
 
-    <span style="color: #64B5F6;">first</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-        <span style="color: #E1BEE7;">return</span> pair<span style="color: #7fff00;">[</span>0<span style="color: #7fff00;">]</span>;
+    <span style="color: #bad6e2;">first</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">pair</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> pair<span style="color: #7fff00;">[</span>0<span style="color: #7fff00;">]</span>;
     <span style="color: #ff1493;">}</span>,
 
-    <span style="color: #64B5F6;">second</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-        <span style="color: #E1BEE7;">return</span> pair<span style="color: #7fff00;">[</span>1<span style="color: #7fff00;">]</span>;
+    <span style="color: #bad6e2;">second</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">pair</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> pair<span style="color: #7fff00;">[</span>1<span style="color: #7fff00;">]</span>;
     <span style="color: #ff1493;">}</span>
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">myPair</span> = Pair.create<span style="color: #ff8c00;">(</span><span style="color: #C5E1A5;">'key'</span>, <span style="color: #C5E1A5;">'value'</span><span style="color: #ff8c00;">)</span>;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">myPair</span> = Pair.create<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">'key'</span>, <span style="color: #68f6cb;">'value'</span><span style="color: #ff8c00;">)</span>;
 
-myPair<span style="color: #ff8c00;">[</span>0<span style="color: #ff8c00;">]</span> = <span style="color: #C5E1A5;">'hacked key'</span>; <span style="color: #757575;">// </span><span style="color: #757575;">Will not work</span>
-myPair<span style="color: #ff8c00;">[</span>1<span style="color: #ff8c00;">]</span> = <span style="color: #C5E1A5;">'hacked value'</span>; <span style="color: #757575;">// </span><span style="color: #757575;">Ditto</span>
+myPair<span style="color: #ff8c00;">[</span>0<span style="color: #ff8c00;">]</span> = <span style="color: #68f6cb;">'hacked key'</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Will not work</span>
+myPair<span style="color: #ff8c00;">[</span>1<span style="color: #ff8c00;">]</span> = <span style="color: #68f6cb;">'hacked value'</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Ditto</span>
 </pre>
 </div>
 
@@ -58,9 +58,9 @@ without going through its <code>create</code> function which seems dirty.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript"><span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">copiedPair</span> = <span style="color: #ff8c00;">[</span>pair<span style="color: #ff1493;">[</span>0<span style="color: #ff1493;">]</span>, pair<span style="color: #ff1493;">[</span>1<span style="color: #ff1493;">]</span><span style="color: #ff8c00;">]</span>; <span style="color: #757575;">// </span><span style="color: #757575;">I find it dirty that I can access the contents easily</span>
+<pre class="src src-javascript"><span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">copiedPair</span> = <span style="color: #ff8c00;">[</span>pair<span style="color: #ff1493;">[</span>0<span style="color: #ff1493;">]</span>, pair<span style="color: #ff1493;">[</span>1<span style="color: #ff1493;">]</span><span style="color: #ff8c00;">]</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">I find it dirty that I can access the contents easily</span>
 
-console.log<span style="color: #ff8c00;">(</span>Pair.first<span style="color: #ff1493;">(</span>copiedPair<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>; <span style="color: #757575;">//</span><span style="color: #757575;">Which I find somewhat disturbing</span>
+console.log<span style="color: #ff8c00;">(</span>Pair.first<span style="color: #ff1493;">(</span>copiedPair<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>; <span style="color: #2872b2;">//</span><span style="color: #2872b2;">Which I find somewhat disturbing</span>
 </pre>
 </div>
 
@@ -86,15 +86,15 @@ represent it instead. But how? <b>Thunking</b> may seem a good idea.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript"><span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">create</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #80CBC4;">first</span>, <span style="color: #80CBC4;">second</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span> <span style="color: #757575;">// </span><span style="color: #757575;">Thunk it good</span>
-        <span style="color: #E1BEE7;">return</span> Object.freeze<span style="color: #7fff00;">(</span><span style="color: #00bfff;">[</span>first, second<span style="color: #00bfff;">]</span><span style="color: #7fff00;">)</span>;
+<pre class="src src-javascript"><span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">create</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">first</span>, <span style="color: #ff694d;">second</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span> <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Thunk it good</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> Object.freeze<span style="color: #7fff00;">(</span><span style="color: #00bfff;">[</span>first, second<span style="color: #00bfff;">]</span><span style="color: #7fff00;">)</span>;
     <span style="color: #ff1493;">}</span>;
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">myFunctionPair</span>= create<span style="color: #ff8c00;">(</span><span style="color: #C5E1A5;">'newKey'</span>, <span style="color: #C5E1A5;">'newValue'</span><span style="color: #ff8c00;">)</span>;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">myFunctionPair</span>= create<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">'newKey'</span>, <span style="color: #68f6cb;">'newValue'</span><span style="color: #ff8c00;">)</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">actualPair</span> = myFunctionPair<span style="color: #ff8c00;">()</span>; <span style="color: #757575;">// </span><span style="color: #757575;">Give it to me!</span>
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">actualPair</span> = myFunctionPair<span style="color: #ff8c00;">()</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Give it to me!</span>
 </pre>
 </div>
 
@@ -105,20 +105,20 @@ token of sort to prevent it from being accessed without it.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript"><span style="color: #757575;">// </span><span style="color: #757575;">Let's assume we have a secret type token</span>
-Pair.secretToken = Object.create<span style="color: #ff8c00;">(</span><span style="color: #C5CAE9;">null</span><span style="color: #ff8c00;">)</span>; <span style="color: #757575;">// </span><span style="color: #757575;">Quick way to create symbols in JavaScript</span>
+<pre class="src src-javascript"><span style="color: #2872b2;">// </span><span style="color: #2872b2;">Let's assume we have a secret type token</span>
+Pair.secretToken = Object.create<span style="color: #ff8c00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span><span style="color: #ff8c00;">)</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Quick way to create symbols in JavaScript</span>
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">tokenCreate</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #80CBC4;">first</span>, <span style="color: #80CBC4;">second</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">state</span> = Object.create<span style="color: #ff1493;">(</span><span style="color: #7fff00;">[</span>first, second<span style="color: #7fff00;">]</span><span style="color: #ff1493;">)</span>;
-    <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">accessToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-        <span style="color: #E1BEE7;">return</span> accessToken === Pair.secretToken ? state : <span style="color: #C5CAE9;">null</span>; <span style="color: #757575;">// </span><span style="color: #757575;">Or throw an error but that's evil</span>
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">tokenCreate</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">first</span>, <span style="color: #ff694d;">second</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">state</span> = Object.create<span style="color: #ff1493;">(</span><span style="color: #7fff00;">[</span>first, second<span style="color: #7fff00;">]</span><span style="color: #ff1493;">)</span>;
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">accessToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> accessToken === Pair.secretToken ? state : <span style="color: #afc0fd; font-weight: bold;">null</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Or throw an error but that's evil</span>
     <span style="color: #ff1493;">}</span>;
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">tokenPair</span> = tokenCreate<span style="color: #ff8c00;">(</span>1, 2<span style="color: #ff8c00;">)</span>;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">tokenPair</span> = tokenCreate<span style="color: #ff8c00;">(</span>1, 2<span style="color: #ff8c00;">)</span>;
 
-tokenPair<span style="color: #ff8c00;">()</span>; <span style="color: #757575;">// </span><span style="color: #757575;">:: null</span>
-tokenPair<span style="color: #ff8c00;">(</span>Pair.secretToken<span style="color: #ff8c00;">)</span>; <span style="color: #757575;">// </span><span style="color: #757575;">:: [1, 2]</span>
+tokenPair<span style="color: #ff8c00;">()</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">:: null</span>
+tokenPair<span style="color: #ff8c00;">(</span>Pair.secretToken<span style="color: #ff8c00;">)</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">:: [1, 2]</span>
 </pre>
 </div>
 
@@ -131,34 +131,34 @@ it.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript"><span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">generateSymbol</span> = Object.create.bind<span style="color: #ff8c00;">(</span><span style="color: #C5CAE9;">null</span>, <span style="color: #C5CAE9;">null</span><span style="color: #ff8c00;">)</span>; <span style="color: #757575;">// </span><span style="color: #757575;">Quick shiv</span>
+<pre class="src src-javascript"><span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">generateSymbol</span> = Object.create.bind<span style="color: #ff8c00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span>, <span style="color: #afc0fd; font-weight: bold;">null</span><span style="color: #ff8c00;">)</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Quick shiv</span>
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">stateHolder</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #80CBC4;">emptyValue</span>, <span style="color: #80CBC4;">token</span>, <span style="color: #80CBC4;">state</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span> <span style="color: #757575;">// </span><span style="color: #757575;">Let's enhance it a bit</span>
-    <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">accessToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-        <span style="color: #E1BEE7;">return</span> accessToken === token ? state : emptyValue;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">stateHolder</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">emptyValue</span>, <span style="color: #ff694d;">token</span>, <span style="color: #ff694d;">state</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span> <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Let's enhance it a bit</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">accessToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> accessToken === token ? state : emptyValue;
     <span style="color: #ff1493;">}</span>;
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">TypeModule</span> = <span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">typeToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Type</span> = Object.create<span style="color: #7fff00;">(</span><span style="color: #C5CAE9;">null</span><span style="color: #7fff00;">)</span>;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">TypeModule</span> = <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">typeToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">Type</span> = Object.create<span style="color: #7fff00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span><span style="color: #7fff00;">)</span>;
 
     Object.assign<span style="color: #7fff00;">(</span>Type, <span style="color: #00bfff;">{</span>
-        <span style="color: #64B5F6;">create</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">first</span>, <span style="color: #80CBC4;">second</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
-            <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">state</span> = Object.freeze<span style="color: #da70d6;">(</span>first, second<span style="color: #da70d6;">)</span>;
+        <span style="color: #bad6e2;">create</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ffff00;">(</span><span style="color: #ff694d;">first</span>, <span style="color: #ff694d;">second</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">state</span> = Object.freeze<span style="color: #da70d6;">(</span>first, second<span style="color: #da70d6;">)</span>;
 
-            <span style="color: #E1BEE7;">return</span> stateHolder<span style="color: #da70d6;">(</span><span style="color: #C5CAE9;">null</span>, typeToken, state<span style="color: #da70d6;">)</span>;
+            <span style="color: #96a5d9; font-weight: bold;">return</span> stateHolder<span style="color: #da70d6;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span>, typeToken, state<span style="color: #da70d6;">)</span>;
         <span style="color: #ffff00;">}</span>,
 
-        <span style="color: #64B5F6;">first</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
-            <span style="color: #E1BEE7;">return</span> pair<span style="color: #da70d6;">(</span>typeToken<span style="color: #da70d6;">)[</span>0<span style="color: #da70d6;">]</span>;
+        <span style="color: #bad6e2;">first</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ffff00;">(</span><span style="color: #ff694d;">pair</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">return</span> pair<span style="color: #da70d6;">(</span>typeToken<span style="color: #da70d6;">)[</span>0<span style="color: #da70d6;">]</span>;
         <span style="color: #ffff00;">}</span>,
 
-        <span style="color: #64B5F6;">second</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
-            <span style="color: #E1BEE7;">return</span> pair<span style="color: #da70d6;">(</span>typeToken<span style="color: #da70d6;">)[</span>1<span style="color: #da70d6;">]</span>;
+        <span style="color: #bad6e2;">second</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ffff00;">(</span><span style="color: #ff694d;">pair</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">return</span> pair<span style="color: #da70d6;">(</span>typeToken<span style="color: #da70d6;">)[</span>1<span style="color: #da70d6;">]</span>;
         <span style="color: #ffff00;">}</span>
     <span style="color: #00bfff;">}</span><span style="color: #7fff00;">)</span>;
 
-    <span style="color: #E1BEE7;">return</span> Object.freeze<span style="color: #7fff00;">(</span>Type<span style="color: #7fff00;">)</span>;
+    <span style="color: #96a5d9; font-weight: bold;">return</span> Object.freeze<span style="color: #7fff00;">(</span>Type<span style="color: #7fff00;">)</span>;
 <span style="color: #ff1493;">}(</span>generateSymbol<span style="color: #7fff00;">()</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
@@ -171,53 +171,53 @@ me formalize it a bit.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript"><span style="color: #757575;">// </span><span style="color: #757575;">Main Type Module</span>
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Type</span> = <span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">generateSymbol</span> = Object.create.bind<span style="color: #7fff00;">(</span><span style="color: #C5CAE9;">null</span>, <span style="color: #C5CAE9;">null</span><span style="color: #7fff00;">)</span>;
+<pre class="src src-javascript"><span style="color: #2872b2;">// </span><span style="color: #2872b2;">Main Type Module</span>
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">Type</span> = <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">generateSymbol</span> = Object.create.bind<span style="color: #7fff00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span>, <span style="color: #afc0fd; font-weight: bold;">null</span><span style="color: #7fff00;">)</span>;
 
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">stateHolder</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #7fff00;">(</span><span style="color: #80CBC4;">emptyValue</span>, <span style="color: #80CBC4;">token</span>, <span style="color: #80CBC4;">state</span><span style="color: #7fff00;">)</span> <span style="color: #7fff00;">{</span> <span style="color: #757575;">// </span><span style="color: #757575;">Let's enhance it a bit</span>
-        <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">accessToken</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
-            <span style="color: #E1BEE7;">return</span> accessToken === token ? state : emptyValue;
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">stateHolder</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #7fff00;">(</span><span style="color: #ff694d;">emptyValue</span>, <span style="color: #ff694d;">token</span>, <span style="color: #ff694d;">state</span><span style="color: #7fff00;">)</span> <span style="color: #7fff00;">{</span> <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Let's enhance it a bit</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #00bfff;">(</span><span style="color: #ff694d;">accessToken</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">return</span> accessToken === token ? state : emptyValue;
         <span style="color: #00bfff;">}</span>;
     <span style="color: #7fff00;">}</span>;
 
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Module</span> = generateSymbol<span style="color: #7fff00;">()</span>;
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">Module</span> = generateSymbol<span style="color: #7fff00;">()</span>;
 
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">emptyTypeValue</span> = generateSymbol<span style="color: #7fff00;">()</span>;
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">emptyTypeValue</span> = generateSymbol<span style="color: #7fff00;">()</span>;
 
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">typeHolder</span> = stateHolder.bind<span style="color: #7fff00;">(</span><span style="color: #C5CAE9;">null</span>, emptyTypeValue<span style="color: #7fff00;">)</span>;
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">typeHolder</span> = stateHolder.bind<span style="color: #7fff00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span>, emptyTypeValue<span style="color: #7fff00;">)</span>;
 
     Object.assign<span style="color: #7fff00;">(</span>Module, <span style="color: #00bfff;">{</span>
-        <span style="color: #64B5F6;">typeValue</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">token</span>, <span style="color: #80CBC4;">value</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
-            <span style="color: #E1BEE7;">return</span> typeHolder<span style="color: #da70d6;">(</span>token, value<span style="color: #da70d6;">)</span>;
+        <span style="color: #bad6e2;">typeValue</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ffff00;">(</span><span style="color: #ff694d;">token</span>, <span style="color: #ff694d;">value</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">return</span> typeHolder<span style="color: #da70d6;">(</span>token, value<span style="color: #da70d6;">)</span>;
         <span style="color: #ffff00;">}</span>,
 
-        <span style="color: #64B5F6;">define</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">constructor</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
-            <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">typeToken</span> = generateSymbol<span style="color: #da70d6;">()</span>;
+        <span style="color: #bad6e2;">define</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ffff00;">(</span><span style="color: #ff694d;">constructor</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">typeToken</span> = generateSymbol<span style="color: #da70d6;">()</span>;
 
-            <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">typeDefinition</span> = constructor<span style="color: #da70d6;">(</span>typeToken<span style="color: #da70d6;">)</span>;
+            <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">typeDefinition</span> = constructor<span style="color: #da70d6;">(</span>typeToken<span style="color: #da70d6;">)</span>;
 
-            <span style="color: #E1BEE7;">return</span> Object.freeze<span style="color: #da70d6;">(</span>typeDefinition<span style="color: #da70d6;">)</span>;
+            <span style="color: #96a5d9; font-weight: bold;">return</span> Object.freeze<span style="color: #da70d6;">(</span>typeDefinition<span style="color: #da70d6;">)</span>;
         <span style="color: #ffff00;">}</span>
     <span style="color: #00bfff;">}</span><span style="color: #7fff00;">)</span>;
 
-    <span style="color: #E1BEE7;">return</span> Object.freeze<span style="color: #7fff00;">(</span>Module<span style="color: #7fff00;">)</span>;
+    <span style="color: #96a5d9; font-weight: bold;">return</span> Object.freeze<span style="color: #7fff00;">(</span>Module<span style="color: #7fff00;">)</span>;
 <span style="color: #ff1493;">}()</span><span style="color: #ff8c00;">)</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">Pairs</span> = Type.define<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">typeToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">pairValue</span> = Type.typeValue.bind<span style="color: #7fff00;">(</span><span style="color: #C5CAE9;">null</span>, typeToken<span style="color: #7fff00;">)</span>;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">Pairs</span> = Type.define<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">typeToken</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">pairValue</span> = Type.typeValue.bind<span style="color: #7fff00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span>, typeToken<span style="color: #7fff00;">)</span>;
 
-    <span style="color: #E1BEE7;">return</span> <span style="color: #7fff00;">{</span>
-        <span style="color: #64B5F6;">create</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">first</span>, <span style="color: #80CBC4;">second</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
-            <span style="color: #E1BEE7;">return</span> pairValue<span style="color: #ffff00;">(</span>Object.freeze<span style="color: #da70d6;">(</span><span style="color: #00ff7f;">[</span>first, second<span style="color: #00ff7f;">]</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>;
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #7fff00;">{</span>
+        <span style="color: #bad6e2;">create</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #00bfff;">(</span><span style="color: #ff694d;">first</span>, <span style="color: #ff694d;">second</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">return</span> pairValue<span style="color: #ffff00;">(</span>Object.freeze<span style="color: #da70d6;">(</span><span style="color: #00ff7f;">[</span>first, second<span style="color: #00ff7f;">]</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>;
         <span style="color: #00bfff;">}</span>,
 
-        <span style="color: #64B5F6;">first</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
-            <span style="color: #E1BEE7;">return</span> pair<span style="color: #ffff00;">(</span>typeToken<span style="color: #ffff00;">)[</span>0<span style="color: #ffff00;">]</span>;
+        <span style="color: #bad6e2;">first</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #00bfff;">(</span><span style="color: #ff694d;">pair</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">return</span> pair<span style="color: #ffff00;">(</span>typeToken<span style="color: #ffff00;">)[</span>0<span style="color: #ffff00;">]</span>;
         <span style="color: #00bfff;">}</span>,
 
-        <span style="color: #64B5F6;">second</span>: <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #80CBC4;">pair</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
-            <span style="color: #E1BEE7;">return</span> pair<span style="color: #ffff00;">(</span>typeToken<span style="color: #ffff00;">)[</span>1<span style="color: #ffff00;">]</span>;
+        <span style="color: #bad6e2;">second</span>: <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #00bfff;">(</span><span style="color: #ff694d;">pair</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">return</span> pair<span style="color: #ffff00;">(</span>typeToken<span style="color: #ffff00;">)[</span>1<span style="color: #ffff00;">]</span>;
         <span style="color: #00bfff;">}</span>
     <span style="color: #7fff00;">}</span>;
 <span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>;
@@ -234,45 +234,45 @@ the token, we just want the value.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript"><span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">mapObject</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #80CBC4;">f</span>, <span style="color: #80CBC4;">object</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">mappedObject</span> = Object.create<span style="color: #ff1493;">(</span><span style="color: #C5CAE9;">null</span><span style="color: #ff1493;">)</span>;
+<pre class="src src-javascript"><span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">mapObject</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">f</span>, <span style="color: #ff694d;">object</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">mappedObject</span> = Object.create<span style="color: #ff1493;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span><span style="color: #ff1493;">)</span>;
 
-    Object.assign<span style="color: #ff1493;">(</span>mappedObject, object<span style="color: #ff1493;">)</span>; <span style="color: #757575;">// </span><span style="color: #757575;">A weird fix here when hasOwnProperty is present</span>
+    Object.assign<span style="color: #ff1493;">(</span>mappedObject, object<span style="color: #ff1493;">)</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">A weird fix here when hasOwnProperty is present</span>
 
-    Object.keys<span style="color: #ff1493;">(</span>object<span style="color: #ff1493;">)</span>.forEach<span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">function</span> <span style="color: #7fff00;">(</span><span style="color: #80CBC4;">key</span><span style="color: #7fff00;">)</span> <span style="color: #7fff00;">{</span>
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">value</span> = object<span style="color: #00bfff;">[</span>key<span style="color: #00bfff;">]</span>;
+    Object.keys<span style="color: #ff1493;">(</span>object<span style="color: #ff1493;">)</span>.forEach<span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #7fff00;">(</span><span style="color: #ff694d;">key</span><span style="color: #7fff00;">)</span> <span style="color: #7fff00;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">value</span> = object<span style="color: #00bfff;">[</span>key<span style="color: #00bfff;">]</span>;
 
         mappedObject<span style="color: #00bfff;">[</span>key<span style="color: #00bfff;">]</span> = f<span style="color: #00bfff;">(</span>value, key<span style="color: #00bfff;">)</span>;
     <span style="color: #7fff00;">}</span><span style="color: #ff1493;">)</span>;
 
-    <span style="color: #E1BEE7;">return</span> mappedObject;
+    <span style="color: #96a5d9; font-weight: bold;">return</span> mappedObject;
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">mapIf</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #80CBC4;">p</span>, <span style="color: #80CBC4;">f</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">function</span> <span style="color: #ff1493;">(</span><span style="color: #80CBC4;">value</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-        <span style="color: #E1BEE7;">return</span> <span style="color: #7fff00;">(</span>p<span style="color: #00bfff;">(</span>value<span style="color: #00bfff;">)</span> === <span style="color: #C5CAE9;">true</span><span style="color: #7fff00;">)</span> ? f<span style="color: #7fff00;">(</span>value<span style="color: #7fff00;">)</span> : value;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">mapIf</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">p</span>, <span style="color: #ff694d;">f</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff1493;">(</span><span style="color: #ff694d;">value</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #7fff00;">(</span>p<span style="color: #00bfff;">(</span>value<span style="color: #00bfff;">)</span> === <span style="color: #afc0fd; font-weight: bold;">true</span><span style="color: #7fff00;">)</span> ? f<span style="color: #7fff00;">(</span>value<span style="color: #7fff00;">)</span> : value;
     <span style="color: #ff1493;">}</span>;
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">isFunction</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #80CBC4;">value</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">typeof</span> value === <span style="color: #C5E1A5;">'function'</span>;
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">isFunction</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">value</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #96a5d9; font-weight: bold;">typeof</span> value === <span style="color: #68f6cb;">'function'</span>;
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">isTypeValue</span> = <span style="color: #E1BEE7;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #80CBC4;">value</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
-    <span style="color: #E1BEE7;">return</span> <span style="color: #C5CAE9;">true</span>; <span style="color: #757575;">// </span><span style="color: #757575;">Some criteria to determine if the function is an ordinary or typed one</span>
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">isTypeValue</span> = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">value</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #afc0fd; font-weight: bold;">true</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Some criteria to determine if the function is an ordinary or typed one</span>
 <span style="color: #ff8c00;">}</span>;
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">typeToken</span> = Object.create<span style="color: #ff8c00;">(</span><span style="color: #C5CAE9;">null</span><span style="color: #ff8c00;">)</span>; <span style="color: #757575;">// </span><span style="color: #757575;">The actual type token, just stubbed here for example</span>
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">typeToken</span> = Object.create<span style="color: #ff8c00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span><span style="color: #ff8c00;">)</span>; <span style="color: #2872b2;">// </span><span style="color: #2872b2;">The actual type token, just stubbed here for example</span>
 
-<span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">TokenLessPair</span> = mapObject<span style="color: #ff8c00;">(</span>mapIf<span style="color: #ff1493;">(</span>isFunction, <span style="color: #E1BEE7;">function</span> <span style="color: #7fff00;">(</span><span style="color: #80CBC4;">typeFunction</span><span style="color: #7fff00;">)</span> <span style="color: #7fff00;">{</span>
-    <span style="color: #E1BEE7;">return</span> <span style="color: #E1BEE7;">function</span> <span style="color: #00bfff;">(</span><span style="color: #757575;">/* </span><span style="color: #757575;">args */</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">args</span> = <span style="color: #ffff00;">[]</span>.slice.call<span style="color: #ffff00;">(</span><span style="color: #C5CAE9;">arguments</span><span style="color: #ffff00;">)</span>,
+<span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">TokenLessPair</span> = mapObject<span style="color: #ff8c00;">(</span>mapIf<span style="color: #ff1493;">(</span>isFunction, <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #7fff00;">(</span><span style="color: #ff694d;">typeFunction</span><span style="color: #7fff00;">)</span> <span style="color: #7fff00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #00bfff;">(</span><span style="color: #2872b2;">/* </span><span style="color: #2872b2;">args */</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">args</span> = <span style="color: #ffff00;">[]</span>.slice.call<span style="color: #ffff00;">(</span><span style="color: #afc0fd; font-weight: bold;">arguments</span><span style="color: #ffff00;">)</span>,
             remappedArgs = args.map<span style="color: #ffff00;">(</span>mapIf<span style="color: #da70d6;">(</span>isTypeValue,
-                                          <span style="color: #E1BEE7;">function</span> <span style="color: #00ff7f;">(</span><span style="color: #80CBC4;">typeValue</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
-                                              <span style="color: #E1BEE7;">return</span> typeValue<span style="color: #ff8247;">(</span>typeToken<span style="color: #ff8247;">)</span>
+                                          <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #00ff7f;">(</span><span style="color: #ff694d;">typeValue</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
+                                              <span style="color: #96a5d9; font-weight: bold;">return</span> typeValue<span style="color: #ff8247;">(</span>typeToken<span style="color: #ff8247;">)</span>
                                           <span style="color: #00ff7f;">}</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>;
 
-        <span style="color: #E1BEE7;">return</span> typeFunction.apply<span style="color: #ffff00;">(</span><span style="color: #C5CAE9;">null</span>, remappedArgs<span style="color: #ffff00;">)</span>;
+        <span style="color: #96a5d9; font-weight: bold;">return</span> typeFunction.apply<span style="color: #ffff00;">(</span><span style="color: #afc0fd; font-weight: bold;">null</span>, remappedArgs<span style="color: #ffff00;">)</span>;
     <span style="color: #00bfff;">}</span>
 <span style="color: #7fff00;">}</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>;
 </pre>

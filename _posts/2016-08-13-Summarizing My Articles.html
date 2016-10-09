@@ -44,71 +44,71 @@ configuration but that is somewhat private, so here it is.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">deferred</span><span style="color: #ff8c00;">)</span>
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">s</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">deferred</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defconst</span> <span style="color: #80CBC4;">fn/cache-dir</span> <span style="color: #C5E1A5;">"~"</span>
-  <span style="color: #9E9E9E;">"Where you keep your moving files"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/cache-dir</span> <span style="color: #68f6cb;">"~"</span>
+  <span style="color: #68f6cb; font-style: italic;">"Where you keep your moving files"</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defconst</span> <span style="color: #80CBC4;">fn/summary-text-file</span> <span style="color: #ff1493;">(</span>expand-file-name <span style="color: #C5E1A5;">".text"</span> fn/cache-dir<span style="color: #ff1493;">)</span>
-  <span style="color: #9E9E9E;">"Summary temporary file"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/summary-text-file</span> <span style="color: #ff1493;">(</span>expand-file-name <span style="color: #68f6cb;">".text"</span> fn/cache-dir<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summary temporary file"</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/article-body</span> <span style="color: #ff1493;">()</span>
-  <span style="color: #9E9E9E;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">gnus-with-article-buffer</span>
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
-          <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
+  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+          <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/summarize-text</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
-  <span style="color: #9E9E9E;">"Summarize text for easier comprehension"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">with-temp-file</span> fn/summary-text-file
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/summarize-text</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summarize text for easier comprehension"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-temp-file</span> fn/summary-text-file
     <span style="color: #7fff00;">(</span>insert text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
   <span style="color: #ff1493;">(</span>deferred:nextc
-    <span style="color: #7fff00;">(</span>deferred:process-shell <span style="color: #C5E1A5;">"sumy"</span> <span style="color: #C5E1A5;">"lex-rank"</span> <span style="color: #00bfff;">(</span>concat <span style="color: #C5E1A5;">"--file="</span> fn/summary-text-file<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #00bfff;">(</span>summary-output<span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>s-split <span style="color: #C5E1A5;">"\n"</span> <span style="color: #ffff00;">(</span>s-trim-right summary-output<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+    <span style="color: #7fff00;">(</span>deferred:process-shell <span style="color: #68f6cb;">"sumy"</span> <span style="color: #68f6cb;">"lex-rank"</span> <span style="color: #00bfff;">(</span>concat <span style="color: #68f6cb;">"--file="</span> fn/summary-text-file<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span>summary-output<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>s-split <span style="color: #68f6cb;">"\n"</span> <span style="color: #ffff00;">(</span>s-trim-right summary-output<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defvar</span> <span style="color: #80CBC4;">fn/prev-summarizing-request</span> nil
-  <span style="color: #9E9E9E;">"The previous request made, this is to prevent extra request being made.</span>
-<span style="color: #9E9E9E;">This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/prev-summarizing-request</span> nil
+  <span style="color: #68f6cb; font-style: italic;">"The previous request made, this is to prevent extra request being made.</span>
+<span style="color: #68f6cb; font-style: italic;">This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
-  <span style="color: #9E9E9E;">"Show a summary for each article I visit"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">when</span> fn/prev-summarizing-request
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Show a summary for each article I visit"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> fn/prev-summarizing-request
     <span style="color: #7fff00;">(</span>deferred:cancel fn/prev-summarizing-request<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
 
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
                  <span style="color: #00bfff;">(</span>summary <span style="color: #ffff00;">(</span>fn/summarize-text current-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
 
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">deferred:$</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc it
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #80DEEA;">(</span>string-join
-                               <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
-                                         <span style="color: #7fff00;">(</span>concat <span style="color: #C5E1A5;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
+                               <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
+                                         <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
-                               <span style="color: #C5E1A5;">"\n"</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">gnus-with-article-buffer</span>
-              <span style="color: #ff8247;">(</span>message <span style="color: #C5E1A5;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
+                               <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+              <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
               <span style="color: #ff8247;">(</span>read-only-mode +1<span style="color: #ff8247;">)</span>
 
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"Summary:"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"Summary:"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>insert summary-text<span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"-------"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"-------"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
 
               <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc it
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">()</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span>add-hook 'gnus-article-prepare-hook #'fn/gnus-article-summary<span style="color: #ff8c00;">)</span>
 </pre>
@@ -154,11 +154,11 @@ is what I came up with.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/article-body</span> <span style="color: #ff1493;">()</span>
-  <span style="color: #9E9E9E;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">gnus-with-article-buffer</span>
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
-          <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
+  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+          <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
@@ -172,17 +172,17 @@ can tied with this simple snippet.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defconst</span> <span style="color: #80CBC4;">fn/summary-text-file</span> <span style="color: #ff1493;">(</span>expand-file-name <span style="color: #C5E1A5;">".text"</span> fn/cache-dir<span style="color: #ff1493;">)</span>
-  <span style="color: #9E9E9E;">"Summary temporary file"</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/summary-text-file</span> <span style="color: #ff1493;">(</span>expand-file-name <span style="color: #68f6cb;">".text"</span> fn/cache-dir<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summary temporary file"</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/summarize-text</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
-  <span style="color: #9E9E9E;">"Summarize text for easier comprehension"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">with-temp-file</span> fn/summary-text-file
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/summarize-text</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summarize text for easier comprehension"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-temp-file</span> fn/summary-text-file
     <span style="color: #7fff00;">(</span>insert text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
   <span style="color: #ff1493;">(</span>deferred:nextc
-    <span style="color: #7fff00;">(</span>deferred:process-shell <span style="color: #C5E1A5;">"sumy"</span> <span style="color: #C5E1A5;">"lex-rank"</span> <span style="color: #00bfff;">(</span>concat <span style="color: #C5E1A5;">"--file="</span> fn/summary-text-file<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #00bfff;">(</span>summary-output<span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>s-split <span style="color: #C5E1A5;">"\n"</span> <span style="color: #ffff00;">(</span>s-trim-right summary-output<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+    <span style="color: #7fff00;">(</span>deferred:process-shell <span style="color: #68f6cb;">"sumy"</span> <span style="color: #68f6cb;">"lex-rank"</span> <span style="color: #00bfff;">(</span>concat <span style="color: #68f6cb;">"--file="</span> fn/summary-text-file<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span>summary-output<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>s-split <span style="color: #68f6cb;">"\n"</span> <span style="color: #ffff00;">(</span>s-trim-right summary-output<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
 
@@ -215,46 +215,46 @@ many hacks, that's what I did. This snippet should explain all.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defvar</span> <span style="color: #80CBC4;">fn/prev-summarizing-request</span> nil
-  <span style="color: #9E9E9E;">"The previous request made, this is to prevent extra request being made.</span>
-<span style="color: #9E9E9E;">This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/prev-summarizing-request</span> nil
+  <span style="color: #68f6cb; font-style: italic;">"The previous request made, this is to prevent extra request being made.</span>
+<span style="color: #68f6cb; font-style: italic;">This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
-  <span style="color: #9E9E9E;">"Show a summary for each article I visit"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">when</span> fn/prev-summarizing-request
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Show a summary for each article I visit"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> fn/prev-summarizing-request
     <span style="color: #7fff00;">(</span>deferred:cancel fn/prev-summarizing-request<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
 
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
                  <span style="color: #00bfff;">(</span>summary <span style="color: #ffff00;">(</span>fn/summarize-text current-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
 
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">deferred:$</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc it
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #80DEEA;">(</span>string-join
-                               <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
-                                         <span style="color: #7fff00;">(</span>concat <span style="color: #C5E1A5;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
+                               <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
+                                         <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
-                               <span style="color: #C5E1A5;">"\n"</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">gnus-with-article-buffer</span>
-              <span style="color: #ff8247;">(</span>message <span style="color: #C5E1A5;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
+                               <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+              <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
-              <span style="color: #ff8247;">(</span>read-only-mode +1<span style="color: #ff8247;">)</span> <span style="color: #757575;">;; </span><span style="color: #757575;">I feel this is evil</span>
+              <span style="color: #ff8247;">(</span>read-only-mode +1<span style="color: #ff8247;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">I feel this is evil</span>
 
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"Summary:"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"Summary:"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>insert summary-text<span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"-------"</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>insert <span style="color: #C5E1A5;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"-------"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
 
               <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc it
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">()</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
 
@@ -344,55 +344,55 @@ core code that does it appropriately.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">dash</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defface</span> <span style="color: #80CBC4;">fn/article-aid-face</span>  '<span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>t <span style="color: #00bfff;">(</span><span style="color: #80DEEA;">:weight</span> bold <span style="color: #80DEEA;">:height</span> 1.1 <span style="color: #80DEEA;">:box</span> <span style="color: #ffff00;">(</span><span style="color: #80DEEA;">:line-width</span> 2 <span style="color: #80DEEA;">:color</span> <span style="color: #C5E1A5;">"grey75"</span> <span style="color: #80DEEA;">:style</span> released-button<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
-  <span style="color: #9E9E9E;">"Article aid face"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defface</span> <span style="color: #ff694d;">fn/article-aid-face</span>  '<span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>t <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:weight</span> bold <span style="color: #96a5d9; font-style: italic;">:height</span> 1.1 <span style="color: #96a5d9; font-style: italic;">:box</span> <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-style: italic;">:line-width</span> 2 <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"grey75"</span> <span style="color: #96a5d9; font-style: italic;">:style</span> released-button<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Article aid face"</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defvar</span> <span style="color: #80CBC4;">fn/article-aid-face</span> 'fn/article-aid-face
-  <span style="color: #9E9E9E;">"Article aid var"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/article-aid-face</span> 'fn/article-aid-face
+  <span style="color: #68f6cb; font-style: italic;">"Article aid var"</span><span style="color: #ff8c00;">)</span>
 
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defvar</span> <span style="color: #80CBC4;">fn/prev-summarizing-request</span> nil
-  <span style="color: #9E9E9E;">"The previous request made, this is to prevent extra request being made.</span>
-<span style="color: #9E9E9E;">    This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/prev-summarizing-request</span> nil
+  <span style="color: #68f6cb; font-style: italic;">"The previous request made, this is to prevent extra request being made.</span>
+<span style="color: #68f6cb; font-style: italic;">    This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
-  <span style="color: #9E9E9E;">"Show a summary for each article I visit"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">when</span> fn/prev-summarizing-request
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Show a summary for each article I visit"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> fn/prev-summarizing-request
     <span style="color: #7fff00;">(</span>deferred:cancel fn/prev-summarizing-request<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
 
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
                  <span style="color: #00bfff;">(</span>summary <span style="color: #ffff00;">(</span>fn/summarize-text current-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
 
-    <span style="color: #7fff00;">(</span><span style="color: #E1BEE7;">deferred:$</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc it
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">with-current-buffer</span> gnus-summary-buffer
-            <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">let</span> <span style="color: #ff8247;">(</span><span style="color: #80DEEA;">(</span>summarizies summarizies<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span><span style="color: #E1BEE7;">setq</span> gnus-article-emphasis-alist
-                    <span style="color: #80DEEA;">(</span>-concat
-                     <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #7fff00;">(</span>summary-text<span style="color: #7fff00;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-summary-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff8247;">(</span><span style="color: #9cb6ad;">(</span>summarizies summarizies<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> gnus-article-emphasis-alist
+                    <span style="color: #9cb6ad;">(</span>-concat
+                     <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summary-text<span style="color: #7fff00;">)</span>
                                <span style="color: #7fff00;">(</span>list
                                 <span style="color: #00bfff;">(</span>regexp-quote summary-text<span style="color: #00bfff;">)</span>
                                 0
                                 0
                                 'fn/article-aid-face<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                              summarizies<span style="color: #ff8c00;">)</span>
-                     gnus-article-emphasis-alist<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">with-current-buffer</span> gnus-article-buffer
-            <span style="color: #00ff7f;">(</span>message <span style="color: #C5E1A5;">"Emphasizing article aids"</span><span style="color: #00ff7f;">)</span>
+                     gnus-article-emphasis-alist<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-article-buffer
+            <span style="color: #00ff7f;">(</span>message <span style="color: #68f6cb;">"Emphasizing article aids"</span><span style="color: #00ff7f;">)</span>
             <span style="color: #00ff7f;">(</span>article-emphasize<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">with-current-buffer</span> gnus-summary-buffer
-            <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">setq</span> gnus-article-emphasis-alist
-                  <span style="color: #ff8247;">(</span>-filter <span style="color: #80DEEA;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #ff8c00;">(</span>emphasis<span style="color: #ff8c00;">)</span>
-                             <span style="color: #ff8c00;">(</span>not <span style="color: #ff1493;">(</span>eq <span style="color: #7fff00;">(</span>nth 3 emphasis<span style="color: #7fff00;">)</span> fn/article-aid-face <span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-summary-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> gnus-article-emphasis-alist
+                  <span style="color: #ff8247;">(</span>-filter <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>emphasis<span style="color: #ff8c00;">)</span>
+                             <span style="color: #ff8c00;">(</span>not <span style="color: #ff1493;">(</span>eq <span style="color: #7fff00;">(</span>nth 3 emphasis<span style="color: #7fff00;">)</span> fn/article-aid-face <span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
                            gnus-article-emphasis-alist<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc it
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">()</span>
-          <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span>add-hook 'gnus-article-prepare-hook #'fn/gnus-article-summary<span style="color: #ff8c00;">)</span>
 </pre>
@@ -465,37 +465,37 @@ rookie snippet.
 
 <div class="org-src-container">
 
-<pre class="src src-javascript">require<span style="color: #ff8c00;">(</span><span style="color: #C5E1A5;">"io"</span><span style="color: #ff8c00;">)</span>;
-require<span style="color: #ff8c00;">(</span><span style="color: #C5E1A5;">"spawn-process"</span><span style="color: #ff8c00;">)</span>;
-require<span style="color: #ff8c00;">(</span><span style="color: #C5E1A5;">"interactive"</span><span style="color: #ff8c00;">)</span>;
+<pre class="src src-javascript">require<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"io"</span><span style="color: #ff8c00;">)</span>;
+require<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"spawn-process"</span><span style="color: #ff8c00;">)</span>;
+require<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"interactive"</span><span style="color: #ff8c00;">)</span>;
 
 interactive<span style="color: #ff8c00;">(</span>
-    <span style="color: #C5E1A5;">'gist'</span>,
-    <span style="color: #C5E1A5;">'What is this webpage all about?'</span>, <span style="color: #E1BEE7;">function</span><span style="color: #ff1493;">(</span><span style="color: #80CBC4;">I</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">url</span> = I.buffer.current_uri.spec;
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">sumy_cmd</span> = <span style="color: #C5E1A5;">'/home/fnmurillo/.local/bin/sumy'</span>;
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">cmd_str</span> = sumy_cmd + <span style="color: #C5E1A5;">" lex-rank --length 5 --url \""</span> + url + <span style="color: #C5E1A5;">"\""</span>;
+    <span style="color: #68f6cb;">'gist'</span>,
+    <span style="color: #68f6cb;">'What is this webpage all about?'</span>, <span style="color: #96a5d9; font-weight: bold;">function</span><span style="color: #ff1493;">(</span><span style="color: #ff694d;">I</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">url</span> = I.buffer.current_uri.spec;
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">sumy_cmd</span> = <span style="color: #68f6cb;">'/home/fnmurillo/.local/bin/sumy'</span>;
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">cmd_str</span> = sumy_cmd + <span style="color: #68f6cb;">" lex-rank --length 5 --url \""</span> + url + <span style="color: #68f6cb;">"\""</span>;
 
-        I.window.minibuffer.message<span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">'Shell Command: '</span> + cmd_str<span style="color: #7fff00;">)</span>;
+        I.window.minibuffer.message<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'Shell Command: '</span> + cmd_str<span style="color: #7fff00;">)</span>;
 
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">data</span> = <span style="color: #C5E1A5;">''</span>;
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">error</span> = <span style="color: #C5E1A5;">''</span>;
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">data</span> = <span style="color: #68f6cb;">''</span>;
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">error</span> = <span style="color: #68f6cb;">''</span>;
 
-        <span style="color: #E1BEE7;">var</span> <span style="color: #80CBC4;">output</span> = <span style="color: #E1BEE7;">yield</span> shell_command<span style="color: #7fff00;">(</span>
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">output</span> = <span style="color: #96a5d9; font-weight: bold;">yield</span> shell_command<span style="color: #7fff00;">(</span>
             cmd_str,
             $fds = <span style="color: #00bfff;">[</span>
                 <span style="color: #ffff00;">{</span>
-                    output: async_binary_string_writer<span style="color: #da70d6;">(</span><span style="color: #C5E1A5;">""</span><span style="color: #da70d6;">)</span>
+                    output: async_binary_string_writer<span style="color: #da70d6;">(</span><span style="color: #68f6cb;">""</span><span style="color: #da70d6;">)</span>
                 <span style="color: #ffff00;">}</span>,
                 <span style="color: #ffff00;">{</span>
-                    input: async_binary_reader<span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">function</span><span style="color: #00ff7f;">(</span><span style="color: #80CBC4;">s</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
-                        data += s || <span style="color: #C5E1A5;">""</span>;
+                    input: async_binary_reader<span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span><span style="color: #00ff7f;">(</span><span style="color: #ff694d;">s</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
+                        data += s || <span style="color: #68f6cb;">""</span>;
                     <span style="color: #00ff7f;">}</span>
                                               <span style="color: #da70d6;">)</span>
                 <span style="color: #ffff00;">}</span>,
                 <span style="color: #ffff00;">{</span>
-                    input: async_binary_reader<span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">function</span><span style="color: #00ff7f;">(</span><span style="color: #80CBC4;">s</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
-                        error += s || <span style="color: #C5E1A5;">""</span>;
+                    input: async_binary_reader<span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span><span style="color: #00ff7f;">(</span><span style="color: #ff694d;">s</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
+                        error += s || <span style="color: #68f6cb;">""</span>;
                     <span style="color: #00ff7f;">}</span>
                                               <span style="color: #da70d6;">)</span>
                 <span style="color: #ffff00;">}</span>
@@ -504,13 +504,13 @@ interactive<span style="color: #ff8c00;">(</span>
 
 
         I.window.alert <span style="color: #7fff00;">(</span>
-            <span style="color: #C5E1A5;">"Here's The Gist\n"</span> +
-                <span style="color: #C5E1A5;">"--------\n"</span> +
+            <span style="color: #68f6cb;">"Here's The Gist\n"</span> +
+                <span style="color: #68f6cb;">"--------\n"</span> +
                 data
                 .trim<span style="color: #00bfff;">()</span>
-                .split<span style="color: #00bfff;">(</span><span style="color: #C5E1A5;">'.\n'</span><span style="color: #00bfff;">)</span>
-                .map<span style="color: #00bfff;">(</span><span style="color: #E1BEE7;">function</span> <span style="color: #ffff00;">(</span><span style="color: #80CBC4;">summary</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span> <span style="color: #E1BEE7;">return</span> <span style="color: #C5E1A5;">'* '</span> + summary <span style="color: #ffff00;">}</span><span style="color: #00bfff;">)</span>
-                .join <span style="color: #00bfff;">(</span><span style="color: #C5E1A5;">'.\n'</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>;
+                .split<span style="color: #00bfff;">(</span><span style="color: #68f6cb;">'.\n'</span><span style="color: #00bfff;">)</span>
+                .map<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ffff00;">(</span><span style="color: #ff694d;">summary</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span> <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #68f6cb;">'* '</span> + summary <span style="color: #ffff00;">}</span><span style="color: #00bfff;">)</span>
+                .join <span style="color: #00bfff;">(</span><span style="color: #68f6cb;">'.\n'</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>;
     <span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>;
 </pre>
 </div>

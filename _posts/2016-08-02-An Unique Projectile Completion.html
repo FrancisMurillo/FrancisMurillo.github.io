@@ -50,67 +50,67 @@ Or if you just want to know the code, here it is for your consumption.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">dash</span><span style="color: #ff8c00;">)</span>
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">s</span><span style="color: #ff8c00;">)</span>
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">require</span> '<span style="color: #C5CAE9;">f</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">f</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn/custom-helm-completion</span> <span style="color: #ff1493;">(</span>prompt choices<span style="color: #ff1493;">)</span>
-  <span style="color: #9E9E9E;">"Just a custom helm completion for projection"</span>
-  <span style="color: #ff1493;">(</span>lexical-let*
-      <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>fn-separator <span style="color: #C5E1A5;">".."</span><span style="color: #00bfff;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/custom-helm-completion</span> <span style="color: #ff1493;">(</span>prompt choices<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Just a custom helm completion for projection"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span>
+      <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>fn-separator <span style="color: #68f6cb;">".."</span><span style="color: #00bfff;">)</span>
        <span style="color: #00bfff;">(</span>fn-notation
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>path<span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span>lexical-let <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>fn-pieces <span style="color: #80DEEA;">(</span>f-split path<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>path<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>fn-pieces <span style="color: #9cb6ad;">(</span>f-split path<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
             <span style="color: #00ff7f;">(</span>string-join <span style="color: #ff8247;">(</span>reverse fn-pieces<span style="color: #ff8247;">)</span> fn-separator<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
        <span style="color: #00bfff;">(</span>relative-parent-path
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>path relative-path<span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span>lexical-let
-              <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>split-path <span style="color: #80DEEA;">(</span>f-split path<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
-               <span style="color: #ff8247;">(</span>split-relative-path <span style="color: #80DEEA;">(</span>f-split relative-path<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>path relative-path<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span>
+              <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>split-path <span style="color: #9cb6ad;">(</span>f-split path<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+               <span style="color: #ff8247;">(</span>split-relative-path <span style="color: #9cb6ad;">(</span>f-split relative-path<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
             <span style="color: #00ff7f;">(</span>string-join
-             <span style="color: #ff8247;">(</span>-drop-last <span style="color: #80DEEA;">(</span>length split-relative-path<span style="color: #80DEEA;">)</span> split-path<span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>-drop-last <span style="color: #9cb6ad;">(</span>length split-relative-path<span style="color: #9cb6ad;">)</span> split-path<span style="color: #ff8247;">)</span>
              <span style="color: #ff8247;">(</span>f-path-separator<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
 
-       <span style="color: #00bfff;">(</span>as-pair <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>ish<span style="color: #da70d6;">)</span>
-                  <span style="color: #da70d6;">(</span><span style="color: #E1BEE7;">if</span> <span style="color: #00ff7f;">(</span>listp ish<span style="color: #00ff7f;">)</span>
+       <span style="color: #00bfff;">(</span>as-pair <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>ish<span style="color: #da70d6;">)</span>
+                  <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #00ff7f;">(</span>listp ish<span style="color: #00ff7f;">)</span>
                       ish <span style="color: #00ff7f;">(</span>cons ish ish<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-       <span style="color: #00bfff;">(</span>swap-pair <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>pair<span style="color: #da70d6;">)</span>
+       <span style="color: #00bfff;">(</span>swap-pair <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>pair<span style="color: #da70d6;">)</span>
                     <span style="color: #da70d6;">(</span>cons <span style="color: #00ff7f;">(</span>cdr pair<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>car pair<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-       <span style="color: #00bfff;">(</span>map-car <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>f pair<span style="color: #da70d6;">)</span>
+       <span style="color: #00bfff;">(</span>map-car <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>f pair<span style="color: #da70d6;">)</span>
                   <span style="color: #da70d6;">(</span>cons <span style="color: #00ff7f;">(</span>funcall f <span style="color: #ff8247;">(</span>car pair<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
                         <span style="color: #00ff7f;">(</span>cdr pair<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
 
        <span style="color: #00bfff;">(</span>pair-as-label
-        <span style="color: #ffff00;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #da70d6;">(</span>pairs<span style="color: #da70d6;">)</span>
-          <span style="color: #da70d6;">(</span>lexical-let* <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>labels
-                             <span style="color: #80DEEA;">(</span>mapcar #'cdr pairs<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>pairs<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">labels</span>
+                             <span style="color: #9cb6ad;">(</span>mapcar #'cdr pairs<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
                          <span style="color: #ff8247;">(</span>label-lengths
-                          <span style="color: #80DEEA;">(</span>mapcar
+                          <span style="color: #9cb6ad;">(</span>mapcar
                            <span style="color: #ff8c00;">(</span>-compose
                             #'length
                             fn-notation<span style="color: #ff8c00;">)</span>
-                           labels<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+                           labels<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
 
                          <span style="color: #ff8247;">(</span>max-label-length
-                          <span style="color: #80DEEA;">(</span>apply #'max label-lengths<span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span>
+                          <span style="color: #9cb6ad;">(</span>apply #'max label-lengths<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
 
 
                          <span style="color: #ff8247;">(</span>label-format
-                          <span style="color: #C5E1A5;">"%-s"</span><span style="color: #ff8247;">)</span>
+                          <span style="color: #68f6cb;">"%-s"</span><span style="color: #ff8247;">)</span>
 
                          <span style="color: #ff8247;">(</span>description-format
-                          <span style="color: #C5E1A5;">"%-s"</span><span style="color: #ff8247;">)</span>
+                          <span style="color: #68f6cb;">"%-s"</span><span style="color: #ff8247;">)</span>
 
                          <span style="color: #ff8247;">(</span>display-formatter
-                          <span style="color: #80DEEA;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #ff8c00;">(</span>name description<span style="color: #ff8c00;">)</span>
+                          <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>name description<span style="color: #ff8c00;">)</span>
                             <span style="color: #ff8c00;">(</span>concat
                              <span style="color: #ff1493;">(</span>format label-format name<span style="color: #ff1493;">)</span>
-                             <span style="color: #C5E1A5;">"  |-&gt;  "</span>
+                             <span style="color: #68f6cb;">"  |-&gt;  "</span>
                              <span style="color: #ff1493;">(</span>format description-format description<span style="color: #ff1493;">)</span>
-                             <span style="color: #C5E1A5;">"  &lt;-|"</span><span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span><span style="color: #E1BEE7;">lambda</span> <span style="color: #ff8247;">(</span>pair<span style="color: #ff8247;">)</span>
-              <span style="color: #ff8247;">(</span>lexical-let*
-                  <span style="color: #80DEEA;">(</span><span style="color: #ff8c00;">(</span>unique-path <span style="color: #ff1493;">(</span>car pair<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                             <span style="color: #68f6cb;">"  &lt;-|"</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8247;">(</span>pair<span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span>
+                  <span style="color: #9cb6ad;">(</span><span style="color: #ff8c00;">(</span>unique-path <span style="color: #ff1493;">(</span>car pair<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
                    <span style="color: #ff8c00;">(</span>full-path <span style="color: #ff1493;">(</span>cdr pair<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
                    <span style="color: #ff8c00;">(</span>parent-path
                     <span style="color: #ff1493;">(</span>funcall relative-parent-path
@@ -125,8 +125,8 @@ Or if you just want to know the code, here it is for your consumption.
                    <span style="color: #ff8c00;">(</span>display-label
                     <span style="color: #ff1493;">(</span>funcall display-formatter
                              display-name
-                             display-description<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span>
-                <span style="color: #80DEEA;">(</span>cons display-label <span style="color: #ff8c00;">(</span>cdr pair<span style="color: #ff8c00;">)</span><span style="color: #80DEEA;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+                             display-description<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+                <span style="color: #9cb6ad;">(</span>cons display-label <span style="color: #ff8c00;">(</span>cdr pair<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
        <span style="color: #00bfff;">(</span>refined-choices <span style="color: #ffff00;">(</span>f-uniquify-alist choices<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
        <span style="color: #00bfff;">(</span>mapped-choices
         <span style="color: #ffff00;">(</span>mapcar <span style="color: #da70d6;">(</span>-compose
@@ -135,9 +135,9 @@ Or if you just want to know the code, here it is for your consumption.
                  as-pair<span style="color: #da70d6;">)</span>
                 refined-choices<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
     <span style="color: #7fff00;">(</span>helm-comp-read prompt mapped-choices
-                    <span style="color: #80DEEA;">:must-match</span> 'confirm<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                    <span style="color: #96a5d9; font-style: italic;">:must-match</span> 'confirm<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span>setq projectile-completion-system #'fn/custom-helm-completion<span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> projectile-completion-system #'fn/custom-helm-completion<span style="color: #ff8c00;">)</span>
 </pre>
 </div>
 
@@ -179,40 +179,40 @@ let's see how this factors in with <code>projectile-current-project-files</code>
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">out</span> <span style="color: #ff1493;">(</span>value<span style="color: #ff1493;">)</span>
-  <span style="color: #ff1493;">(</span>message <span style="color: #C5E1A5;">"%s"</span> value<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">out</span> <span style="color: #ff1493;">(</span>value<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>message <span style="color: #68f6cb;">"%s"</span> value<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span>mapc #'out <span style="color: #ff1493;">(</span>projectile-current-project-files<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">Trimmed output</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">elisp/custom-zone/zone-end-of-buffer.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">elisp/custom-zone/zone-waves.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">.gitignore</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">.projectile</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">README.org</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">config.or</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">elisp/promise/.gitignore</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">elisp/promise/LICENSE</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">elisp/promise/promise-test.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">elisp/promise/promise.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">init-standard.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">init.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">personal.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Trimmed output</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/custom-zone/zone-end-of-buffer.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/custom-zone/zone-waves.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.projectile</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">README.org</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">config.or</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/LICENSE</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/promise-test.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/promise.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init-standard.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">personal.el</span>
 
 <span style="color: #ff8c00;">(</span>mapc <span style="color: #ff1493;">(</span>-compose #'out #'f-filename<span style="color: #ff1493;">)</span> <span style="color: #ff1493;">(</span>projectile-current-project-files<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">zone-end-of-buffer.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">zone-waves.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">.gitignore</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">.projectile</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">README.org</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">config.org</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">.gitignore</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">LICENSE</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">promise-test.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">promise.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">init-standard.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">init.el</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">personal.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">zone-end-of-buffer.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">zone-waves.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.projectile</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">README.org</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">config.org</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">LICENSE</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">promise-test.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">promise.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init-standard.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">personal.el</span>
 </pre>
 </div>
 
@@ -235,23 +235,23 @@ averted.
 
 <pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>mapc #'out  <span style="color: #ff1493;">(</span>f-uniquify-alist <span style="color: #7fff00;">(</span>projectile-current-project-files<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">Trimmed output</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/custom-zone/zone-end-of-buffer.el . zone-end-of-buffer.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/custom-zone/zone-waves.el . zone-waves.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(.gitignore . /.gitignore)  ;; &lt;-- The first gitignore</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/promise/.gitignore . promise/.gitignore)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(.projectile . .projectile)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(README.org . README.org)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(config.org . config.org)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/custom-zone/end-of-buffer.el . end-of-buffer.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/custom-zone/waves.el . waves.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/promise/.gitignore . promise/.gitignore) ;; &lt;-- The other gitignore</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/promise/LICENSE . LICENSE)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/promise/promise-test.el . promise-test.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(elisp/promise/promise.el . promise.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(init-standard.el . init-standard.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(init.el . init.el)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">(personal.el . personal.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Trimmed output</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/zone-end-of-buffer.el . zone-end-of-buffer.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/zone-waves.el . zone-waves.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(.gitignore . /.gitignore)  ;; &lt;-- The first gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/.gitignore . promise/.gitignore)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(.projectile . .projectile)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(README.org . README.org)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(config.org . config.org)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/end-of-buffer.el . end-of-buffer.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/waves.el . waves.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/.gitignore . promise/.gitignore) ;; &lt;-- The other gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/LICENSE . LICENSE)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/promise-test.el . promise-test.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/promise.el . promise.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(init-standard.el . init-standard.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(init.el . init.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(personal.el . personal.el)</span>
 </pre>
 </div>
 
@@ -279,22 +279,22 @@ but taking with the uniquified issue as above.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">out-pair</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">pcase-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,value . ,unique-value<span style="color: #ffff00;">)</span> pair<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span>message <span style="color: #C5E1A5;">"%s | %s"</span> unique-value <span style="color: #00bfff;">(</span>f-dirname value<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">out-pair</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,value . ,unique-value<span style="color: #ffff00;">)</span> pair<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>message <span style="color: #68f6cb;">"%s | %s"</span> unique-value <span style="color: #00bfff;">(</span>f-dirname value<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">Remember the original</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">Given (.gitignore . /.gitignore)</span>
-<span style="color: #ff8c00;">(</span>out-pair '<span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">".gitignore"</span> . <span style="color: #C5E1A5;">"/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
-<span style="color: #C5E1A5;">".gitignore | /"</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Remember the original</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Given (.gitignore . /.gitignore)</span>
+<span style="color: #ff8c00;">(</span>out-pair '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">".gitignore"</span> . <span style="color: #68f6cb;">"/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #68f6cb;">".gitignore | /"</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">Given (elisp/promise/.gitignore . promise/.gitignore)</span>
-<span style="color: #ff8c00;">(</span>out-pair '<span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elisp/promise/.gitignore"</span> . <span style="color: #C5E1A5;">"promise/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
-<span style="color: #C5E1A5;">"promise/.gitignore | elisp/promise/"</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Given (elisp/promise/.gitignore . promise/.gitignore)</span>
+<span style="color: #ff8c00;">(</span>out-pair '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"elisp/promise/.gitignore"</span> . <span style="color: #68f6cb;">"promise/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/promise/"</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">Combining them as an hypothetical display</span>
-<span style="color: #C5E1A5;">".gitignore | /.gitignore"</span>
-<span style="color: #C5E1A5;">"promise/.gitignore | elisp/promise/"</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Combining them as an hypothetical display</span>
+<span style="color: #68f6cb;">".gitignore | /.gitignore"</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/promise/"</span>
 </pre>
 </div>
 
@@ -306,22 +306,22 @@ trimmed from the highest point like so.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">relative-parent-path</span> <span style="color: #ff1493;">(</span>path relative-path<span style="color: #ff1493;">)</span>
-  <span style="color: #9E9E9E;">"Check this out in the implementation</span>
-<span style="color: #9E9E9E;">   Again it is only for this problem"</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">relative-parent-path</span> <span style="color: #ff1493;">(</span>path relative-path<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Check this out in the implementation</span>
+<span style="color: #68f6cb; font-style: italic;">   Again it is only for this problem"</span>
   path<span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">out-pair2</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">pcase-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,value . ,unique-value<span style="color: #ffff00;">)</span> pair<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span>message <span style="color: #C5E1A5;">"%s | %s"</span> unique-value <span style="color: #00bfff;">(</span>relative-parent-path value unique-value<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">out-pair2</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,value . ,unique-value<span style="color: #ffff00;">)</span> pair<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>message <span style="color: #68f6cb;">"%s | %s"</span> unique-value <span style="color: #00bfff;">(</span>relative-parent-path value unique-value<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">Instead of</span>
-<span style="color: #C5E1A5;">"promise/.gitignore | elisp/promise/"</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Instead of</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/promise/"</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">Would be nice if</span>
-<span style="color: #C5E1A5;">"promise/.gitignore | elisp/"</span>
-<span style="color: #ff8c00;">(</span>out-pair2 '<span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">"elisp/promise/.gitignore"</span> . <span style="color: #C5E1A5;">"promise/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Would be nice if</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/"</span>
+<span style="color: #ff8c00;">(</span>out-pair2 '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"elisp/promise/.gitignore"</span> . <span style="color: #68f6cb;">"promise/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
 
@@ -349,17 +349,17 @@ could be written as <code>d..c..b..a</code> which is easy enough to do with
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defconst</span> <span style="color: #80CBC4;">fn-separator</span> <span style="color: #C5E1A5;">".."</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn-separator</span> <span style="color: #68f6cb;">".."</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">fn-notation</span> <span style="color: #ff1493;">(</span>path<span style="color: #ff1493;">)</span>
-  <span style="color: #ff1493;">(</span>lexical-let <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>fn-pieces <span style="color: #ffff00;">(</span>f-split path<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn-notation</span> <span style="color: #ff1493;">(</span>path<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>fn-pieces <span style="color: #ffff00;">(</span>f-split path<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
     <span style="color: #7fff00;">(</span>string-join <span style="color: #00bfff;">(</span>reverse fn-pieces<span style="color: #00bfff;">)</span> fn-separator<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">How does it look here?</span>
-<span style="color: #C5E1A5;">"promise/.gitignore | elisp/"</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">How does it look here?</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/"</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">Ah much better</span>
-<span style="color: #C5E1A5;">".gitignore..promise | elisp"</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Ah much better</span>
+<span style="color: #68f6cb;">".gitignore..promise | elisp"</span>
 </pre>
 </div>
 
@@ -425,13 +425,13 @@ Let's see the code where this happens.
 <div class="org-src-container">
 
 <pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span>eq projectile-completion-system 'helm<span style="color: #ff1493;">)</span>
- <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">if</span> <span style="color: #7fff00;">(</span>fboundp 'helm-comp-read<span style="color: #7fff00;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #7fff00;">(</span>fboundp 'helm-comp-read<span style="color: #7fff00;">)</span>
      <span style="color: #7fff00;">(</span>helm-comp-read prompt choices
-                     <span style="color: #80DEEA;">:initial-input</span> initial-input
-                     <span style="color: #80DEEA;">:candidates-in-buffer</span> t
-                     <span style="color: #80DEEA;">:must-match</span> 'confirm<span style="color: #7fff00;">)</span>
-   <span style="color: #7fff00;">(</span><span style="color: #E57373;">user-error</span> <span style="color: #C5E1A5;">"Please install helm from \</span>
-<span style="color: #C5E1A5;">https://github.com/emacs-helm/helm"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                     <span style="color: #96a5d9; font-style: italic;">:initial-input</span> initial-input
+                     <span style="color: #96a5d9; font-style: italic;">:candidates-in-buffer</span> t
+                     <span style="color: #96a5d9; font-style: italic;">:must-match</span> 'confirm<span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span><span style="color: #f5b55f; text-decoration: underline;">user-error</span> <span style="color: #68f6cb;">"Please install helm from \</span>
+<span style="color: #68f6cb;">https://github.com/emacs-helm/helm"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
 
@@ -447,19 +447,19 @@ yourself.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>setq my-prompt <span style="color: #C5E1A5;">"What door do you want to open: "</span><span style="color: #ff8c00;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> my-prompt <span style="color: #68f6cb;">"What door do you want to open: "</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span>helm-comp-read my-prompt <span style="color: #ff1493;">(</span>list
-                           <span style="color: #7fff00;">(</span>cons <span style="color: #C5E1A5;">"A"</span> 'loser<span style="color: #7fff00;">)</span>
-                           <span style="color: #7fff00;">(</span>cons <span style="color: #C5E1A5;">"B"</span> 'winner<span style="color: #7fff00;">)</span>
-                           <span style="color: #7fff00;">(</span>cons <span style="color: #C5E1A5;">"C"</span> 'loser<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                           <span style="color: #7fff00;">(</span>cons <span style="color: #68f6cb;">"A"</span> 'loser<span style="color: #7fff00;">)</span>
+                           <span style="color: #7fff00;">(</span>cons <span style="color: #68f6cb;">"B"</span> 'winner<span style="color: #7fff00;">)</span>
+                           <span style="color: #7fff00;">(</span>cons <span style="color: #68f6cb;">"C"</span> 'loser<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #757575;">;; </span><span style="color: #757575;">vs</span>
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">let</span> <span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>choice <span style="color: #00bfff;">(</span>helm-comp-read my-prompt <span style="color: #ffff00;">(</span>list <span style="color: #C5E1A5;">"A"</span> <span style="color: #C5E1A5;">"B"</span> <span style="color: #C5E1A5;">"C"</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
-  <span style="color: #ff1493;">(</span><span style="color: #E1BEE7;">pcase</span> choice
-    <span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">"A"</span> 'loser<span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">"B"</span> 'winner<span style="color: #7fff00;">)</span>
-    <span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">"C"</span> 'loser<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">vs</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>choice <span style="color: #00bfff;">(</span>helm-comp-read my-prompt <span style="color: #ffff00;">(</span>list <span style="color: #68f6cb;">"A"</span> <span style="color: #68f6cb;">"B"</span> <span style="color: #68f6cb;">"C"</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase</span> choice
+    <span style="color: #7fff00;">(</span><span style="color: #68f6cb;">"A"</span> 'loser<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #68f6cb;">"B"</span> 'winner<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #68f6cb;">"C"</span> 'loser<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
 
@@ -469,13 +469,13 @@ So with that feature, we hook up our <code>f-uniquify-alist</code> and viola.
 
 <div class="org-src-container">
 
-<pre class="src src-emacs-lisp"><span style="color: #757575;">;; </span><span style="color: #757575;">Remmber the f-uniquify-alist is (value, label)</span>
-<span style="color: #757575;">;; </span><span style="color: #757575;">So we create a swapper to make it appropriate</span>
-<span style="color: #ff8c00;">(</span><span style="color: #E1BEE7;">defun</span> <span style="color: #64B5F6;">swap-pair</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Remmber the f-uniquify-alist is (value, label)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">So we create a swapper to make it appropriate</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">swap-pair</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
   <span style="color: #ff1493;">(</span>cons <span style="color: #7fff00;">(</span>cdr pair<span style="color: #7fff00;">)</span> <span style="color: #7fff00;">(</span>car pair<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
-<span style="color: #ff8c00;">(</span>helm-comp-read <span style="color: #C5E1A5;">"So what file do you want? "</span>
-                <span style="color: #ff1493;">(</span>mapcar #'swap-pair <span style="color: #757575;">;; </span><span style="color: #757575;">Just swap the fields before display</span>
+<span style="color: #ff8c00;">(</span>helm-comp-read <span style="color: #68f6cb;">"So what file do you want? "</span>
+                <span style="color: #ff1493;">(</span>mapcar #'swap-pair <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Just swap the fields before display</span>
                         <span style="color: #7fff00;">(</span>f-uniquify-alist
                          <span style="color: #00bfff;">(</span>projectile-current-project-files<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>

@@ -83,27 +83,27 @@ it is easy.
 
 <div class="org-src-container">
 
-<pre class="src src-python"><span style="color: #80CBC4;">birth_date</span> = Field<span style="color: #ff8c00;">(</span><span style="color: #C5E1A5;">'birth_date'</span><span style="color: #ff8c00;">)</span> <span style="color: #757575;"># </span><span style="color: #757575;">Short constructor, positional</span>
+<pre class="src src-python"><span style="color: #ff694d;">birth_date</span> = Field<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">'birth_date'</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Short constructor, positional</span>
 
-<span style="color: #80CBC4;">person</span> = Table.make<span style="color: #ff8c00;">(</span> <span style="color: #757575;"># </span><span style="color: #757575;">Long constructor, keywords</span>
-    name = <span style="color: #C5E1A5;">'person'</span>,
-    alias = <span style="color: #C5E1A5;">'p'</span>, <span style="color: #757575;"># </span><span style="color: #757575;">For later</span>
+<span style="color: #ff694d;">person</span> = Table.make<span style="color: #ff8c00;">(</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Long constructor, keywords</span>
+    name = <span style="color: #68f6cb;">'person'</span>,
+    alias = <span style="color: #68f6cb;">'p'</span>, <span style="color: #2872b2;"># </span><span style="color: #2872b2;">For later</span>
     fields = <span style="color: #ff1493;">[</span>
         Field.make<span style="color: #7fff00;">(</span>
-            name = <span style="color: #C5E1A5;">'person_id'</span>
+            name = <span style="color: #68f6cb;">'person_id'</span>
         <span style="color: #7fff00;">)</span>,
-        Field<span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">'last_name'</span><span style="color: #7fff00;">)</span>,
-        Field<span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">'first_date'</span><span style="color: #7fff00;">)</span>,
+        Field<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'last_name'</span><span style="color: #7fff00;">)</span>,
+        Field<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'first_date'</span><span style="color: #7fff00;">)</span>,
         birth_date
     <span style="color: #ff1493;">]</span>
 <span style="color: #ff8c00;">)</span>
 
-<span style="color: #80CBC4;">relationship</span> = Table<span style="color: #ff8c00;">(</span>
-    name = <span style="color: #C5E1A5;">'person_relationship'</span>,
-    alias = <span style="color: #C5E1A5;">'pr'</span>,
+<span style="color: #ff694d;">relationship</span> = Table<span style="color: #ff8c00;">(</span>
+    name = <span style="color: #68f6cb;">'person_relationship'</span>,
+    alias = <span style="color: #68f6cb;">'pr'</span>,
     fields = <span style="color: #ff1493;">[</span>
-        Field.make<span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">'person_id'</span><span style="color: #7fff00;">)</span>,
-        Field.make<span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">'related_person_id'</span><span style="color: #7fff00;">)</span>
+        Field.make<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'person_id'</span><span style="color: #7fff00;">)</span>,
+        Field.make<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'related_person_id'</span><span style="color: #7fff00;">)</span>
     <span style="color: #ff1493;">]</span>
 <span style="color: #ff8c00;">)</span>
 </pre>
@@ -130,72 +130,72 @@ So our next step is to create the query for each one. Let's see.
 
 <div class="org-src-container">
 
-<pre class="src src-python"><span style="color: #E1BEE7;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>person<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #757575;"># </span><span style="color: #757575;">Crafting from a normal table</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">out &gt;&gt; select p.person_id, p.last_name, p.first_name, p.birth_date from person p</span>
+<pre class="src src-python"><span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>person<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Crafting from a normal table</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt; select p.person_id, p.last_name, p.first_name, p.birth_date from person p</span>
 
-<span style="color: #E1BEE7;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>relationship<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #757575;"># </span><span style="color: #757575;">likewise</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">out &gt;&gt; select pr.person_id, pr.related_person_id from person_relationship pr</span>
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>relationship<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">likewise</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt; select pr.person_id, pr.related_person_id from person_relationship pr</span>
 
-<span style="color: #80CBC4;">all_person</span> = Query.make<span style="color: #ff8c00;">(</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   name = <span style="color: #C5E1A5;">'everyone'</span>, <span style="color: #757575;"># </span><span style="color: #757575;">Name functions as an id</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   tables = <span style="color: #ff1493;">[</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   person
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #ff1493;">]</span>
+<span style="color: #ff694d;">all_person</span> = Query.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'everyone'</span>, <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Name functions as an id</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   tables = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>
 <span style="color: #ff8c00;">)</span>
 
-<span style="color: #E1BEE7;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>all_person<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #757575;"># </span><span style="color: #757575;">ditto</span>
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>all_person<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">ditto</span>
 
-<span style="color: #80CBC4;">people_relationships</span> = Query.make<span style="color: #ff8c00;">(</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   name = <span style="color: #C5E1A5;">'everyelse'</span>,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   tables = <span style="color: #ff1493;">[</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   person,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   relationship
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #ff1493;">]</span>
+<span style="color: #ff694d;">people_relationships</span> = Query.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'everyelse'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   tables = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   relationship
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>
 <span style="color: #ff8c00;">)</span>
 
-<span style="color: #E1BEE7;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>people_relationships<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #757575;"># </span><span style="color: #757575;">Outer join</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">out &gt;&gt;</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">select</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">p.person_id, p.last_name, p.first_name, p.birth_date,</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">pr.person_id, pr.related_person_id</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">from</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">person p, person_relationship pr</span>
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>people_relationships<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Outer join</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt;</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">select</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">p.person_id, p.last_name, p.first_name, p.birth_date,</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">pr.person_id, pr.related_person_id</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">from</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">person p, person_relationship pr</span>
 
-<span style="color: #757575;"># </span><span style="color: #757575;">Astute readers will realize that there are two person_ids here which will fail</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">Astute readers will realize that there are two person_ids here which will fail</span>
 
-<span style="color: #80CBC4;">person_relations</span> = Link.make<span style="color: #ff8c00;">(</span> <span style="color: #757575;"># </span><span style="color: #757575;">A way to refactor ON clauses</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   name = <span style="color: #C5E1A5;">'p_and_pr'</span>,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   source = Table.getField<span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">'person_id'</span>, person<span style="color: #ff1493;">)</span>, <span style="color: #757575;"># </span><span style="color: #757575;">Still experimental</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   target = Table.getField<span style="color: #ff1493;">(</span><span style="color: #C5E1A5;">'person_id'</span>, people_relationships<span style="color: #ff1493;">)</span>
+<span style="color: #ff694d;">person_relations</span> = Link.make<span style="color: #ff8c00;">(</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">A way to refactor ON clauses</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'p_and_pr'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   source = Table.getField<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">'person_id'</span>, person<span style="color: #ff1493;">)</span>, <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Still experimental</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   target = Table.getField<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">'person_id'</span>, people_relationships<span style="color: #ff1493;">)</span>
 <span style="color: #ff8c00;">)</span>
 
-<span style="color: #80CBC4;">relations_person</span> = Link.make<span style="color: #ff8c00;">(</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   name = <span style="color: #C5E1A5;">'pr_and_p'</span>,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   source = people_relationships,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   target = person
+<span style="color: #ff694d;">relations_person</span> = Link.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'pr_and_p'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   source = people_relationships,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   target = person
 <span style="color: #ff8c00;">)</span>
 
-<span style="color: #80CBC4;">everyone</span> = Query.make<span style="color: #ff8c00;">(</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   name = <span style="color: #C5E1A5;">'everyone'</span>,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   table = <span style="color: #ff1493;">[</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   person,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   relationship,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   Table.setAlias<span style="color: #7fff00;">(</span><span style="color: #C5E1A5;">'np'</span>, person<span style="color: #7fff00;">)</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #ff1493;">]</span>,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   link = <span style="color: #ff1493;">[</span>
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   person_relations,
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #9E9E9E; background-color: #474747;"> </span>   relations_person
-<span style="color: #9E9E9E; background-color: #474747;"> </span>   <span style="color: #ff1493;">]</span>
+<span style="color: #ff694d;">everyone</span> = Query.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'everyone'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   table = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   relationship,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   Table.setAlias<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'np'</span>, person<span style="color: #7fff00;">)</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   link = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person_relations,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   relations_person
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>
 <span style="color: #ff8c00;">)</span>
 
-<span style="color: #E1BEE7;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>everyone<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">out &gt;&gt;</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">select</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">*</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">from</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">person p</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">inner join person_relations pr on p.person_ id = pr.person_id</span>
-<span style="color: #757575;"># </span><span style="color: #757575;">inner join person np on np.person_id = pr.related_person_id</span>
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>everyone<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt;</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">select</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">*</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">from</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">person p</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">inner join person_relations pr on p.person_ id = pr.person_id</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">inner join person np on np.person_id = pr.related_person_id</span>
 </pre>
 </div>
 
