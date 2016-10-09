@@ -21,6 +21,15 @@ layout: default
                 Log Date:
                 {{ post.date | date_to_string }}
             </p>
+            <p class="post-meta">
+                Estimated Reading Time:
+                {% assign words = post.content | number_of_words %}
+                {% if words < 360 %}
+                1 min
+                {% else %}
+                {{ words | divided_by:180 }} mins
+                {% endif %}
+            </p>
         </li>
         {% endfor %}
     </ul>
