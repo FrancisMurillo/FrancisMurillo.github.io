@@ -1,0 +1,84 @@
+---
+title: Inserting Relative Path
+tagline: What do you do when you need to insert the relative path?
+layout: post
+author: Francis Murillo
+categories: Experiment
+tags: Emacs
+---
+
+<div id="outline-container-orgheadline1" class="outline-2">
+<h2 id="orgheadline1">Problem</h2>
+<div class="outline-text-2" id="text-orgheadline1">
+<p>
+I was working on a <a href="https://facebook.github.io/react-native/">react native</a> application and I needed to insert the
+relative path of an import statement based on the current file/buffer.
+Since this involves files, I immediately checked <a href="https://github.com/rejeep/f.el">f.el</a> for any function
+that would immediately get the relative path from a file to a file.
+The closest I got and was <a href="https://github.com/rejeep/f.el#f-relative-path-optional-dir">f-relative</a> but it wasn't cutting it, it was
+giving me a file relative to a directory. After an hour or two of
+finding which function it is, I decided to just write it myself.
+</p>
+
+<p>
+So write it I did and in such poor time, it took me another hour or
+two to get it done for whatever reason I could not comprehend. Once I
+did that, it was a simple matter to write the commands to get what I
+wanted.
+</p>
+
+<p>
+<img src="/images/20161015 - insert-relative-path.gif" alt="Screencast"/>
+</p>
+
+<p>
+Here is a link of the <a href="https://gist.github.com/FrancisMurillo/02a1c638e9d32b5d8a60e9aa1ad9aa50">code</a> for the curious. I hope the screencast is
+helpful as it is my first and won't be my last. I hope I can make more
+simpler posts showing something done in Emacs, thanks to <a href="https://github.com/Malabarba/camcorder.el/">camcorder.el</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgheadline2" class="outline-2">
+<h2 id="orgheadline2">Notes</h2>
+<div class="outline-text-2" id="text-orgheadline2">
+<p>
+At first I thought it would be easy to implement by finding their
+common parent, determining the relative paths of the source and target
+path by <code>f-relative</code>, converting the relative source path into <code>..</code>
+and just appending the relative target path with the path separator.
+Some things aren't just that easy.
+</p>
+
+<p>
+But the use of <code>f-relative</code> and <code>f-join</code> did not return consistent
+outputs that I expected. So out of frustration, I just decided to find
+the common parent instead and thankfully <code>f-split</code> is one thing I can
+rely on.
+</p>
+
+<p>
+By converting the source and target paths into lists and dropping the
+head until it wasn't equal, I thought I nailed it but apparently that
+wasn't enough. I realized after chopping the list of until there was
+no common parent, it didn't handle the case of neighboring files
+properly. What I needed was the last common parent which I dropped. As
+hard as I thought about it, I needed a recursive function maintaining
+that singular value which is helpful in both cases where either source
+or parent node is a parent of one another. I really hoped I didn't
+have to use a <code>cond</code> and recursion but I had to and it pains me to do
+so. Sometimes I just have to bite the bullet.
+</p>
+
+<p>
+One small thing also tripped me up is the use of <code>find-file-read-args</code>
+where I needed a <code>find-file</code> interface without going to the file. You
+could argue I could use <code>find-file-noselect</code> but I didn't want to open
+the file at all. I just needed the file path, I didn't have to open
+it. It took me some time to find the function and the hazard that it
+returns a pair instead of just the filename. The bigger concern
+here is that I might have used a private function and maybe I should
+have just read the manual. Oh well.w
+</p>
+</div>
+</div>
