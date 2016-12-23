@@ -1,16 +1,11 @@
-<div class="HTML">
-<p>
 ---
 title: Best Flex Matcher
 tagline: Or the smallest matching string you can get.
 layout: post
 author: Francis Murillo
-categories: Experiment
+categories: Experiment, Hacker
 tags: Emacs
 ---
-</p>
-
-</div>
 
 <div id="outline-container-org0ea66af" class="outline-2">
 <h2 id="org0ea66af">Problem</h2>
@@ -663,7 +658,7 @@ place.
 
 <p>
 However, the one thing we want is that it should not block the UI or be
-asynchronous... sort of. Time for the bonus round.
+asynchronous&#x2026; sort of. Time for the bonus round.
 </p>
 </div>
 </div>
@@ -779,7 +774,7 @@ accumulated. Generalizing this.
 <p>
 What this does is write the buffered values to a file of a stream. It is
 a bit rudimentary since you can't stop it once you start it but this is
-the main attempt to buffer and asynchronously write values... sort of.
+the main attempt to buffer and asynchronously write values&#x2026; sort of.
 You don't need to understand but the idea here is with the promise
 stream, you get one value, wait for it to fulfill, write the fulfilled
 values, wait for some delay to avoid blocking the UI, get another

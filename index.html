@@ -7,15 +7,30 @@ layout: default
     <h1>
         Log Entries
     </h1>
+    <span>
+      I maintain two personas:
+      <a href="/hacker">The Hacker</a>
+      and
+      <a href="/watcher">The Watcher</a>
+      .
+    </span>
 
     <ul class="post-list">
-        {% for post in paginator.posts %}
+        {% for post in site.posts %}
         <li class="post-item">
             <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">
                 {{ post.title }}
             </a>
             <p class="post-tagline">
                 {{ post.tagline }}
+            </p>
+            <p class="post-meta">
+              Blog:
+              {% if post.categories contains 'hacker'  %}
+              Hacker
+              {% else %}
+              Watcher
+              {% endif %}
             </p>
             <p class="post-meta">
                 Log Date:
@@ -33,25 +48,4 @@ layout: default
         </li>
         {% endfor %}
     </ul>
-
-    <!-- Pagination -->
-    <div class="pagination">
-        {% if paginator.previous_page %}
-        <a href="{{ paginator.previous_page_path }}" class="previous">Previous</a>
-        {% endif %}
-
-        <span class="page_number ">
-            Page: {{ paginator.page }} of {{ paginator.total_pages }}
-        </span>
-
-        {% if paginator.next_page %}
-        <a href="{{ paginator.next_page_path }}" class="next">Next</a>
-        {% else %}
-        {% endif %}
-    </div>
-
-    <p class="rss-subscribe">
-        <span>Subscribe to my log</span>
-        <a href="{{ " /feed.xml " | prepend: site.baseurl }}">via RSS</a>
-    </p>
 </div>

@@ -1,57 +1,50 @@
 ---
 layout: default
+title: Hacker Log
+description: Whatever I decide to hack and discuss.
+blog-category: hacker
 ---
 
 <div class="home">
 
-    <h1>
-        Log Entries
-    </h1>
+  <h1>
+    {{ page.title }}
+  </h1>
+  <p>
+    {{ page.description }}
+  </p>
 
-    <ul class="post-list">
-        {% for post in paginator.posts %}
-        <li class="post-item">
-            <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">
-                {{ post.title }}
-            </a>
-            <p class="post-tagline">
-                {{ post.tagline }}
-            </p>
-            <p class="post-meta">
-                Log Date:
-                {{ post.date | date_to_string }}
-            </p>
-            <p class="post-meta">
-                Estimated Reading Time:
-                {% assign words = post.content | number_of_words %}
-                {% if words < 360 %}
-                1 min
-                {% else %}
-                {{ words | divided_by:180 }} mins
-                {% endif %}
-            </p>
-        </li>
-        {% endfor %}
-    </ul>
+  
+  <ul class="post-list">
+    {% for post in site.posts %}
+    {% if post.categories contains page.blog-category %}
+    <li class="post-item">
+      <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">
+        {{ post.title }}
+      </a>
+      <p class="post-tagline">
+        {{ post.tagline }}
+      </p>
+      <p class="post-meta">
+        Log Date:
+        {{ post.date | date_to_string }}
+      </p>
+      <p class="post-meta">
+        Estimated Reading Time:
+        {% assign words = post.content | number_of_words %}
+        {% if words < 360 %}
+                      1 min
+                      {% else %}
+                      {{ words | divided_by:180 }} mins
+                      {% endif %}
+                      </p>
+    </li>
+    {% endif %}
+    {% endfor %}
+  </ul>
 
-    <!-- Pagination -->
-    <div class="pagination">
-        {% if paginator.previous_page %}
-        <a href="{{ paginator.previous_page_path }}" class="previous">Previous</a>
-        {% endif %}
-
-        <span class="page_number ">
-            Page: {{ paginator.page }} of {{ paginator.total_pages }}
-        </span>
-
-        {% if paginator.next_page %}
-        <a href="{{ paginator.next_page_path }}" class="next">Next</a>
-        {% else %}
-        {% endif %}
-    </div>
-
-    <p class="rss-subscribe">
-        <span>Subscribe to my log</span>
-        <a href="{{ " /feed.xml " | prepend: site.baseurl }}">via RSS</a>
-    </p>
+  <p class="rss-subscribe">
+    <span>Are you sure you want to subscribe to my {{ page.blog-category }} log?</span>
+    <a href="{{  '/feed.xml' | prepend: page.blog-category | prepend: '/' | prepend: site.baseurl }}">via RSS</a>
+  </p>
 </div>
