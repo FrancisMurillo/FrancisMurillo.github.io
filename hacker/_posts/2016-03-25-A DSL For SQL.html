@@ -1,0 +1,251 @@
+<div class="HTML">
+<p>
+---
+title: A DSL For SQL
+tagline: A language or library for writing SQL
+layout: post
+author: Francis Murillo
+categories: Idea
+tags: SQL, Emacs
+---
+</p>
+
+</div>
+
+<div id="outline-container-orgf58a4ac" class="outline-2">
+<h2 id="orgf58a4ac">Problem</h2>
+<div class="outline-text-2" id="text-orgf58a4ac">
+<p>
+I am quite tired of writing SQL that isn't modular or easy. There are
+no variables or ways to combine them like functions or variables. Is
+there no a <a href="http://sass-lang.com/">SASS</a> or <a href="http://lesscss.org/">LESS</a> where writing CSS was a bit more modular or
+dynamic? I am not asking for a miracle replacement for SQL, merely a language
+or library that compiles to SQL which would make it easier for
+everyone to write it without too much pain.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf8017f0" class="outline-2">
+<h2 id="orgf8017f0">Sketch</h2>
+<div class="outline-text-2" id="text-orgf8017f0">
+<p>
+This is what I want to talk about, another language or library. My
+idea is to implement this in a functional language such as <code>Haskell</code>
+or implement it with the prototyping <code>Python</code> or <code>Javascript</code> or
+<code>Common Lisp</code> to make it easy for me. I do want this language to have
+a lot of editor support like <code>Emacs</code>, so in <code>Emacs Lisp</code> I thought to
+implement this. Ease of writing is one key point so choosing which
+language will serve as a prototype is important.
+</p>
+
+<p>
+Of course, I can create a syntax or grammar for this but it would be
+better to see how it plays as a library first. So let's role with that
+without being grandeur. However, I do want to stress being functional
+in a sense where there is no side-effect or the fact that I am being
+obsessed with it.
+</p>
+
+<p>
+So let's start with some sketches.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5129635" class="outline-2">
+<h2 id="org5129635">Snippets</h2>
+<div class="outline-text-2" id="text-org5129635">
+<p>
+Let's start with hypothetical use case: create two tables and join
+their there fields. Let say we <code>Person</code> and <code>Relationship</code> which is a
+table of people and their relationship to each other respectively. How
+about a quick schema to make this clearer.
+</p>
+
+<ul class="org-ul">
+<li>person
+<ul class="org-ul">
+<li>person_id</li>
+<li>first_name</li>
+<li>last_name</li>
+<li>birth_date</li>
+</ul></li>
+<li>relationship
+<ul class="org-ul">
+<li>person_id</li>
+<li>related_person_id</li>
+</ul></li>
+</ul>
+
+<p>
+Please ignore the fact that I hate writing in all caps as SQL
+does. Let's assume the compiler also converts the naming
+convention to it's proper name. Moving on, let's create a pseudo
+syntax in creating these tables. I'll be sketching in Python because
+it is easy.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #ff694d;">birth_date</span> = Field<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">'birth_date'</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Short constructor, positional</span>
+
+<span style="color: #ff694d;">person</span> = Table.make<span style="color: #ff8c00;">(</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Long constructor, keywords</span>
+    name = <span style="color: #68f6cb;">'person'</span>,
+    alias = <span style="color: #68f6cb;">'p'</span>, <span style="color: #2872b2;"># </span><span style="color: #2872b2;">For later</span>
+    fields = <span style="color: #ff1493;">[</span>
+        Field.make<span style="color: #7fff00;">(</span>
+            name = <span style="color: #68f6cb;">'person_id'</span>
+        <span style="color: #7fff00;">)</span>,
+        Field<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'last_name'</span><span style="color: #7fff00;">)</span>,
+        Field<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'first_date'</span><span style="color: #7fff00;">)</span>,
+        birth_date
+    <span style="color: #ff1493;">]</span>
+<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff694d;">relationship</span> = Table<span style="color: #ff8c00;">(</span>
+    name = <span style="color: #68f6cb;">'person_relationship'</span>,
+    alias = <span style="color: #68f6cb;">'pr'</span>,
+    fields = <span style="color: #ff1493;">[</span>
+        Field.make<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'person_id'</span><span style="color: #7fff00;">)</span>,
+        Field.make<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'related_person_id'</span><span style="color: #7fff00;">)</span>
+    <span style="color: #ff1493;">]</span>
+<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+I hope the snippet is readable enough and the ideas here are gotten
+across
+</p>
+
+<ul class="org-ul">
+<li>Variables</li>
+<li>Field and Table data type</li>
+<li>Constructor function</li>
+<li>Function keywords</li>
+<li>Strings</li>
+<li>Quick constructor with strings</li>
+<li>Flatten list of lists(Wish list)</li>
+</ul>
+
+<p>
+So our next step is to create the query for each one. Let's see.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>person<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Crafting from a normal table</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt; select p.person_id, p.last_name, p.first_name, p.birth_date from person p</span>
+
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>relationship<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">likewise</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt; select pr.person_id, pr.related_person_id from person_relationship pr</span>
+
+<span style="color: #ff694d;">all_person</span> = Query.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'everyone'</span>, <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Name functions as an id</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   tables = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>
+<span style="color: #ff8c00;">)</span>
+
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>all_person<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">ditto</span>
+
+<span style="color: #ff694d;">people_relationships</span> = Query.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'everyelse'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   tables = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   relationship
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>
+<span style="color: #ff8c00;">)</span>
+
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>people_relationships<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Outer join</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt;</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">select</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">p.person_id, p.last_name, p.first_name, p.birth_date,</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">pr.person_id, pr.related_person_id</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">from</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">person p, person_relationship pr</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">Astute readers will realize that there are two person_ids here which will fail</span>
+
+<span style="color: #ff694d;">person_relations</span> = Link.make<span style="color: #ff8c00;">(</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">A way to refactor ON clauses</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'p_and_pr'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   source = Table.getField<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">'person_id'</span>, person<span style="color: #ff1493;">)</span>, <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Still experimental</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   target = Table.getField<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">'person_id'</span>, people_relationships<span style="color: #ff1493;">)</span>
+<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff694d;">relations_person</span> = Link.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'pr_and_p'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   source = people_relationships,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   target = person
+<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff694d;">everyone</span> = Query.make<span style="color: #ff8c00;">(</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   name = <span style="color: #68f6cb;">'everyone'</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   table = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   relationship,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   Table.setAlias<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'np'</span>, person<span style="color: #7fff00;">)</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   link = <span style="color: #ff1493;">[</span>
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   person_relations,
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #d3f9ee; background-color: #033340;"> </span>   relations_person
+<span style="color: #d3f9ee; background-color: #033340;"> </span>   <span style="color: #ff1493;">]</span>
+<span style="color: #ff8c00;">)</span>
+
+<span style="color: #96a5d9; font-weight: bold;">print</span><span style="color: #ff8c00;">(</span>Query.craft<span style="color: #ff1493;">(</span>everyone<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">out &gt;&gt;</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">select</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">*</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">from</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">person p</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">inner join person_relations pr on p.person_ id = pr.person_id</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">inner join person np on np.person_id = pr.related_person_id</span>
+</pre>
+</div>
+
+<p>
+I hope I got my point across with the following ideas.
+</p>
+
+<ul class="org-ul">
+<li>Query and Link data type</li>
+<li>.craft() function</li>
+<li>Mutation creates another copy</li>
+</ul>
+
+
+<p>
+Just a quaint idea to merge these two queries but I still have some
+problems specially with the <code>Link</code> type. I want the tables and the
+join clause to be separated. Ideally, you want to declare the tables
+only and the join clauses can automatically inferred but obviously it
+is more verbose at the moment and harder to join.
+</p>
+
+<p>
+Assuming this works, the idea is now to declare the tables on the top,
+create a auto link mechanism, select the fields and make them
+queries. After that base is okay, having Emacs support them would be
+awesome.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd167bf6" class="outline-2">
+<h2 id="orgd167bf6">Insights</h2>
+<div class="outline-text-2" id="text-orgd167bf6">
+<p>
+Assuming this is works, the library should allow for extension and
+expansion. Given the base types, one can create new personalized types
+from it. With the vast majority of SQL vendor syntax, the language
+should allow not just to compile to SQL but to the vendor specific SQL
+and if willing compiles to an XML file of tables and automatic queries
+just for the <code>MyBatis</code> or for some third party dynamic SQL shiznit.
+</p>
+
+<p>
+I may work on this on <code>Haskell</code> as my first project but I really want
+to stress the point that SQL should not be a pain to write. Anyway,
+I'm out of ideas anyway but this will haunt me until I implement this properly.
+</p>
+</div>
+</div>
