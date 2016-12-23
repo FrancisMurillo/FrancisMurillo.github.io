@@ -1,0 +1,567 @@
+<div class="html">
+<p>
+---
+title: An Unique Projectile Completion
+tagline: Not really... but how about customizing it?
+layout: post
+author: Francis Murillo
+categories: emacs
+tags: emacs
+---
+</p>
+
+</div>
+
+<div id="outline-container-org1c48563" class="outline-2">
+<h2 id="org1c48563">Idea</h2>
+<div class="outline-text-2" id="text-org1c48563">
+<p>
+I cannot live without <a href="https://github.com/bbatsov/projectile">projectile</a> and probably <a href="https://emacs-helm.github.io/helm/">helm</a> and
+<code>projectile-find-files</code>  is my bread-and-butter command. But they say,
+<i>familiarity breeds contempt</i> and once you been using it so much; you
+want some customization. But which part? For my contempt, I really just
+want to change how the <code>helm-completion</code> buffer displays the options.
+</p>
+
+<p>
+What I really want is rather to <b>display the filename in the front</b> and
+<b>display the file path in reverse order</b> since my eyes naturally scan
+from left to right. And so if you want proof of how this looks like to
+me, I used the <code>projectile-find-files</code> on my <code>emacs</code> directory and this
+is what it looks like with just <code>helm</code>.
+</p>
+
+<p>
+<img src="/images/20160802 - helm-completion.png" alt="Helm Completion"/>
+</p>
+
+<p>
+After some hacking and discussion, this is what I settled on.
+</p>
+
+<p>
+<img src="/images/20160802 - customized-completion.png" alt="Customized Completion"/>
+</p>
+
+
+<p>
+So if you think this is weird or offensive, feel free to do something
+more meaningful in your life. But if you are curious, keep reading.
+</p>
+
+<p>
+Or if you just want to know the code, here it is for your consumption.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">f</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/custom-helm-completion</span> <span style="color: #ff1493;">(</span>prompt choices<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Just a custom helm completion for projection"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span>
+      <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>fn-separator <span style="color: #68f6cb;">".."</span><span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>fn-notation
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>path<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>fn-pieces <span style="color: #9cb6ad;">(</span>f-split path<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>string-join <span style="color: #ff8247;">(</span>reverse fn-pieces<span style="color: #ff8247;">)</span> fn-separator<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>relative-parent-path
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>path relative-path<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span>
+              <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>split-path <span style="color: #9cb6ad;">(</span>f-split path<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+               <span style="color: #ff8247;">(</span>split-relative-path <span style="color: #9cb6ad;">(</span>f-split relative-path<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>string-join
+             <span style="color: #ff8247;">(</span>-drop-last <span style="color: #9cb6ad;">(</span>length split-relative-path<span style="color: #9cb6ad;">)</span> split-path<span style="color: #ff8247;">)</span>
+             <span style="color: #ff8247;">(</span>f-path-separator<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+
+       <span style="color: #00bfff;">(</span>as-pair <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>ish<span style="color: #da70d6;">)</span>
+                  <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #00ff7f;">(</span>listp ish<span style="color: #00ff7f;">)</span>
+                      ish <span style="color: #00ff7f;">(</span>cons ish ish<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>swap-pair <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>pair<span style="color: #da70d6;">)</span>
+                    <span style="color: #da70d6;">(</span>cons <span style="color: #00ff7f;">(</span>cdr pair<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>car pair<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>map-car <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>f pair<span style="color: #da70d6;">)</span>
+                  <span style="color: #da70d6;">(</span>cons <span style="color: #00ff7f;">(</span>funcall f <span style="color: #ff8247;">(</span>car pair<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+                        <span style="color: #00ff7f;">(</span>cdr pair<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+
+       <span style="color: #00bfff;">(</span>pair-as-label
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>pairs<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">labels</span>
+                             <span style="color: #9cb6ad;">(</span>mapcar #'cdr pairs<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+                         <span style="color: #ff8247;">(</span>label-lengths
+                          <span style="color: #9cb6ad;">(</span>mapcar
+                           <span style="color: #ff8c00;">(</span>-compose
+                            #'length
+                            fn-notation<span style="color: #ff8c00;">)</span>
+                           labels<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+
+                         <span style="color: #ff8247;">(</span>max-label-length
+                          <span style="color: #9cb6ad;">(</span>apply #'max label-lengths<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+
+
+                         <span style="color: #ff8247;">(</span>label-format
+                          <span style="color: #68f6cb;">"%-s"</span><span style="color: #ff8247;">)</span>
+
+                         <span style="color: #ff8247;">(</span>description-format
+                          <span style="color: #68f6cb;">"%-s"</span><span style="color: #ff8247;">)</span>
+
+                         <span style="color: #ff8247;">(</span>display-formatter
+                          <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>name description<span style="color: #ff8c00;">)</span>
+                            <span style="color: #ff8c00;">(</span>concat
+                             <span style="color: #ff1493;">(</span>format label-format name<span style="color: #ff1493;">)</span>
+                             <span style="color: #68f6cb;">"  |-&gt;  "</span>
+                             <span style="color: #ff1493;">(</span>format description-format description<span style="color: #ff1493;">)</span>
+                             <span style="color: #68f6cb;">"  &lt;-|"</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8247;">(</span>pair<span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span>
+                  <span style="color: #9cb6ad;">(</span><span style="color: #ff8c00;">(</span>unique-path <span style="color: #ff1493;">(</span>car pair<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                   <span style="color: #ff8c00;">(</span>full-path <span style="color: #ff1493;">(</span>cdr pair<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                   <span style="color: #ff8c00;">(</span>parent-path
+                    <span style="color: #ff1493;">(</span>funcall relative-parent-path
+                             full-path
+                             unique-path<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+                   <span style="color: #ff8c00;">(</span>display-name
+                    <span style="color: #ff1493;">(</span>funcall fn-notation unique-path<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                   <span style="color: #ff8c00;">(</span>display-description
+                    <span style="color: #ff1493;">(</span>funcall fn-notation parent-path<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+                   <span style="color: #ff8c00;">(</span>display-label
+                    <span style="color: #ff1493;">(</span>funcall display-formatter
+                             display-name
+                             display-description<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+                <span style="color: #9cb6ad;">(</span>cons display-label <span style="color: #ff8c00;">(</span>cdr pair<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>refined-choices <span style="color: #ffff00;">(</span>f-uniquify-alist choices<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>mapped-choices
+        <span style="color: #ffff00;">(</span>mapcar <span style="color: #da70d6;">(</span>-compose
+                 <span style="color: #00ff7f;">(</span>funcall pair-as-label refined-choices<span style="color: #00ff7f;">)</span>
+                 swap-pair
+                 as-pair<span style="color: #da70d6;">)</span>
+                refined-choices<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>helm-comp-read prompt mapped-choices
+                    <span style="color: #96a5d9; font-style: italic;">:must-match</span> 'confirm<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> projectile-completion-system #'fn/custom-helm-completion<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+I admit the code looks long, but I think it follows my functional
+and aesthetic instincts.
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-orgaba1667" class="outline-2">
+<h2 id="orgaba1667">Beginning</h2>
+<div class="outline-text-2" id="text-orgaba1667">
+<p>
+As you can see from the screenshot taken with the useful <code>emacsshot</code>,
+it focuses on the filename rather than the whole path. This reminds
+when I used <a href="https://www.emacswiki.org/emacs/InteractivelyDoThings">ido</a> with flex matching, the search is more tuned with
+the filename which I still miss although <code>helm</code> is different in this
+regard, a small concession would be nice. So thus my journey of
+modifying the completion.
+</p>
+
+<p>
+Actually, I just wanted to see the filename but the joy of exploring
+the project structure might be lost if I don't include the whole path
+but optional. So let's start with the primary feature: filenames.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org16b323f" class="outline-2">
+<h2 id="org16b323f">Filenames</h2>
+<div class="outline-text-2" id="text-org16b323f">
+<p>
+Seems easy enough with the <a href="https://github.com/rejeep/f.el">f</a> library and <code>f-filename</code> function. So
+let's see how this factors in with <code>projectile-current-project-files</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">out</span> <span style="color: #ff1493;">(</span>value<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>message <span style="color: #68f6cb;">"%s"</span> value<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>mapc #'out <span style="color: #ff1493;">(</span>projectile-current-project-files<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Trimmed output</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/custom-zone/zone-end-of-buffer.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/custom-zone/zone-waves.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.projectile</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">README.org</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">config.or</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/LICENSE</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/promise-test.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">elisp/promise/promise.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init-standard.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">personal.el</span>
+
+<span style="color: #ff8c00;">(</span>mapc <span style="color: #ff1493;">(</span>-compose #'out #'f-filename<span style="color: #ff1493;">)</span> <span style="color: #ff1493;">(</span>projectile-current-project-files<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">zone-end-of-buffer.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">zone-waves.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.projectile</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">README.org</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">config.org</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">.gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">LICENSE</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">promise-test.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">promise.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init-standard.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">init.el</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">personal.el</span>
+</pre>
+</div>
+
+<p>
+That was easy, but the astute reader will notice that there are two
+<code>.gitignore</code> files, one from my <a href="https://github.com/FrancisMurillo/.emacs.d">.emacs.d</a> and one from my shiv
+<a href="https://github.com/FrancisMurillo/promise.el">promise.el</a> implementation. This raises the question: <b>if there are
+files with the same name, how do you differentiate between the two?</b>
+</p>
+
+<p>
+Well <code>Emacs</code> already has a nice term for this with buffers and its
+<a href="https://www.emacswiki.org/emacs/uniquify">uniquify</a>. The idea to resolve this is to add the least many parents to
+make them unique and thankfully <code>f</code> already implements this with
+<a href="https://github.com/rejeep/f.el#f-uniquify-alist-paths">f-uniquify-alist</a> so one does not need to worry about it. Crisis
+averted.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>mapc #'out  <span style="color: #ff1493;">(</span>f-uniquify-alist <span style="color: #7fff00;">(</span>projectile-current-project-files<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Trimmed output</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/zone-end-of-buffer.el . zone-end-of-buffer.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/zone-waves.el . zone-waves.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(.gitignore . /.gitignore)  ;; &lt;-- The first gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/.gitignore . promise/.gitignore)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(.projectile . .projectile)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(README.org . README.org)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(config.org . config.org)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/end-of-buffer.el . end-of-buffer.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/custom-zone/waves.el . waves.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/.gitignore . promise/.gitignore) ;; &lt;-- The other gitignore</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/LICENSE . LICENSE)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/promise-test.el . promise-test.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(elisp/promise/promise.el . promise.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(init-standard.el . init-standard.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(init.el . init.el)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(personal.el . personal.el)</span>
+</pre>
+</div>
+
+<p>
+Aside from using the <code>alist</code> version which shows the original value
+and the uniquified value, notice the <code>cdr</code> of the same filenames are
+now unique. So if we are given a list of project files we can just use
+that function and we are near the mark.
+</p>
+
+<p>
+Now, let's see what we can do about exposing the path now that we have this.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbe49bb0" class="outline-2">
+<h2 id="orgbe49bb0">Project Path</h2>
+<div class="outline-text-2" id="text-orgbe49bb0">
+<p>
+So with the previous concept, I want to display the path after the
+label almost like a two column table. Seems easy enough with <a href="https://github.com/rejeep/f.el#f-dirname-path">f-dirname</a>
+but taking with the uniquified issue as above.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">out-pair</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,value . ,unique-value<span style="color: #ffff00;">)</span> pair<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>message <span style="color: #68f6cb;">"%s | %s"</span> unique-value <span style="color: #00bfff;">(</span>f-dirname value<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Remember the original</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Given (.gitignore . /.gitignore)</span>
+<span style="color: #ff8c00;">(</span>out-pair '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">".gitignore"</span> . <span style="color: #68f6cb;">"/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #68f6cb;">".gitignore | /"</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Given (elisp/promise/.gitignore . promise/.gitignore)</span>
+<span style="color: #ff8c00;">(</span>out-pair '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"elisp/promise/.gitignore"</span> . <span style="color: #68f6cb;">"promise/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/promise/"</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Combining them as an hypothetical display</span>
+<span style="color: #68f6cb;">".gitignore | /.gitignore"</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/promise/"</span>
+</pre>
+</div>
+
+<p>
+So nothing is really wrong with this but there is a redundancy in path
+with <code>promise/.gitignore</code>. It would be nice if the path could be
+trimmed from the highest point like so.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">relative-parent-path</span> <span style="color: #ff1493;">(</span>path relative-path<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Check this out in the implementation</span>
+<span style="color: #68f6cb; font-style: italic;">   Again it is only for this problem"</span>
+  path<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">out-pair2</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,value . ,unique-value<span style="color: #ffff00;">)</span> pair<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>message <span style="color: #68f6cb;">"%s | %s"</span> unique-value <span style="color: #00bfff;">(</span>relative-parent-path value unique-value<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Instead of</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/promise/"</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Would be nice if</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/"</span>
+<span style="color: #ff8c00;">(</span>out-pair2 '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"elisp/promise/.gitignore"</span> . <span style="color: #68f6cb;">"promise/.gitignore"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Sadly, the code, <code>relative-parent-path</code>, for that isn't worth
+reviewing as it is only meant for this problem. Now it does look
+better, which is good enough for me: unique path combined with
+completing path.
+</p>
+
+<p>
+But there is one more enhancement I would love to see: reversed paths
+</p>
+</div>
+</div>
+
+<div id="outline-container-org46b6a44" class="outline-2">
+<h2 id="org46b6a44">Reversing Paths</h2>
+<div class="outline-text-2" id="text-org46b6a44">
+<p>
+Instead of reading <code>/a/b/c/d</code>, I find it curiously interesting if it
+could be written as <code>d..c..b..a</code> which is easy enough to do with
+<a href="https://github.com/rejeep/f.el#f-split-path">f-split</a> and <code>reverse</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn-separator</span> <span style="color: #68f6cb;">".."</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn-notation</span> <span style="color: #ff1493;">(</span>path<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>fn-pieces <span style="color: #ffff00;">(</span>f-split path<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>string-join <span style="color: #00bfff;">(</span>reverse fn-pieces<span style="color: #00bfff;">)</span> fn-separator<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">How does it look here?</span>
+<span style="color: #68f6cb;">"promise/.gitignore | elisp/"</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Ah much better</span>
+<span style="color: #68f6cb;">".gitignore..promise | elisp"</span>
+</pre>
+</div>
+
+<p>
+The choice of separator is yours but the idea of reversing it allows
+me to home in to the file I am looking for and its contextualized
+parent. Minor enhancement are really important sometimes.
+</p>
+
+<p>
+Again this notation is optional but I really like it and it makes me
+wonder why there isn't this option available. And with that, we can
+now start hacking after trying out some stuff.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga3e185f" class="outline-2">
+<h2 id="orga3e185f">Really Hacking</h2>
+<div class="outline-text-2" id="text-orga3e185f">
+<p>
+There is really one question that should have been answered in the
+first place: <b>why the completion system?</b>
+</p>
+
+<p>
+Well, I thought about advicing <code>helm-projectile</code> and
+<code>projectile-current-project-files</code> but I thought that it might do more
+damage as the latter is the source, not the display, while the former
+is a bit harder to track down cleanly. I settled on the
+<code>projectile-completion-system</code> as it is a natural point to hook in. So
+that's why.
+</p>
+
+<p>
+Actually, my problem is that there is no hook or mapping function that
+one can use being <code>helm</code> and all. After the next section, there are
+references in the <code>helm-projectile</code> code that assumes a direct source
+to label mapping; meaning making this change might break other
+functionality which isn't needed. I really just want
+<code>projectile-find-file</code> to have a cool display, not blow up
+<code>describe-variable</code> or something.
+</p>
+
+<p>
+Here is the <a href="https://github.com/bbatsov/helm-projectile/issues/38">ticket</a> I filed for that. If that has a good answer, then
+much of the code I written could be easily adapted to use that instead
+of my customization.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org06a0c49" class="outline-2">
+<h2 id="org06a0c49">Helm Completion</h2>
+<div class="outline-text-2" id="text-org06a0c49">
+<p>
+Okay, so now that we can turn the source into a desirable output. How
+does the actual completion engine or <code>helm</code> work? Or more precisely
+<code>helm-comp-read</code>, which is used by <code>projectile-completion-system</code>?
+Let's see the code where this happens.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span>eq projectile-completion-system 'helm<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #7fff00;">(</span>fboundp 'helm-comp-read<span style="color: #7fff00;">)</span>
+     <span style="color: #7fff00;">(</span>helm-comp-read prompt choices
+                     <span style="color: #96a5d9; font-style: italic;">:initial-input</span> initial-input
+                     <span style="color: #96a5d9; font-style: italic;">:candidates-in-buffer</span> t
+                     <span style="color: #96a5d9; font-style: italic;">:must-match</span> 'confirm<span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span><span style="color: #f5b55f; text-decoration: underline;">user-error</span> <span style="color: #68f6cb;">"Please install helm from \</span>
+<span style="color: #68f6cb;">https://github.com/emacs-helm/helm"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So <code>helm-comp-read</code> takes a prompt and a collection of choices? So the
+question is <b>can collection be an alist instead of key value pairs?</b>
+I was skeptic at first but it actually does work and yet it did. I am
+thankful it is because if it isn't we have to create a
+value-label-value mapping which just extra glue. So how does this look
+like? I can write some code but it is better if you try it out
+yourself.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> my-prompt <span style="color: #68f6cb;">"What door do you want to open: "</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>helm-comp-read my-prompt <span style="color: #ff1493;">(</span>list
+                           <span style="color: #7fff00;">(</span>cons <span style="color: #68f6cb;">"A"</span> 'loser<span style="color: #7fff00;">)</span>
+                           <span style="color: #7fff00;">(</span>cons <span style="color: #68f6cb;">"B"</span> 'winner<span style="color: #7fff00;">)</span>
+                           <span style="color: #7fff00;">(</span>cons <span style="color: #68f6cb;">"C"</span> 'loser<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">vs</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>choice <span style="color: #00bfff;">(</span>helm-comp-read my-prompt <span style="color: #ffff00;">(</span>list <span style="color: #68f6cb;">"A"</span> <span style="color: #68f6cb;">"B"</span> <span style="color: #68f6cb;">"C"</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase</span> choice
+    <span style="color: #7fff00;">(</span><span style="color: #68f6cb;">"A"</span> 'loser<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #68f6cb;">"B"</span> 'winner<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #68f6cb;">"C"</span> 'loser<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So with that feature, we hook up our <code>f-uniquify-alist</code> and viola.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Remmber the f-uniquify-alist is (value, label)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">So we create a swapper to make it appropriate</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">swap-pair</span> <span style="color: #ff1493;">(</span>pair<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>cons <span style="color: #7fff00;">(</span>cdr pair<span style="color: #7fff00;">)</span> <span style="color: #7fff00;">(</span>car pair<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>helm-comp-read <span style="color: #68f6cb;">"So what file do you want? "</span>
+                <span style="color: #ff1493;">(</span>mapcar #'swap-pair <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Just swap the fields before display</span>
+                        <span style="color: #7fff00;">(</span>f-uniquify-alist
+                         <span style="color: #00bfff;">(</span>projectile-current-project-files<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+And with that you have an uniquified projectile file list. Everything
+else is just composing more functions after <code>swap-pair</code> specifically
+the <code>car</code> or label of it. So if one intends to create an hook, you
+now know where it is.
+</p>
+
+<p>
+The key display function is <code>display-formatter</code> in the implementation,
+it is pretty much just a <code>format</code>. So there really isn't much to
+discuss or do you want to discuss functional style which I've taken?
+Either way, one could do it very easily after this.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org999df56" class="outline-2">
+<h2 id="org999df56">Wish List</h2>
+<div class="outline-text-2" id="text-org999df56">
+<p>
+So our discussion led us to a simple implementation of a projection
+completion. But there are some things I wanted after implementing this
+and maybe somebody can do this.
+</p>
+
+<dl class="org-dl">
+<dt><b>Uniquified paths are bold</b></dt><dd>They have some face configuration that makes files bold while the
+paths smaller and differently colored if possible. I haven't
+checked out face options yet</dd>
+<dt><b>Value and path are in two lines</b></dt><dd><p>
+       It would be nice to see the path to be below the file as it can
+be easier to read but this is harder to implement with just
+spaces and how <code>helm</code> is built on. I tried adding newlines to
+each choice but this makes the selection a little bit more tricky
+and delicate. Rough one line display is good enough.
+</p>
+
+<p>
+There is some inkling of this implementation with the variable
+<code>max-text-length</code> which is a stab at guessing the completion
+buffer length and determine how many spaces to put or whether to
+align the value to the path. Some ideas remain in making it more
+aesthetically pleasing.
+</p></dd>
+<dt><b>Performance concern</b></dt><dd>While making this code I spotted a performance issue with
+<code>f-uniquify-alist</code> with large projects which causes the UI to
+hang. I filed a <a href="https://github.com/rejeep/f.el/issues/62">issue</a> regarding this but I feel crafting a
+personalized uniquified function might be the real solution</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orga81cf0f" class="outline-2">
+<h2 id="orga81cf0f">Conclusion</h2>
+<div class="outline-text-2" id="text-orga81cf0f">
+<p>
+There might be more wishes but the intention is complete. So I hope
+you found that story entertaining and that you try it out yourself or
+maybe you taught I was crazy doing this. Ah, I prefer to think of the
+latter as Emacs has caused me severe impairment. Cheers
+</p>
+</div>
+</div>
+<div id="outline-container-orgffd4019" class="outline-2">
+<h2 id="orgffd4019">2016-08-03 Update</h2>
+<div class="outline-text-2" id="text-orgffd4019">
+<p>
+So after hacking with <code>font-lock</code>, I can finally settle on this.
+</p>
+
+<p>
+<img src="/images/20160803 - pleased-completion.png" alt="Pleased Completion"/>
+</p>
+
+
+<p>
+So I made the value indeed bolder, changing the size is safer than
+changing the color, while I made the relative path much thinner to
+separate them. It is compact and different enough, with this I don't
+need the tabular arrangement of space filling so good.  It looks fine
+if I do say so myself.
+</p>
+
+<p>
+Now I wonder what somebody else has done?
+</p>
+</div>
+</div>

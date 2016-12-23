@@ -1,0 +1,539 @@
+<div class="HTML">
+<p>
+---
+title: Summarizing My Articles
+tagline: Imagine getting 300 emails a day... comprehension is lacking
+layout: post
+author: Francis Murillo
+categories: Emacs
+tags: Emacs, Gnus
+---
+</p>
+
+</div>
+
+<div id="outline-container-orgeb51ed9" class="outline-2">
+<h2 id="orgeb51ed9">Problem</h2>
+<div class="outline-text-2" id="text-orgeb51ed9">
+<p>
+Good news, I was able to make my <a href="https://www.emacswiki.org/emacs/GnusTutorial">gnus</a> work, now I can read emails
+easily, productively and in <code>Emacs</code>. Now I am trigger happy starring
+and watching <code>GitHub</code> repos, I am the observer, the watcher.
+</p>
+
+<p>
+Bad news, I have 300 emails coming every day specially from the
+popular repos such as <a href="https://github.com/facebook/react-native">react-native</a> or <a href="https://github.com/syl20bnr/spacemacs">spacemacs</a> which gets a lot of
+issue traffic. Nothing new and expected, but having ideas in improving
+the information processing is a good thing.
+</p>
+
+<p>
+Thankfully, the email reader allows me to sift through it rather quick
+but I do lament that I might be missing something due to the speed I
+am glancing at each issue. So I remembered something.
+</p>
+
+<p>
+<b>Is there a text summarization tool?</b>
+</p>
+
+<p>
+Of course there is, if a tool can help me understand quicker a long
+discussion or issue, then profit. So here is my experience tying up a
+text summary tool <a href="https://github.com/miso-belica/sumy">sumy</a> and how I bind it with <code>gnus</code>. For those
+impatient, here is my working snippet for this task. Not perfect yet,
+but I might go back once I learn more. You can find this in my <code>.gnus</code>
+configuration but that is somewhat private, so here it is.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">deferred</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/cache-dir</span> <span style="color: #68f6cb;">"~"</span>
+  <span style="color: #68f6cb; font-style: italic;">"Where you keep your moving files"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/summary-text-file</span> <span style="color: #ff1493;">(</span>expand-file-name <span style="color: #68f6cb;">".text"</span> fn/cache-dir<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summary temporary file"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
+  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+          <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/summarize-text</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summarize text for easier comprehension"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-temp-file</span> fn/summary-text-file
+    <span style="color: #7fff00;">(</span>insert text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>deferred:nextc
+    <span style="color: #7fff00;">(</span>deferred:process-shell <span style="color: #68f6cb;">"sumy"</span> <span style="color: #68f6cb;">"lex-rank"</span> <span style="color: #00bfff;">(</span>concat <span style="color: #68f6cb;">"--file="</span> fn/summary-text-file<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span>summary-output<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>s-split <span style="color: #68f6cb;">"\n"</span> <span style="color: #ffff00;">(</span>s-trim-right summary-output<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/prev-summarizing-request</span> nil
+  <span style="color: #68f6cb; font-style: italic;">"The previous request made, this is to prevent extra request being made.</span>
+<span style="color: #68f6cb; font-style: italic;">This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Show a summary for each article I visit"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> fn/prev-summarizing-request
+    <span style="color: #7fff00;">(</span>deferred:cancel fn/prev-summarizing-request<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+                 <span style="color: #00bfff;">(</span>summary <span style="color: #ffff00;">(</span>fn/summarize-text current-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
+
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
+      summary
+      <span style="color: #00bfff;">(</span>deferred:nextc it
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
+                               <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
+                                         <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                                       summarizies<span style="color: #ff8c00;">)</span>
+                               <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+              <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
+
+              <span style="color: #ff8247;">(</span>read-only-mode +1<span style="color: #ff8247;">)</span>
+
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"Summary:"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert summary-text<span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"-------"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+
+              <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>add-hook 'gnus-article-prepare-hook #'fn/gnus-article-summary<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So what this does is whenever I open an article, I call <code>sumy</code> on the
+message and I get an list of sentences that are important to read.
+I then hack a little summary on top of the message or before the
+content to show me.
+</p>
+
+<p>
+I could have used other tools or other features of <code>gnus</code> such as
+<code>adaptive scoring</code> or done it in a better way or what have you but
+this is good enough.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb40c67b" class="outline-2">
+<h2 id="orgb40c67b">The Tool And The Glue</h2>
+<div class="outline-text-2" id="text-orgb40c67b">
+<p>
+I'm more of a <code>python</code> guy and I've heard some <code>NLTK</code>, so <b>duck duck
+go, what python text summary tool is nice to use?</b> After a few
+searches and experiments, <code>sumy</code> looks like a good enough command line
+tool. So what is good enough?
+</p>
+
+<p>
+I have no idea what the algorithms are but with some experimentation
+and reading, I used the <a href="http://tangra.si.umich.edu/%7Eradev/lexrank/lexrank.pdf">lex-rank</a> algorithm which is focused on
+central sentences. Easy enough to understand, I suppose.
+</p>
+
+<p>
+So how do we tie it up? First is getting the message from the article
+buffer. I was hoping for an <code>gnus-article-message</code> function or
+something but apparently even the code doesn't clearly have it. Here
+is what I came up with.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
+  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+          <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+As you can see, it uses buffer magic and some tinkering. Now how
+do we plug it in the tool? I hoped for an easy piping with the tool
+but it uses files instead, a little tangle. I filed an <a href="https://github.com/miso-belica/sumy/issues/66">issue</a> but it
+can tied with this simple snippet.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/summary-text-file</span> <span style="color: #ff1493;">(</span>expand-file-name <span style="color: #68f6cb;">".text"</span> fn/cache-dir<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summary temporary file"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/summarize-text</span> <span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Summarize text for easier comprehension"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-temp-file</span> fn/summary-text-file
+    <span style="color: #7fff00;">(</span>insert text<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>deferred:nextc
+    <span style="color: #7fff00;">(</span>deferred:process-shell <span style="color: #68f6cb;">"sumy"</span> <span style="color: #68f6cb;">"lex-rank"</span> <span style="color: #00bfff;">(</span>concat <span style="color: #68f6cb;">"--file="</span> fn/summary-text-file<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span>summary-output<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>s-split <span style="color: #68f6cb;">"\n"</span> <span style="color: #ffff00;">(</span>s-trim-right summary-output<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Here I use the nice <a href="https://github.com/kiwanami/emacs-deferred">deferred</a> library to make an shell command and
+return a deferred as well. Why deferred? Asynchronous or non-blocking
+operation. You can use <code>shell-command-to-string</code> and make it
+synchronous, but when you're reading a lot of email; the wait time is
+compounded. With <code>deferred:process-shell</code>, it is non-blocking and easy
+enough to use than <code>make-process</code> or <code>start-process</code>. Like a
+<code>promise</code>, I process the raw string output into a list of sentences.
+Easy enough.
+</p>
+
+<p>
+So how do we tie this in with <code>gnus</code>?
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgba65d94" class="outline-2">
+<h2 id="orgba65d94">Gnus Article</h2>
+<div class="outline-text-2" id="text-orgba65d94">
+<p>
+This is the sad part for me, I hacked the buffer content manually. I
+first tried <code>font-lock</code> which sort of works but not consistent... yet.
+I did try manipulaintg <code>gnus-emphasis-alist</code> but no dice. After so
+many hacks, that's what I did. This snippet should explain all.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/prev-summarizing-request</span> nil
+  <span style="color: #68f6cb; font-style: italic;">"The previous request made, this is to prevent extra request being made.</span>
+<span style="color: #68f6cb; font-style: italic;">This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Show a summary for each article I visit"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> fn/prev-summarizing-request
+    <span style="color: #7fff00;">(</span>deferred:cancel fn/prev-summarizing-request<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+                 <span style="color: #00bfff;">(</span>summary <span style="color: #ffff00;">(</span>fn/summarize-text current-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
+
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
+      summary
+      <span style="color: #00bfff;">(</span>deferred:nextc it
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
+                               <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
+                                         <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                                       summarizies<span style="color: #ff8c00;">)</span>
+                               <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+              <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
+
+              <span style="color: #ff8247;">(</span>read-only-mode +1<span style="color: #ff8247;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">I feel this is evil</span>
+
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"Summary:"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert summary-text<span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"-------"</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
+
+              <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Aside from wrapping the main function with keeping tabs of the current
+summary, the core of the message can be seen in the
+<code>gnus-with-article-buffer</code>. It just adds a small summary section right
+before the message begins and since the whole operation is
+asynchronous, you have to blink before you see the result. Give or
+take, making the section is not that hard nor how the deferred or
+promise continuation and housekeeping is implemented. It is pretty
+straightforward code.
+</p>
+
+<p>
+I do lament using <code>read-only-mode</code> which breaks the contract of being
+immutable. There is a correct mode for this which is
+<code>gnus-article-edit-mode</code> but this modifies the backing value. What we
+need is simply a display aid. I do pray I find the more legit way of
+doing this but for now, this does show a summary.
+</p>
+
+<p>
+This is harder than it looks and I mulled this over for hours.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org56d81e4" class="outline-2">
+<h2 id="org56d81e4">Limitation</h2>
+<div class="outline-text-2" id="text-org56d81e4">
+<p>
+As the astute read, sometimes the summary isn't helpful or redundant
+</p>
+
+<p>
+<img src="/images/20160813 - summary-snapshot.png" alt="Summary Snapshot"/>
+</p>
+
+<p>
+This is a common thing, you can't expect a machine to understand what
+you want. The screenshot above shows that the summary might be the
+same as the email you are reading and in that case, the summary is
+redundant and sadly useless. Obviously, the case amplifies when there
+is code where a text processor cannot understand.
+</p>
+
+<p>
+But I did come up with a long issue email, where the summary really
+did show the points I am interested in. I am not looking for the
+perfect tool, just something that is good enough without sacrificing
+too much. As long as I get a good summary after skimming through the
+text, if the summary help then it is a bonus.
+</p>
+
+<p>
+Again, it is not perfect but it is okay.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org868eca7" class="outline-2">
+<h2 id="org868eca7">Conclusion</h2>
+<div class="outline-text-2" id="text-org868eca7">
+<p>
+So with a shiv of a email text analysis, maybe we can do better?
+Perhaps, once I learn more and update this code. But text analysis is
+pretty interesting. Emails, buffers, or maybe diary journals? I maybe
+scratching the surface here and not showing the true strength, but the
+idea is there. Text analysis for email reading. Maybe someone can do a
+better job?
+</p>
+
+<p>
+As for now, time to check my mail.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org6edabe9" class="outline-2">
+<h2 id="org6edabe9">2016-08-13 Update</h2>
+<div class="outline-text-2" id="text-org6edabe9">
+<p>
+I got obsessive about the code so here is a revised edition of the
+core code that does it appropriately.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defface</span> <span style="color: #ff694d;">fn/article-aid-face</span>  '<span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>t <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:weight</span> bold <span style="color: #96a5d9; font-style: italic;">:height</span> 1.1 <span style="color: #96a5d9; font-style: italic;">:box</span> <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-style: italic;">:line-width</span> 2 <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"grey75"</span> <span style="color: #96a5d9; font-style: italic;">:style</span> released-button<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Article aid face"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/article-aid-face</span> 'fn/article-aid-face
+  <span style="color: #68f6cb; font-style: italic;">"Article aid var"</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/prev-summarizing-request</span> nil
+  <span style="color: #68f6cb; font-style: italic;">"The previous request made, this is to prevent extra request being made.</span>
+<span style="color: #68f6cb; font-style: italic;">    This can be made into a function is so desired"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/gnus-article-summary</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Show a summary for each article I visit"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> fn/prev-summarizing-request
+    <span style="color: #7fff00;">(</span>deferred:cancel fn/prev-summarizing-request<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>current-message <span style="color: #ffff00;">(</span>fn/article-body<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+                 <span style="color: #00bfff;">(</span>summary <span style="color: #ffff00;">(</span>fn/summarize-text current-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request summary<span style="color: #7fff00;">)</span>
+
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
+      summary
+      <span style="color: #00bfff;">(</span>deferred:nextc it
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-summary-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff8247;">(</span><span style="color: #9cb6ad;">(</span>summarizies summarizies<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+              <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> gnus-article-emphasis-alist
+                    <span style="color: #9cb6ad;">(</span>-concat
+                     <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summary-text<span style="color: #7fff00;">)</span>
+                               <span style="color: #7fff00;">(</span>list
+                                <span style="color: #00bfff;">(</span>regexp-quote summary-text<span style="color: #00bfff;">)</span>
+                                0
+                                0
+                                'fn/article-aid-face<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                             summarizies<span style="color: #ff8c00;">)</span>
+                     gnus-article-emphasis-alist<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-article-buffer
+            <span style="color: #00ff7f;">(</span>message <span style="color: #68f6cb;">"Emphasizing article aids"</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>article-emphasize<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-summary-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> gnus-article-emphasis-alist
+                  <span style="color: #ff8247;">(</span>-filter <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>emphasis<span style="color: #ff8c00;">)</span>
+                             <span style="color: #ff8c00;">(</span>not <span style="color: #ff1493;">(</span>eq <span style="color: #7fff00;">(</span>nth 3 emphasis<span style="color: #7fff00;">)</span> fn/article-aid-face <span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+                           gnus-article-emphasis-alist<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>add-hook 'gnus-article-prepare-hook #'fn/gnus-article-summary<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Here is a screenshot of this new snippet
+</p>
+
+<p>
+<img src="/images/20160814 - article-emphasized.png" alt="Emphasized Article"/>
+</p>
+
+<p>
+Not the best screenshot but what this snippet does is emphasize and
+highlight key sentences. The correct way of emphasizing an article
+with <code>gnus</code> is with <code>article-emphasize</code> and I homed in on that.
+</p>
+
+<p>
+Ideally, you just add to the list <code>gnus-article-emphasis-alist</code>
+phrases you want emphasized. Obvious enough, but the first problem I
+came across is that it wasn't working even with the simplest
+configuration. After two hours of useless mutations, I checked the
+code for <code>article-emphasize</code> which is quite deceptive.
+</p>
+
+<p>
+Long story short, you have to mutate it within the
+<code>gnus-summary-buffer</code> and call <code>article-emphasize</code> on
+<code>gnus-article-buffer</code> which is weird or have I not read the manual
+enough? Probably the latter but with that out of the way, the code
+followed.
+</p>
+
+<p>
+I do admit the hacked code is a little annoying that it pushed down
+the text I was reading from time to time, so this correct code is much
+better. Sadly there is an extra requirement, <code>dash</code>, and the weird
+<code>with-current-buffer</code> juggling and state management of
+<code>gnus-article-emphasis-alist</code> so that it doesn't stack up during
+prolonged use.
+</p>
+
+<p>
+Well, state. Maybe a macro can do this but I don't know which one yet.
+Whatever. And now I can definitely get back to reading my mail.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga1224e6" class="outline-2">
+<h2 id="orga1224e6">Minor Reflection</h2>
+<div class="outline-text-2" id="text-orga1224e6">
+<p>
+By the way, there has been research in using machine learning and
+automatic summarization with emails which is pretty cool. I wonder how
+that can apply to reading source code instead of plain text? I'm not
+hoping for too much but still pretty nice to think about all the
+things you can analyze with a tool.
+</p>
+
+<p>
+Currently, I'm using <a href="http://conkeror.org/">conkeror</a> as my browser which is extensible and
+can run shell commands. What this means is that I can run <code>sumy</code> and
+plugin the current url which will give me a summary output of the
+current page. Basically, an article summary in one command. Here is my
+rookie snippet.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-javascript">require<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"io"</span><span style="color: #ff8c00;">)</span>;
+require<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"spawn-process"</span><span style="color: #ff8c00;">)</span>;
+require<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"interactive"</span><span style="color: #ff8c00;">)</span>;
+
+interactive<span style="color: #ff8c00;">(</span>
+    <span style="color: #68f6cb;">'gist'</span>,
+    <span style="color: #68f6cb;">'What is this webpage all about?'</span>, <span style="color: #96a5d9; font-weight: bold;">function</span><span style="color: #ff1493;">(</span><span style="color: #ff694d;">I</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">url</span> = I.buffer.current_uri.spec;
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">sumy_cmd</span> = <span style="color: #68f6cb;">'/home/fnmurillo/.local/bin/sumy'</span>;
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">cmd_str</span> = sumy_cmd + <span style="color: #68f6cb;">" lex-rank --length 5 --url \""</span> + url + <span style="color: #68f6cb;">"\""</span>;
+
+        I.window.minibuffer.message<span style="color: #7fff00;">(</span><span style="color: #68f6cb;">'Shell Command: '</span> + cmd_str<span style="color: #7fff00;">)</span>;
+
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">data</span> = <span style="color: #68f6cb;">''</span>;
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">error</span> = <span style="color: #68f6cb;">''</span>;
+
+        <span style="color: #96a5d9; font-weight: bold;">var</span> <span style="color: #ff694d;">output</span> = <span style="color: #96a5d9; font-weight: bold;">yield</span> shell_command<span style="color: #7fff00;">(</span>
+            cmd_str,
+            $fds = <span style="color: #00bfff;">[</span>
+                <span style="color: #ffff00;">{</span>
+                    output: async_binary_string_writer<span style="color: #da70d6;">(</span><span style="color: #68f6cb;">""</span><span style="color: #da70d6;">)</span>
+                <span style="color: #ffff00;">}</span>,
+                <span style="color: #ffff00;">{</span>
+                    input: async_binary_reader<span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span><span style="color: #00ff7f;">(</span><span style="color: #ff694d;">s</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
+                        data += s || <span style="color: #68f6cb;">""</span>;
+                    <span style="color: #00ff7f;">}</span>
+                                              <span style="color: #da70d6;">)</span>
+                <span style="color: #ffff00;">}</span>,
+                <span style="color: #ffff00;">{</span>
+                    input: async_binary_reader<span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span><span style="color: #00ff7f;">(</span><span style="color: #ff694d;">s</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">{</span>
+                        error += s || <span style="color: #68f6cb;">""</span>;
+                    <span style="color: #00ff7f;">}</span>
+                                              <span style="color: #da70d6;">)</span>
+                <span style="color: #ffff00;">}</span>
+            <span style="color: #00bfff;">]</span>
+        <span style="color: #7fff00;">)</span>;
+
+
+        I.window.alert <span style="color: #7fff00;">(</span>
+            <span style="color: #68f6cb;">"Here's The Gist\n"</span> +
+                <span style="color: #68f6cb;">"--------\n"</span> +
+                data
+                .trim<span style="color: #00bfff;">()</span>
+                .split<span style="color: #00bfff;">(</span><span style="color: #68f6cb;">'.\n'</span><span style="color: #00bfff;">)</span>
+                .map<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ffff00;">(</span><span style="color: #ff694d;">summary</span><span style="color: #ffff00;">)</span> <span style="color: #ffff00;">{</span> <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #68f6cb;">'* '</span> + summary <span style="color: #ffff00;">}</span><span style="color: #00bfff;">)</span>
+                .join <span style="color: #00bfff;">(</span><span style="color: #68f6cb;">'.\n'</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>;
+    <span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>;
+</pre>
+</div>
+
+<p>
+It looks dirty because, but the key points is the <code>shell_command</code> and
+<code>alert</code> which pretty much is just calling the tool and displaying with
+the poor man's dialog box. Still learning and probably will go back
+once I learn more, this is for your enjoyment.
+</p>
+
+<p>
+So with that, let me see what the tool says about this article. Kinda
+meta which pretty much reflections.
+</p>
+
+<p>
+<img src="/images/20160814 - article-gist.png" alt="Article Gist"/>
+</p>
+
+<p>
+Huh... looks very hopeful. What do you think? Does this represent the
+article you read? One thing, was it helpful? There is definitely some
+use with an information processing tool at your fingertip.
+</p>
+</div>
+</div>
