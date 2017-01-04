@@ -54,7 +54,7 @@ configuration but that is somewhat private, so here it is.
 
 <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
   <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
           <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -90,7 +90,7 @@ configuration but that is somewhat private, so here it is.
                                          <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
                                <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
               <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
@@ -154,7 +154,7 @@ is what I came up with.
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
   <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
           <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -233,7 +233,7 @@ many hacks, that's what I did. This snippet should explain all.
                                          <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
                                <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
               <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
