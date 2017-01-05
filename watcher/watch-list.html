@@ -1,0 +1,68 @@
+---
+layout: default
+title: "Watch List"
+description: "In viewing order, here is a list of things I've watched
+whether I have done an analysis or not. If you don't know my rating
+system, checkout my post about it. To remind anyone, this is just my
+opinion and should not be the end all. You can watch whatever you want
+and I respect that."
+blog-category: watcher
+---
+
+<div class="home">
+
+  <p class="watch-description">
+    {{ page.description }}
+  </p>
+
+  <ul class="watch-list">
+    {% for watch in site.data.official-watch-list %}
+    <li class="watch-item">
+      <span>
+        <span class="watch-title">
+          {{ watch.title }}
+        </span>
+        <span class="watch-year">
+          [{{ watch.year}}]
+        </span>
+      </span>
+
+      <p class="watch-quick-word">
+        {{ watch.quick-word }}
+      </p>
+
+      <span class="watch-meta">
+        <span class="watch-date watch-column">
+          <span class="watch-key">
+            Seen On:
+          </span>
+          <span class="watch-value">
+            {% if watch.date == '' %}
+            ???
+            {% else %}
+            {{ watch.date | date_to_string }}
+            {% endif %}
+          </span>
+        </span>
+        <span class="watch-public-rating watch-column">
+          <span class="watch-key">
+            Public Rating:
+          </span>
+          <span class="watch-value">
+            {{ watch.public-rating }}
+          </span>
+        </span>
+        <span class="watch-personal-rating watch-column">
+          <span class="watch-key">
+            Personal Rating:
+          </span>
+          <span class="watch-value">
+            {{ watch.personal-rating }}
+          </span>
+        </span>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+

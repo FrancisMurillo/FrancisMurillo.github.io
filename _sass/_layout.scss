@@ -48,8 +48,6 @@ html, body {
 }
 
 .segment {
-    color: $segment-text-color !important;
-
     padding-right: 25px;
     padding-left: 5px;
     margin-right: 0px;
@@ -60,7 +58,7 @@ html, body {
     border-color: transparent;
 
     a {
-        color: $segment-text-color;
+        color: white;
     }
 }
 
@@ -69,14 +67,11 @@ html, body {
     font-weight: 1 * $base-font-weight;
     letter-spacing: -1px;
     margin-bottom: 0;
-
-    a:hover {
-        text-decoration: none;
-    }
 }
 
 .segment-first {
     background-color: $mode-segment-first-color !important;
+    color: white !important;
 }
 
 .segment-first-separator {
@@ -89,6 +84,7 @@ html, body {
 
 .segment-second {
     background-color: $mode-segment-second-color !important;
+    color: white !important;
 }
 
 
@@ -98,7 +94,7 @@ html, body {
 }
 
 
-.segment-major-mode {
+.segment-blog {
 }
 
 .segment-third {
@@ -107,8 +103,21 @@ html, body {
 
 .segment-third-separator {
     border-left-color: $mode-segment-third-color !important;
+    background-color: $mode-segment-fourth-color !important;
+}
+
+.segment-major-mode {
+}
+
+.segment-fourth {
+    background-color: $mode-segment-fourth-color !important;
+}
+
+.segment-fourth-separator {
+    border-left-color: $mode-segment-fourth-color !important;
     background-color: $mode-line-color !important;
 }
+
 
 
 .segment-separator {
@@ -385,4 +394,65 @@ html, body {
             font-size: 18px;
         }
     }
+}
+
+
+// Watch
+.watch-list {
+    margin-left: 0;
+    list-style: none;
+}
+
+.watch-description {
+    margin-bottom: 1em;
+}
+
+.watch-item {
+    margin-bottom: 1.8em;
+}
+
+.watch-title {
+    font-size: 1.2em;
+    font-weight: bolder;
+    letter-spacing: -1px;
+    text-aling: left;
+    color: $emphasized-text-color;
+}
+
+.watch-year {
+    font-size: 0.8em;
+}
+
+.watch-year {
+}
+
+.watch-quick-word {
+    font-style: italic;
+}
+
+.watch-meta {
+    width: 100%;
+}
+
+.watch-public-rating {
+}
+
+.watch-personal-rating {
+}
+
+.watch-date {
+}
+
+.watch-column {
+    width: 30%;
+    float: left;
+}
+
+.watch-key {
+    font-size: 0.8em;
+}
+
+.watch-value {
+    font-size: 0.9em;
+    font-weight: bold;
 }

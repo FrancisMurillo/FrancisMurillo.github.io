@@ -1,20 +1,11 @@
 ---
 layout: default
-title: Hacker Log
 description: Whatever I decide to hack and discuss.
 blog-category: hacker
 ---
 
 <div class="home">
 
-  <h1>
-    {{ page.title }}
-  </h1>
-  <p>
-    {{ page.description }}
-  </p>
-
-  
   <ul class="post-list">
     {% for post in site.posts %}
     {% if post.categories contains page.blog-category %}
@@ -44,7 +35,7 @@ blog-category: hacker
   </ul>
 
   <p class="rss-subscribe">
-    <span>Are you sure you want to subscribe to my {{ page.blog-category }} log?</span>
+    <span>Subscribe to my {{ page.blog-category }} log </span>
     <a href="{{  '/feed.xml' | prepend: page.blog-category | prepend: '/' | prepend: site.baseurl }}">via RSS</a>
   </p>
 </div>

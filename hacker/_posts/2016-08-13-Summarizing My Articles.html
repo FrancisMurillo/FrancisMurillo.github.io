@@ -4,6 +4,7 @@ tagline: Imagine getting 300 emails a day... comprehension is lacking
 layout: post
 author: Francis Murillo
 categories: Emacs, Hacker
+blog-category: hacker
 tags: Emacs, Gnus
 ---
 
@@ -54,7 +55,7 @@ configuration but that is somewhat private, so here it is.
 
 <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
   <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
+  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
           <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -83,14 +84,14 @@ configuration but that is somewhat private, so here it is.
 
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc it
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
                                <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
                                          <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
                                <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
+            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
               <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
@@ -105,7 +106,7 @@ configuration but that is somewhat private, so here it is.
               <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
 
               <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc it
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
@@ -154,7 +155,7 @@ is what I came up with.
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
   <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
+  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
           <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -226,14 +227,14 @@ many hacks, that's what I did. This snippet should explain all.
 
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc it
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
                                <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
                                          <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
                                <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
+            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
               <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
@@ -248,7 +249,7 @@ many hacks, that's what I did. This snippet should explain all.
               <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
 
               <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc it
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
@@ -363,7 +364,7 @@ core code that does it appropriately.
 
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc it
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-summary-buffer
             <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff8247;">(</span><span style="color: #9cb6ad;">(</span>summarizies summarizies<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
@@ -385,7 +386,7 @@ core code that does it appropriately.
                   <span style="color: #ff8247;">(</span>-filter <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>emphasis<span style="color: #ff8c00;">)</span>
                              <span style="color: #ff8c00;">(</span>not <span style="color: #ff1493;">(</span>eq <span style="color: #7fff00;">(</span>nth 3 emphasis<span style="color: #7fff00;">)</span> fn/article-aid-face <span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
                            gnus-article-emphasis-alist<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc it
+      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
