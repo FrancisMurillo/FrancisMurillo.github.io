@@ -11,10 +11,6 @@
             </a>
         </li>
 
-        <li class="segment segment-separator segment-first-separator">
-            &nbsp;
-        </li>
-
         <li class="segment segment-blog segment-second">
           {% if page.blog-category contains 'blog' %}
           <p>
@@ -27,9 +23,6 @@
           {% endif %}
         </li>
 
-        <li class="segment segment-separator segment-second-separator">
-            &nbsp;
-        </li>
 
         {% if page.title %}
         <li class="segment segment-post-title segment-third">
@@ -51,10 +44,6 @@
         </li>
         {% endif %}
 
-        <li class="segment segment-separator segment-third-separator">
-            &nbsp;
-        </li>
-
         <li class="segment segment-major-mode segment-fourth">
             {% if page.major_mode %}
             {{ page.major_mode }}
@@ -65,9 +54,6 @@
             {% endif %}
         </li>
 
-        <li class="segment segment-separator segment-fourth-separator">
-            &nbsp;
-        </li>
     </ul>
 </section>
 
