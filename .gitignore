@@ -1,2 +1,4 @@
-.sass-cache/
+# Block for org-jekyll-blogger-site
+.sass-cache
+_drafts
 _site
