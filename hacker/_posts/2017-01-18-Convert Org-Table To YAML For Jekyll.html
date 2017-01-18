@@ -1,0 +1,275 @@
+---
+title: Convert Org-Table To YAML For Jekyll
+tagline: Creating an YAML exporter for Org-Table
+blog-category: hacker
+category:
+- hacker
+- exploration
+tag:
+- hacker
+- elisp
+- org-mode
+- yaml
+---
+
+<div id="outline-container-orgd6359cf" class="outline-2">
+<h2 id="orgd6359cf">Problem</h2>
+<div class="outline-text-2" id="text-orgd6359cf">
+<p>
+So in making the page for my watch list for the other watcher blog, I
+have to convert my unofficial list in Org-Table format to a YAML
+format. There are other default formats such as CSV that Jekyll reads
+but in keeping with the spirit, I opt to do it as such. The sad thing
+about this though is that <b>there is no YAML exporter for
+org-table-export</b>, so I made my own. Here is the <a href="https://gist.github.com/3fcc4452ce9714f2d3a6f81ac0cd7ccd">snippet</a> to do and a
+demonstration.
+</p>
+
+<p>
+<img src="/hacker/images/orgtbl-to-yaml--screencast.gif" alt="Screencast"/>
+</p>
+
+<p>
+And to use it, you point the mark at a table and use
+<code>org-table-export</code> and at the format selection you type
+<code>fn/orgtbl-to-yaml</code>. With Jekyll, you have to export it to your <code>_data</code>
+Jekyll directory to work as stated by the <a href="https://jekyllrb.com/docs/datafiles/">manual</a>. But of course, we
+are here to explore further to what it means.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5aa3dd1" class="outline-2">
+<h2 id="org5aa3dd1">Org-Table Export</h2>
+<div class="outline-text-2" id="text-org5aa3dd1">
+<p>
+Initially, I thought I had to create a table parser and transformer
+but there is usually a command or function that does what you want
+albeit with a little tweaking. The command <code>org-table-export</code> is our
+friend here but it is lacking when presented with the format: CSV,
+TSV, HTML, LaTeX and others but not YAML. One thing to look at where
+this option comes from is <code>org-export-backends</code> but might be overkill
+to configure. As an caveat, if you add a backend to it you need to
+run this script.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">progn</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> org-export-registered-backends
+     <span style="color: #7fff00;">(</span>cl-remove-if-not
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ffff00;">(</span>backend<span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #da70d6;">(</span><span style="color: #00ff7f;">(</span>name <span style="color: #ff8247;">(</span>org-export-backend-name backend<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> <span style="color: #00ff7f;">(</span>memq name val<span style="color: #00ff7f;">)</span>
+             <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">catch</span> '<span style="color: #afc0fd; font-weight: bold;">parentp</span>
+               <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">dolist</span> <span style="color: #9cb6ad;">(</span>b val<span style="color: #9cb6ad;">)</span>
+                 <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> <span style="color: #ff8c00;">(</span>org-export-derived-backend-p b name<span style="color: #ff8c00;">)</span>
+                    <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">throw</span> '<span style="color: #afc0fd; font-weight: bold;">parentp</span> t<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      org-export-registered-backends<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>new-list <span style="color: #ffff00;">(</span>mapcar #'org-export-backend-name
+                        org-export-registered-backends<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">dolist</span> <span style="color: #00bfff;">(</span>backend val<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">cond</span>
+       <span style="color: #ffff00;">(</span><span style="color: #da70d6;">(</span>not <span style="color: #00ff7f;">(</span>load <span style="color: #ff8247;">(</span>format <span style="color: #68f6cb;">"ox-%s"</span> backend<span style="color: #ff8247;">)</span> t t<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+        <span style="color: #da70d6;">(</span>message <span style="color: #68f6cb;">"Problems while trying to load export back-end `</span><span style="color: #afc0fd; font-weight: bold;">%s</span><span style="color: #68f6cb;">'"</span>
+                 backend<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span><span style="color: #da70d6;">(</span>not <span style="color: #00ff7f;">(</span>memq backend new-list<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span> <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">push</span> backend new-list<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>set-default 'org-export-backends new-list<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Something simple would be better for our cause. Thankfully, the manual
+tells us how to create a simple custom exporter according to this
+<a href="http://orgmode.org/manual/Translator-functions.html#Translator-functions">link</a>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">orgtbl-to-language</span> <span style="color: #ff1493;">(</span>table params<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Convert the orgtbl-mode TABLE to language."</span>
+  <span style="color: #ff1493;">(</span>orgtbl-to-generic
+   table
+   <span style="color: #7fff00;">(</span>org-combine-plists
+    '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:tstart</span> <span style="color: #68f6cb;">"!BTBL!"</span> <span style="color: #96a5d9; font-style: italic;">:tend</span> <span style="color: #68f6cb;">"!ETBL!"</span> <span style="color: #96a5d9; font-style: italic;">:lstart</span> <span style="color: #68f6cb;">"!BL!"</span> <span style="color: #96a5d9; font-style: italic;">:lend</span> <span style="color: #68f6cb;">"!EL!"</span> <span style="color: #96a5d9; font-style: italic;">:sep</span> <span style="color: #68f6cb;">"\t"</span><span style="color: #00bfff;">)</span>
+    params<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+After reading the documentation, we are interested in only two
+properties: <code>:skip</code> and <code>:lfmt</code>. The later is more important which
+controls how a line is formatted. It accepts a function which takes a
+list of row values and returns the record line it represents. Since
+this is YAML, our record line is a bit more special. Each record
+starts with a dash and space, ends with a newline, separated by a
+newline and two spaces for alignment. Each value must be in a
+<code>&lt;key&gt;: &lt;value&gt;</code> format and escaped by <code>"</code>. With a sample data, it
+would look something like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org">- id: "1"
+  name: "Muffin"
+  description: "Khajit Assassin"
+- id: "2"
+  name: "Marble"
+  description: "Barbarian Alchemist"
+</pre>
+</div>
+
+<p>
+The plan of attack is to simply use a functional zip with the headers
+and row values, format accordingly and profit. The <code>headers</code> can be
+found with <code>car</code> of the <code>table</code> parameter which is not so obvious. So
+I shiv my own <code>zip</code> function and be done with it.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff1493;">(</span>values<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>concat
+   <span style="color: #68f6cb;">"- "</span>
+   <span style="color: #7fff00;">(</span>string-join
+    <span style="color: #00bfff;">(</span>mapcar
+     <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>pair<span style="color: #da70d6;">)</span>
+       <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>header <span style="color: #9cb6ad;">(</span>car pair<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+           <span style="color: #ff8247;">(</span>value <span style="color: #9cb6ad;">(</span>cdr pair<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+         <span style="color: #00ff7f;">(</span>format <span style="color: #68f6cb;">"%s: \"%s\""</span> header value<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+     <span style="color: #ffff00;">(</span>funcall zip headers values<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+    <span style="color: #68f6cb;">"\n  "</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So we're done. That was quick.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc8925d4" class="outline-2">
+<h2 id="orgc8925d4">Front Matter and Jekyll</h2>
+<div class="outline-text-2" id="text-orgc8925d4">
+<p>
+So this exporter is aimed for Jekyll and I know little about YAML
+since I rarely use it.
+</p>
+
+<p>
+I only want to discuss how the key is produced. You can simply take
+the key as is but what if it has spaces? I find it odd having spaces
+within object keys, so I prefer to hyphenate it and lowercase for my
+ease but obviously you can change it to be camelCase if you want.
+Using this in Jekyll, it will look like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>headers
+     <span style="color: #00bfff;">(</span>mapcar
+      <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>header<span style="color: #da70d6;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Shiv camel casing</span>
+        <span style="color: #da70d6;">(</span>replace-regexp-in-string
+         <span style="color: #68f6cb;">" "</span> <span style="color: #68f6cb;">"-"</span>
+         <span style="color: #00ff7f;">(</span>downcase header<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+      <span style="color: #ffff00;">(</span>car table<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Rest of the code</span>
+  <span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-javascript"><span style="color: #ff8c00;">{</span>% <span style="color: #96a5d9; font-weight: bold;">for</span> watch <span style="color: #96a5d9; font-weight: bold;">in</span> site.data.official-watch-list %<span style="color: #ff8c00;">}</span>
+&lt;p&gt;<span style="color: #ff8c00;">{</span><span style="color: #ff1493;">{</span> watch.field <span style="color: #ff1493;">}</span><span style="color: #ff8c00;">}</span>&lt;/p&gt;
+<span style="color: #ff8c00;">{</span>% endfor %<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+
+<p>
+As an example on this, my watch list has a <code>Public Rating</code> field and
+my question is how will you access it with a dot notation? You are
+welcome to inform me how but I wouldn't like how it would feel and I
+am comfortable writing <code>watch.public-rating</code> instead. Aside from that
+I have nothing much to say about the naming convention and quoting the
+value just in case it gets too long.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3ad0efd" class="outline-2">
+<h2 id="org3ad0efd">Default Properties</h2>
+<div class="outline-text-2" id="text-org3ad0efd">
+<p>
+As a final exploration, let's see how to set the default export
+options for a table. I thought setting a header property would be good
+enough but according to <code>org-set-property</code> I have to put it under a
+header which I find weird since the file represents a single solitary
+data set but not a big deal. To show that off from my official file:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="color: #ff694d; font-size: 170%;">* Official Watch List</span>
+<span style="color: #96a5d9; font-weight: bold;">   :PROPERTIES:</span>
+   <span style="color: #96a5d9; font-weight: bold;">:TABLE_EXPORT_FILE:</span> official-watch-list.yaml
+   <span style="color: #96a5d9; font-weight: bold;">:TABLE_EXPORT_FORMAT:</span> fn/orgtbl-to-yaml
+<span style="color: #96a5d9; font-weight: bold;">   :END:</span>
+
+   Yes, I have an unofficial watch list for myself
+</pre>
+</div>
+
+<p>
+For my use case when updating my watch list, I want to auto export
+then publish the table when it is saved just like my
+<code>org-jekyll-blogger-auto-publish-on-save</code> from <a href="https://github.com/FrancisMurillo/org-jekyll-blogger.el">org-jekyll-blogger.el</a>.
+It takes a few minutes to write that glue code:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/org-jekyll-blogger-export-and-publish</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Export a table and publish the file accordingly."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #7fff00;">(</span>not <span style="color: #00bfff;">(</span>org-at-table-p<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+      <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #00bfff;">(</span>not <span style="color: #ffff00;">(</span>called-interactively-p 'interactive<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+          <span style="color: #00bfff;">(</span>message <span style="color: #68f6cb;">"No table at point to publish."</span><span style="color: #00bfff;">)</span>
+        <span style="color: #00bfff;">(</span><span style="color: #f5b55f; text-decoration: underline;">error</span> <span style="color: #68f6cb;">"Point is not at a table"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>org-table-export<span style="color: #7fff00;">)</span>
+
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>export-file <span style="color: #da70d6;">(</span>org-entry-get <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span> <span style="color: #68f6cb;">"TABLE_EXPORT_FILE"</span> t<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #ffff00;">(</span>not export-file<span style="color: #ffff00;">)</span>
+          <span style="color: #ffff00;">(</span>message <span style="color: #68f6cb;">"No TABLE_EXPORT_FILE property"</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #da70d6;">(</span><span style="color: #00ff7f;">(</span>export-buffer <span style="color: #ff8247;">(</span>find-file-noselect export-file<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> export-buffer
+            <span style="color: #00ff7f;">(</span>org-publish-current-file<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span>message <span style="color: #68f6cb;">"Table published."</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/org-jekyll-blogger-auto-publish-table-on-save</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Auto export and publish table on save."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>add-hook 'after-save-hook #'fn/org-jekyll-blogger-export-and-publish t t<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Not the best code but it does the job and not that hard to write
+although I had to peek at <code>org-table-export</code> to determine the name of
+the file. A small point in this code is using <code>called-interactively-p</code>
+which merely indicates if the containing function is called as a
+command(via <code>M-x</code> or <code>execute-extended-command</code>) or a function(via
+Elisp); this allows me to either throw an error message or an info
+message depending on the context. For example, using it directly you
+should get an error that you need to mark what table you should export
+with the point; but if it is called by a hook, you wouldn't want it to
+throw an error since there might be other hooks in play so better an
+info message.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd13c1e2" class="outline-2">
+<h2 id="orgd13c1e2">Conclusion</h2>
+<div class="outline-text-2" id="text-orgd13c1e2">
+<p>
+The two things I deliberately ignored are performance and escaping but
+I pray I not see more than 10,000 visual experiences before I worry
+about it. With this base, you can come up with a <a href="https://duckduckgo.com/l/?kh=-1&amp;uddg=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FJSON">JSON</a> exporter from a
+quick read. For me, I can continue to work with my <code>org</code> workflow and
+not worry about the export format.
+</p>
+</div>
+</div>
