@@ -50,6 +50,7 @@ defaults:
 gems:
   - jekyll-seo-tag
   - jekyll-paginate
+  - jekyll-sitemap
 
 # Pagination
 paginate: 12
