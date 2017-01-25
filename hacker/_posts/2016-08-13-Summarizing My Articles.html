@@ -8,9 +8,9 @@ blog-category: hacker
 tags: Emacs, Gnus
 ---
 
-<div id="outline-container-orgeb51ed9" class="outline-2">
-<h2 id="orgeb51ed9">Problem</h2>
-<div class="outline-text-2" id="text-orgeb51ed9">
+<div id="outline-container-orgb1483b4" class="outline-2">
+<h2 id="orgb1483b4">Problem</h2>
+<div class="outline-text-2" id="text-orgb1483b4">
 <p>
 Good news, I was able to make my <a href="https://www.emacswiki.org/emacs/GnusTutorial">gnus</a> work, now I can read emails
 easily, productively and in <code>Emacs</code>. Now I am trigger happy starring
@@ -55,7 +55,7 @@ configuration but that is somewhat private, so here it is.
 
 <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
   <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
           <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -84,14 +84,14 @@ configuration but that is somewhat private, so here it is.
 
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
                                <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
                                          <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
                                <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
               <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
@@ -106,7 +106,7 @@ configuration but that is somewhat private, so here it is.
               <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
 
               <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
@@ -129,9 +129,9 @@ this is good enough.
 </div>
 </div>
 
-<div id="outline-container-orgb40c67b" class="outline-2">
-<h2 id="orgb40c67b">The Tool And The Glue</h2>
-<div class="outline-text-2" id="text-orgb40c67b">
+<div id="outline-container-orgeb75898" class="outline-2">
+<h2 id="orgeb75898">The Tool And The Glue</h2>
+<div class="outline-text-2" id="text-orgeb75898">
 <p>
 I'm more of a <code>python</code> guy and I've heard some <code>NLTK</code>, so <b>duck duck
 go, what python text summary tool is nice to use?</b> After a few
@@ -155,7 +155,7 @@ is what I came up with.
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/article-body</span> <span style="color: #ff1493;">()</span>
   <span style="color: #68f6cb; font-style: italic;">"Get current article buffer message"</span>
-  <span style="color: #ff1493;">(</span>gnus-with-article-buffer
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>start <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-body<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
           <span style="color: #ffff00;">(</span>end <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">prog2</span> <span style="color: #00ff7f;">(</span>message-goto-signature<span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>point<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>buffer-substring-no-properties start end<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -201,9 +201,9 @@ So how do we tie this in with <code>gnus</code>?
 </div>
 </div>
 
-<div id="outline-container-orgba65d94" class="outline-2">
-<h2 id="orgba65d94">Gnus Article</h2>
-<div class="outline-text-2" id="text-orgba65d94">
+<div id="outline-container-org33adc5a" class="outline-2">
+<h2 id="org33adc5a">Gnus Article</h2>
+<div class="outline-text-2" id="text-org33adc5a">
 <p>
 This is the sad part for me, I hacked the buffer content manually. I
 first tried <code>font-lock</code> which sort of works but not consistent&#x2026; yet.
@@ -227,14 +227,14 @@ many hacks, that's what I did. This snippet should explain all.
 
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>summary-text <span style="color: #9cb6ad;">(</span>string-join
                                <span style="color: #ff8c00;">(</span>mapcar <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>summarization<span style="color: #7fff00;">)</span>
                                          <span style="color: #7fff00;">(</span>concat <span style="color: #68f6cb;">"* "</span> summarization<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
                                        summarizies<span style="color: #ff8c00;">)</span>
                                <span style="color: #68f6cb;">"\n"</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
-            <span style="color: #00ff7f;">(</span>gnus-with-article-buffer
+            <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">gnus-with-article-buffer</span>
               <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Summarizing article"</span><span style="color: #ff8247;">)</span>
               <span style="color: #ff8247;">(</span>message-goto-eoh<span style="color: #ff8247;">)</span>
 
@@ -249,7 +249,7 @@ many hacks, that's what I did. This snippet should explain all.
               <span style="color: #ff8247;">(</span>insert <span style="color: #68f6cb;">"\n"</span><span style="color: #ff8247;">)</span>
 
               <span style="color: #ff8247;">(</span>read-only-mode 0<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
@@ -280,9 +280,9 @@ This is harder than it looks and I mulled this over for hours.
 </div>
 </div>
 
-<div id="outline-container-org56d81e4" class="outline-2">
-<h2 id="org56d81e4">Limitation</h2>
-<div class="outline-text-2" id="text-org56d81e4">
+<div id="outline-container-org948d6be" class="outline-2">
+<h2 id="org948d6be">Limitation</h2>
+<div class="outline-text-2" id="text-org948d6be">
 <p>
 As the astute read, sometimes the summary isn't helpful or redundant
 </p>
@@ -313,9 +313,9 @@ Again, it is not perfect but it is okay.
 </div>
 </div>
 
-<div id="outline-container-org868eca7" class="outline-2">
-<h2 id="org868eca7">Conclusion</h2>
-<div class="outline-text-2" id="text-org868eca7">
+<div id="outline-container-orge345aa2" class="outline-2">
+<h2 id="orge345aa2">Conclusion</h2>
+<div class="outline-text-2" id="text-orge345aa2">
 <p>
 So with a shiv of a email text analysis, maybe we can do better?
 Perhaps, once I learn more and update this code. But text analysis is
@@ -331,9 +331,9 @@ As for now, time to check my mail.
 </div>
 </div>
 
-<div id="outline-container-org6edabe9" class="outline-2">
-<h2 id="org6edabe9">2016-08-13 Update</h2>
-<div class="outline-text-2" id="text-org6edabe9">
+<div id="outline-container-org0118191" class="outline-2">
+<h2 id="org0118191">2016-08-13 Update</h2>
+<div class="outline-text-2" id="text-org0118191">
 <p>
 I got obsessive about the code so here is a revised edition of the
 core code that does it appropriately.
@@ -364,7 +364,7 @@ core code that does it appropriately.
 
     <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">deferred:$</span>
       summary
-      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>summarizies<span style="color: #da70d6;">)</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> gnus-summary-buffer
             <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff8247;">(</span><span style="color: #9cb6ad;">(</span>summarizies summarizies<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
@@ -386,7 +386,7 @@ core code that does it appropriately.
                   <span style="color: #ff8247;">(</span>-filter <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>emphasis<span style="color: #ff8c00;">)</span>
                              <span style="color: #ff8c00;">(</span>not <span style="color: #ff1493;">(</span>eq <span style="color: #7fff00;">(</span>nth 3 emphasis<span style="color: #7fff00;">)</span> fn/article-aid-face <span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
                            gnus-article-emphasis-alist<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
-      <span style="color: #00bfff;">(</span>deferred:nextc <span style="color: #ff694d;">it</span>
+      <span style="color: #00bfff;">(</span>deferred:nextc it
         <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">()</span>
           <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/prev-summarizing-request nil<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
@@ -440,9 +440,9 @@ Whatever. And now I can definitely get back to reading my mail.
 </div>
 </div>
 
-<div id="outline-container-orga1224e6" class="outline-2">
-<h2 id="orga1224e6">Minor Reflection</h2>
-<div class="outline-text-2" id="text-orga1224e6">
+<div id="outline-container-org27b2070" class="outline-2">
+<h2 id="org27b2070">Minor Reflection</h2>
+<div class="outline-text-2" id="text-org27b2070">
 <p>
 By the way, there has been research in using machine learning and
 automatic summarization with emails which is pretty cool. I wonder how

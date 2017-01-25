@@ -9,32 +9,32 @@ tags:
 - jekyll
 ---
 
-<div id="outline-container-orge0921d6" class="outline-2">
-<h2 id="orge0921d6">Introduction</h2>
-<div class="outline-text-2" id="text-orge0921d6">
+<div id="outline-container-orgee03d04" class="outline-2">
+<h2 id="orgee03d04">Introduction</h2>
+<div class="outline-text-2" id="text-orgee03d04">
 <p>
 For my second blog post, I want to talk about how I setup this blog. I'm using the Emacs <a href="http://orgmode.org/">org-mode</a>, <a href="http://jekyllrb.com/docs/home/">jekyll</a> and <a href="https://pages.github.com/">GitHubPages</a> combo; this allows me write static web pages using the most versitile outliner I've seen. How I found and made this decision escapes me but I do remember the three days of coding and praying for a miracle for the configuration to work despite how easy the tutorial seems.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orge1ff3ab" class="outline-2">
-<h2 id="orge1ff3ab">Issues</h2>
-<div class="outline-text-2" id="text-orge1ff3ab">
+<div id="outline-container-org9697c9b" class="outline-2">
+<h2 id="org9697c9b">Issues</h2>
+<div class="outline-text-2" id="text-org9697c9b">
 <p>
 Everything else seems easy except for a few technical details that I wasn't told. I'm not sure which one fixed the configuration but these were things I did to make mine work.
 </p>
 
 <ul class="org-ul">
-<li><a href="#org436f4df">org backward compatibility</a></li>
-<li><a href="#org05d6646">External shadowing internal</a></li>
-<li><a href="#orge4dd31a">org-html string escaping</a></li>
+<li><a href="#orgdb9ea15">org backward compatibility</a></li>
+<li><a href="#org7fe6565">External shadowing internal</a></li>
+<li><a href="#org6dc78bb">org-html string escaping</a></li>
 </ul>
 </div>
 
-<div id="outline-container-org436f4df" class="outline-3">
-<h3 id="org436f4df">org backward compatibility</h3>
-<div class="outline-text-3" id="text-org436f4df">
+<div id="outline-container-orgdb9ea15" class="outline-3">
+<h3 id="orgdb9ea15">org backward compatibility</h3>
+<div class="outline-text-3" id="text-orgdb9ea15">
 <p>
 The builtin <code>org</code> version that came with my Emacs was 7, the external <code>org</code> package that can be downloaded was 8; the innocent upgrade made some compatibility issues with my configuration.
 </p>
@@ -95,9 +95,9 @@ This property messes with the <code>Front Matter</code> section since it prepren
 </div>
 </div>
 
-<div id="outline-container-org05d6646" class="outline-3">
-<h3 id="org05d6646">External shadowing internal</h3>
-<div class="outline-text-3" id="text-org05d6646">
+<div id="outline-container-org7fe6565" class="outline-3">
+<h3 id="org7fe6565">External shadowing internal</h3>
+<div class="outline-text-3" id="text-org7fe6565">
 <p>
 To use the publishing features of <code>org</code>, you had to download the <code>org-plus-contrib</code> package which somehow depends on an external <code>org</code> package to work. I didn't find this an issue elsewhere but it somehow conflicted with how <code>org-html</code> publishes files. The thing it primarily solved I think was the <code>&lt;div&gt;</code> that wrapped the exported <code>org</code> file but I am not sure.
 </p>
@@ -124,9 +124,9 @@ Aside from installing the said packages, I removed the builtin <code>org</code> 
 </div>
 </div>
 
-<div id="outline-container-orge4dd31a" class="outline-3">
-<h3 id="orge4dd31a">org-html string escaping</h3>
-<div class="outline-text-3" id="text-orge4dd31a">
+<div id="outline-container-org6dc78bb" class="outline-3">
+<h3 id="org6dc78bb">org-html string escaping</h3>
+<div class="outline-text-3" id="text-org6dc78bb">
 <p>
 This issue is by far the most mischievous I had to track down.
 </p>
@@ -146,18 +146,18 @@ But this didn't fix it entirely since the whole exported file was wrapped with a
 </div>
 </div>
 
-<div id="outline-container-org56003fa" class="outline-2">
-<h2 id="org56003fa">Conclusion</h2>
-<div class="outline-text-2" id="text-org56003fa">
+<div id="outline-container-org707850f" class="outline-2">
+<h2 id="org707850f">Conclusion</h2>
+<div class="outline-text-2" id="text-org707850f">
 <p>
 I hope you did not encounter the same problems I have because it is a pain. Writing a blog using <code>org</code> is still awesome but I wish there was a tutorial that was up to date so this mess might have been avoided.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgd77e511" class="outline-2">
-<h2 id="orgd77e511">Links</h2>
-<div class="outline-text-2" id="text-orgd77e511">
+<div id="outline-container-org4b52acd" class="outline-2">
+<h2 id="org4b52acd">Links</h2>
+<div class="outline-text-2" id="text-org4b52acd">
 <ul class="org-ul">
 <li><a href="http://www.gorgnegre.com/linux/using-emacs-orgmode-to-blog-with-jekyll.html">Gorg Negre's tutorial</a> maybe what got me started in doing this but at the time it seem pretty outdated.</li>
 <li><a href="http://orgmode.org/worg/org-tutorials/org-jekyll.html">The official org-mode tutorial</a> is excellent in setting up the site without <code>GitHubPages</code>.</li>

@@ -6,9 +6,9 @@ category:
 - hacker
 ---
 
-<div id="outline-container-org605a9d4" class="outline-2">
-<h2 id="org605a9d4">Refactoring</h2>
-<div class="outline-text-2" id="text-org605a9d4">
+<div id="outline-container-orga4356d0" class="outline-2">
+<h2 id="orga4356d0">Refactoring</h2>
+<div class="outline-text-2" id="text-orga4356d0">
 <p>
 So I moved on to adding <b>The Watcher</b> blog which is an accomplishment
 in moving from a single to multiple blog setup as well as challenge in
@@ -19,9 +19,9 @@ sensibilities.
 </div>
 </div>
 
-<div id="outline-container-org8234bc7" class="outline-2">
-<h2 id="org8234bc7">Initial Goals</h2>
-<div class="outline-text-2" id="text-org8234bc7">
+<div id="outline-container-orga103da4" class="outline-2">
+<h2 id="orga103da4">Initial Goals</h2>
+<div class="outline-text-2" id="text-orga103da4">
 <p>
 Since this a working version, here are my goals:
 </p>
@@ -45,9 +45,9 @@ So here I will talk about my experience in working with it
 </div>
 </div>
 
-<div id="outline-container-orgabdcffd" class="outline-2">
-<h2 id="orgabdcffd">Previous Structure</h2>
-<div class="outline-text-2" id="text-orgabdcffd">
+<div id="outline-container-orgb7a6be4" class="outline-2">
+<h2 id="orgb7a6be4">Previous Structure</h2>
+<div class="outline-text-2" id="text-orgb7a6be4">
 <p>
 When I write a blog entry, I have to deal with to git repositories: my
 private org posts and my public jekyll site. I have to emphasize
@@ -73,9 +73,9 @@ multiple roots and update the use of publishing.
 </div>
 </div>
 
-<div id="outline-container-orgcfc989a" class="outline-2">
-<h2 id="orgcfc989a">Design</h2>
-<div class="outline-text-2" id="text-orgcfc989a">
+<div id="outline-container-org5b7fed1" class="outline-2">
+<h2 id="org5b7fed1">Design</h2>
+<div class="outline-text-2" id="text-org5b7fed1">
 <p>
 My design to create three objects:
 </p>
@@ -93,9 +93,9 @@ the use of each one from a holistic sense.
 </p>
 </div>
 
-<div id="outline-container-orge81b319" class="outline-3">
-<h3 id="orge81b319">Project</h3>
-<div class="outline-text-3" id="text-orge81b319">
+<div id="outline-container-org09434f0" class="outline-3">
+<h3 id="org09434f0">Project</h3>
+<div class="outline-text-3" id="text-org09434f0">
 <p>
 A project is an object that holds primarily the project and publish
 root. Aside from creating the folder for existence, it creates a
@@ -106,9 +106,9 @@ it syncs the master publish command to include that blogs publish command.
 </div>
 </div>
 
-<div id="outline-container-org071f045" class="outline-3">
-<h3 id="org071f045">Blog</h3>
-<div class="outline-text-3" id="text-org071f045">
+<div id="outline-container-orgd757002" class="outline-3">
+<h3 id="orgd757002">Blog</h3>
+<div class="outline-text-3" id="text-orgd757002">
 <p>
 A blog is an object that holds the meat of the blog structure. Also
 it creates the blog structure that contains drafts, posts and images
@@ -121,9 +121,9 @@ which command to use which finds the content publish.
 </div>
 </div>
 
-<div id="outline-container-org7f4495a" class="outline-3">
-<h3 id="org7f4495a">Post</h3>
-<div class="outline-text-3" id="text-org7f4495a">
+<div id="outline-container-orgcc918d2" class="outline-3">
+<h3 id="orgcc918d2">Post</h3>
+<div class="outline-text-3" id="text-orgcc918d2">
 <p>
 The actual content object which is the post or draft itself. In
 this structure, one has to find the project, the blog directory, the
@@ -135,18 +135,18 @@ a date prefix format so the command must do all those.
 </div>
 </div>
 
-<div id="outline-container-orge2926cd" class="outline-2">
-<h2 id="orge2926cd">Details</h2>
-<div class="outline-text-2" id="text-orge2926cd">
+<div id="outline-container-org4e4a86c" class="outline-2">
+<h2 id="org4e4a86c">Details</h2>
+<div class="outline-text-2" id="text-org4e4a86c">
 <p>
 Before I continue with the simple design, there are details that I
 mulled over in creating this.
 </p>
 </div>
 
-<div id="outline-container-org275ca95" class="outline-3">
-<h3 id="org275ca95">Interface</h3>
-<div class="outline-text-3" id="text-org275ca95">
+<div id="outline-container-org648677c" class="outline-3">
+<h3 id="org648677c">Interface</h3>
+<div class="outline-text-3" id="text-org648677c">
 <p>
 So given all those ideas, the commands
 <code>org-jekyll-blogger-create-draft</code> asks you to select a defined
@@ -184,9 +184,9 @@ is a thing to consider in making an interface.
 </div>
 </div>
 
-<div id="outline-container-org1cc43b3" class="outline-3">
-<h3 id="org1cc43b3">Alist vs Plist</h3>
-<div class="outline-text-3" id="text-org1cc43b3">
+<div id="outline-container-org49f5eaf" class="outline-3">
+<h3 id="org49f5eaf">Alist vs Plist</h3>
+<div class="outline-text-3" id="text-org49f5eaf">
 <p>
 In creating the objects, I did not want to use classes since I am a
 functional programmer but rather I needed structs or records. So the
@@ -227,9 +227,9 @@ not much in terms of functionality but support would be nice.
 </div>
 </div>
 
-<div id="outline-container-org5d5db38" class="outline-3">
-<h3 id="org5d5db38">Namespace</h3>
-<div class="outline-text-3" id="text-org5d5db38">
+<div id="outline-container-org189a7df" class="outline-3">
+<h3 id="org189a7df">Namespace</h3>
+<div class="outline-text-3" id="text-org189a7df">
 <p>
 Since my file name is <code>org-jekyll-blogger</code>, I have to name my library
 the same but also prefix my functions with the same name which leads
@@ -262,9 +262,9 @@ jarring that modules aren't really a thing here. I wonder what the
 </div>
 </div>
 
-<div id="outline-container-org43ee639" class="outline-2">
-<h2 id="org43ee639">Prototype</h2>
-<div class="outline-text-2" id="text-org43ee639">
+<div id="outline-container-orgf3ad5ae" class="outline-2">
+<h2 id="orgf3ad5ae">Prototype</h2>
+<div class="outline-text-2" id="text-orgf3ad5ae">
 <p>
 So with that, I crafted the simple library with three core commands:
 </p>
@@ -289,9 +289,9 @@ to get all my tools working.
 </div>
 </div>
 
-<div id="outline-container-org7d8eade" class="outline-2">
-<h2 id="org7d8eade">Extra Features</h2>
-<div class="outline-text-2" id="text-org7d8eade">
+<div id="outline-container-orgc2c9e92" class="outline-2">
+<h2 id="orgc2c9e92">Extra Features</h2>
+<div class="outline-text-2" id="text-orgc2c9e92">
 <p>
 Simple really but I do note there are other features including the
 leftovers from my original script such as:
@@ -328,9 +328,9 @@ own right? Right? If you're bored like me then yes.
 </div>
 </div>
 
-<div id="outline-container-org1987690" class="outline-2">
-<h2 id="org1987690">Working Flow</h2>
-<div class="outline-text-2" id="text-org1987690">
+<div id="outline-container-org38bf246" class="outline-2">
+<h2 id="org38bf246">Working Flow</h2>
+<div class="outline-text-2" id="text-org38bf246">
 <p>
 Things are pretty much incremental and more to add on the wish list.
 At least I am happy that I can write two blogs that challenge my
