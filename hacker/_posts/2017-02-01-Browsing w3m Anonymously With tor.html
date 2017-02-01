@@ -1,0 +1,376 @@
+---
+title: Browsing w3m Anonymously With tor
+tagline: Combining w3m and tor for anonymous browsing
+blog-category: hacker
+category:
+- hacker
+tag:
+- hacker
+- elisp
+- tor
+- w3m
+- polipo
+---
+
+<div id="outline-container-orgbf422ff" class="outline-2">
+<h2 id="orgbf422ff">Problem</h2>
+<div class="outline-text-2" id="text-orgbf422ff">
+<p>
+I'm having fun with <a href="http://w3m.sourceforge.net/">w3m</a> but by using this I discarded several features
+I have neglected with a GUI. One feature is private browsing which
+keeps your history personal and private. (If people were desperate
+enough to check a terminal browser for your secrets.) Just focusing on
+browsing history, configuring it to ignore several sites is easy
+enough with some glue and might warrant its own post.
+</p>
+
+<p>
+Even with <a href="https://www.mozilla.org/en-US/firefox/new/">firefox</a> or <a href="https://www.google.com/chrome/browser/desktop/index.html">chrome</a>, using <a href="https://duckduckgo.com/l/?kh=-1&amp;uddg=https%3A%2F%2Fsupport.mozilla.org%2Fen%2DUS%2Fkb%2FPrivate%2520Browsing">private browsing</a> is not enough as
+servers can track your IP and then infer which sites you went to. Not
+truly private but good enough against nosy users. Enter <a href="https://www.torproject.org/index.html.en">tor</a>, the
+anonymizing web proxy. What makes it stand out is that it routes
+request through several proxies while encrypting it between them to
+mask where the request comes from and what it contains. It slows down
+browsing speed but it will keep those pesky trackers and advertisers
+from scarily guessing what books or movies you secretly want. For me,
+it is a price I am willing to pay.
+</p>
+
+<p>
+Sadly, that proxy protector is a <a href="https://en.wikipedia.org/wiki/SOCKS">SOCKS proxy</a> and this browser only
+uses <a href="https://en.wikipedia.org/wiki/Proxy_server">HTTP proxies</a>. This means it isn't as easy and straightforward
+combining the two of them, thus we need another middleman to join the
+two. Enter <a href="https://en.wikipedia.org/wiki/Polipo">polipo</a>, another proxy server which is lightweight enough
+for our merger. To lay down their relationship, <code>w3m</code> will use
+<code>polipo</code> as its HTTP proxy which in turn uses <code>tor</code> as its SOCKS proxy
+to send the request.
+</p>
+
+<p>
+With that in mind here is the <a href="https://gist.github.com/0bf59110d447138d7d0a6d227d80f9a4">snippet</a> to do so. The first time you run
+this, <code>tor</code> might take some time setting up so be patient with that.
+As hackers though, we'd like some more elaboration.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3c3264b" class="outline-2">
+<h2 id="org3c3264b">Configuration Generation</h2>
+<div class="outline-text-2" id="text-org3c3264b">
+<p>
+Once you installed and tried both <code>tor</code> and <code>polipo</code>, we want Emacs to
+start these proxies when we start <code>w3m</code>. You could configure both of
+them to be external services or daemons; however, we want portable or
+standalone setups so that we minimize external dependencies and
+conflicts.
+</p>
+
+<p>
+Our old friend <code>start-process</code> comes to our aid again. Practically, we
+want it to call both commands and send config command line options;
+however, we can generate their respective configuration files via
+Elisp so that the configuration can be tested and examined externally
+as well as make the <code>list-process</code> entry of each cleaner.
+</p>
+
+<p>
+Both configuration files can be abstracted as a list of key-value pairs or
+cons with different line formatting. The basic snippet to accomplish
+this with <code>tor</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">with-temp-file</span> config-file <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Config file path</span>
+  <span style="color: #ff1493;">(</span>insert
+   <span style="color: #7fff00;">(</span>string-join
+    <span style="color: #00bfff;">(</span>mapcar
+     <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #da70d6;">(</span>pair<span style="color: #da70d6;">)</span>
+       <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase-let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>`<span style="color: #9cb6ad;">(</span>,key . ,value<span style="color: #9cb6ad;">)</span> pair<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+         <span style="color: #00ff7f;">(</span>format
+          <span style="color: #68f6cb;">"%s %s"</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Line formatting</span>
+          key <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Key formatting</span>
+          <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">typecase</span> value <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Value formatting</span>
+            <span style="color: #9cb6ad;">(</span>symbolp <span style="color: #ff8c00;">(</span>symbol-name value<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+            <span style="color: #9cb6ad;">(</span>numberp <span style="color: #ff8c00;">(</span>number-to-string value<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+            <span style="color: #9cb6ad;">(</span>stringp value<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+     pairs <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">The cons list</span>
+     <span style="color: #00bfff;">)</span>
+    <span style="color: #68f6cb;">"\n"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Aside from using the helpful <code>with-temp-file</code> macro and destructring
+<code>pcase-let</code>, the only nuance here is the value formatting via
+<code>typecase</code>. How you do the formatting affects what values you place.
+For example with <code>polipo</code>, our list of <code>cons</code> with some stylistic
+backquoting would look something like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">`<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"proxyAddress"</span> . <span style="color: #68f6cb;">"0.0.0.0"</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"allowedClients"</span> . <span style="color: #68f6cb;">"127.0.0.1"</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"diskCacheRoot"</span> . ,fn/w3m-polipo-cache-dir<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"proxyPort"</span> . ,fn/w3m-polipo-port<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"cacheIsShared"</span> . false<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"socksParentProxy"</span> .
+   ,<span style="color: #7fff00;">(</span>format <span style="color: #68f6cb;">"%s:%s"</span> <span style="color: #68f6cb;">"localhost"</span> <span style="color: #00bfff;">(</span>number-to-string fn/w3m-tor-port<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"socksProxyType"</span> . socks5<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Although the key types are the same, notice there are different value
+types. Strings are quoted, numbers and symbols are stringified; if we
+used just list of line strings, we'd have to do the formatting
+ourselves. With this setup, it looks configurable and proper.
+</p>
+
+<p>
+There is one caveat to this is that everytime you change a value
+within the configuration, you have to update the files. Since there is
+no data binding, you have to update it manually. Thankfully, this is
+easily done with by calling <code>fn/w3m-polipo-tor-update-conf</code>
+afterwards.
+</p>
+
+<p>
+As a side note, there is some data binding mechanism using <code>defcustom</code>
+and <code>customize-set-variable</code> but isn't really needed for a small shiv.
+Also, it is fascinating how generating the files with Elisp allows us
+to ensure they are bound by data and code.
+</p>
+
+<p>
+Now, we can talk about the options we are interested in since I am
+assuming you didn't really read the manuals.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgcbc6a38" class="outline-2">
+<h2 id="orgcbc6a38">tor Options</h2>
+<div class="outline-text-2" id="text-orgcbc6a38">
+<p>
+The configuration values for <code>tor</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">`<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"SocksPort"</span> . ,fn/w3m-tor-port<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"DataDirectory"</span> . ,fn/w3m-tor-cache-dir<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"ControlPort"</span> . ,<span style="color: #7fff00;">(</span>1+ fn/w3m-tor-port<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"DisableDebuggerAttachment"</span> . 0<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<dl class="org-dl">
+<dt><b>SocksPort</b></dt><dd>The port which it listens to. More importantly, this port is
+where <code>polipo</code> points to.</dd>
+<dt><b>DataDirectory</b></dt><dd>The directory it uses. Not needed, but must be changed since it
+defaults to a system directory</dd>
+<dt><b>ControlPort</b></dt><dd>Optional debugging port if you want to monitor it with tools such
+as <a href="https://www.torproject.org/index.html.en">arm</a>.</dd>
+<dt><b>DisableDebuggerAttachment</b></dt><dd><p>
+       This allows debugging and monitoring which is optional like <b>ControlPort</b>
+</p>
+
+<p>
+All we strictly need is the <b>SocksPort</b> or the interface port and
+everything else is for portability.
+</p></dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-org9228bbc" class="outline-2">
+<h2 id="org9228bbc">polipo Options</h2>
+<div class="outline-text-2" id="text-org9228bbc">
+<p>
+The configuration values for <code>polipo</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">`<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"proxyAddress"</span> . <span style="color: #68f6cb;">"0.0.0.0"</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"allowedClients"</span> . <span style="color: #68f6cb;">"127.0.0.1"</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"diskCacheRoot"</span> . ,fn/w3m-polipo-cache-dir<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"proxyPort"</span> . ,fn/w3m-polipo-port<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"cacheIsShared"</span> . false<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"socksParentProxy"</span> .
+   ,<span style="color: #7fff00;">(</span>format <span style="color: #68f6cb;">"%s:%s"</span> <span style="color: #68f6cb;">"localhost"</span> <span style="color: #00bfff;">(</span>number-to-string fn/w3m-tor-port<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"socksProxyType"</span> . socks5<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<dl class="org-dl">
+<dt><b>proxyAddress</b></dt><dd>The address this listens to. Since this is standalone,
+<b>localhost</b> is the only thing we need.</dd>
+<dt><b>allowedClients</b></dt><dd>The address that this allows. Since you can configure it to
+be a network router, it has this option.</dd>
+<dt><b>diskCacheRoot</b></dt><dd>Like with <code>tor</code> and <b>DataDirectory</b>.</dd>
+<dt><b>proxyPort</b></dt><dd>The port this listens to which <code>w3m</code> uses as its proxy</dd>
+<dt><b>cacheIsShared</b></dt><dd>Set to true if there is only one instance. Since this is
+standalone, it is false.</dd>
+<dt><b>socksParentProxy</b></dt><dd>The SOCKS proxy port it listens to. This is where <code>tor</code> and <code>polipo</code>
+meet.</dd>
+<dt><b>socksProxyType</b></dt><dd>The SOCKS proxy type. The default <code>socks5</code> is what <code>tor</code> is.</dd>
+</dl>
+
+<p>
+A little more nuanced since it is the middle man. What is strictly
+needed here is <b>proxyPort</b> and <b>socksParentProxy</b> which are just the
+interface ports.
+</p>
+
+<p>
+Now that the options are clear, we move to our browser options.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgdfa8553" class="outline-2">
+<h2 id="orgdfa8553">w3m Options</h2>
+<div class="outline-text-2" id="text-orgdfa8553">
+<p>
+We now look at the main browser and the only external option it needs,
+<code>http_proxy</code>. This is simply adding to <code>w3m-command-arguments</code> the
+value <code>http_proxy=https://127.0.0.1:&lt;polipo-port&gt;</code> after <code>-o</code> option
+and that is all there is. It is now just a matter of calling the
+appropriate processes when <code>w3m</code> loads:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/w3m-tor-process
+   <span style="color: #ff1493;">(</span>start-process <span style="color: #68f6cb;">"w3m-tor"</span> <span style="color: #68f6cb;">"*w3m-tor*"</span> <span style="color: #68f6cb;">"tor"</span> <span style="color: #68f6cb;">"-f"</span> fn/w3m-tor-conf-file<span style="color: #ff1493;">)</span>
+   fn/w3m-polipo-process
+   <span style="color: #ff1493;">(</span>start-process <span style="color: #68f6cb;">"w3m-polipo"</span> <span style="color: #68f6cb;">"*w3m-polipo*"</span> <span style="color: #68f6cb;">"polipo"</span> <span style="color: #68f6cb;">"-c"</span> fn/w3m-polipo-conf-file<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Aside from managing the processes, all the pieces should work together
+properly.
+</p>
+
+<p>
+If there are specialized hosts or domains which you don't need
+anonymity, you should set them via <code>w3m-no-proxy-domains</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>add-to-list 'w3m-no-proxy-domains <span style="color: #68f6cb;">"127.0.0.1"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>add-to-list 'w3m-no-proxy-domains <span style="color: #68f6cb;">"localhost"</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+As for me, if I don't add this, I can't test my blog since I will get
+a proxy error. Configure to your actual and specific setup.
+</p>
+
+<p>
+Optionally, the proxy might interfere with several sites so a command
+to add the site as a proxy exception:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/w3m-add-current-host-to-no-proxy-domains</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Add current host to `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">w3m-no-proxy-domains</span><span style="color: #68f6cb; font-style: italic;">'"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #7fff00;">(</span>eq major-mode 'w3m-mode<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>parts <span style="color: #da70d6;">(</span>w3m-parse-http-url w3m-current-url<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>host <span style="color: #da70d6;">(</span>elt parts 1<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>add-to-list 'w3m-no-proxy-domains host t<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>w3m-reload-this-page<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This adds the current host to <code>w3m-no-proxy-domains</code> and reloads the
+page. Hopefully, you would not need to use this command as it
+signifies the roadblocks the proxies bring.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org03d1c7d" class="outline-2">
+<h2 id="org03d1c7d">Auto Start And Kill</h2>
+<div class="outline-text-2" id="text-org03d1c7d">
+<p>
+When <code>w3m</code> loads, it might be convenient to start it up. However,
+these processes is not as simple as <code>flyspell</code> or the like, so asking
+permission or confirmation as a reminder might be wise. A simple
+snippet does the job:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #ff1493;">(</span>yes-or-no-p <span style="color: #68f6cb;">"Start polipo and tor for w3m? "</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>fn/w3m-polipo-tor-start-process<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Now the flip side of killing it should be handled when Emacs
+terminates; however for some reason, <code>tor</code> doesn't cleanly stop which
+creates a leak that is not visible by <code>list-process</code>. Strangely,
+<code>polipo</code> closes properly but <code>tor</code> does not. So a stronger guarantee
+is to kill it as part of Emacs:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>add-hook 'kill-emacs-hook #'fn/w3m-polipo-tor-kill-process<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This hook is not a true guarantee as Emacs can be killed externally,
+so this hook will not run, thus <code>tor</code> is still running after the next
+session. You can check using <code>proced</code> if a <code>tor</code> is still running and
+kill it accordingly. This is apparently normal behavior for deamons.
+</p>
+
+<p>
+When Emacs is killed, it sends a SIGHUP signal to its child processes
+or more importantly to the processes made with <code>start-process</code>. As
+stated by the manual:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-text">SIGHUP
+The signal instructs Tor to reload its configuration (including closing and reopening
+logs), and kill and restart its helper processes if applicable.
+</pre>
+</div>
+
+<p>
+This means when Emacs is killed externally, it restarts <code>tor</code> instead
+of killing it. Sadly, there is no way to change the kill or intercept
+the signal <code>tor</code> receives easily. For now, this issue is out of scope
+for a simple process glue. You can create a custom script to start
+<code>tor</code>, but this is a reminder that we can't control everything without
+lower level work.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgeefa3f5" class="outline-2">
+<h2 id="orgeefa3f5">Conclusion</h2>
+<div class="outline-text-2" id="text-orgeefa3f5">
+<p>
+With this, we joined <code>w3m</code>, <code>polipo</code>, <code>tor</code> to browse more privately
+and all within Emacs. Not perfect but it gets the job done. There are
+features or aspects that can be improved:
+</p>
+
+<ul class="org-ul">
+<li>Data and argument binding, managing <code>w3m-command-arguments</code> as well</li>
+<li>Error handling</li>
+<li>Process management on open and close of <code>w3m</code>, maybe <code>prodigy</code>?</li>
+<li>Proxy fine tuning and configuration, checkout <a href="https://gitweb.torproject.org/torbrowser.git/plain/build-scripts/config/polipo.conf?id=1ffcd9dafb9dd76c3a29dd686e05a71a95599fb5">custom polipo conf from tor</a></li>
+</ul>
+
+<p>
+The joy of Emacs, gluing things together to get what you want even if
+its just private browsing.
+</p>
+</div>
+</div>
