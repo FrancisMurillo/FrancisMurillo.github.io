@@ -7,7 +7,9 @@ description: Watching anything I can talk about.
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>{{ site.title | append: ' ' | append: page.blog-title  | xml_escape }}</title>
+    <title>{{ site.title | append: ' ' | append: page.blog-title  |
+    xml_escape }}</title>
+    <author>{{ site.author }}</author>
     <description>{{ page.description | xml_escape }}</description>
     <link>{{ site.url }}{{ site.baseurl }}/</link>
     <atom:link href="{{ page.blog-category | prepend: '/' | append: "/feed.xml" | prepend: site.baseurl | prepend:
@@ -19,6 +21,7 @@ description: Watching anything I can talk about.
     {% if post.categories contains page.blog-category %}
     <item>
       <title>{{ post.title | xml_escape }}</title>
+      <author>{{ site.author }}</author>
       <description>{{ post.content | xml_escape }}</description>
       <pubDate>{{ post.date | date_to_rfc822 }}</pubDate>
       <link>{{ post.url | prepend: site.baseurl | prepend: site.url }}</link>

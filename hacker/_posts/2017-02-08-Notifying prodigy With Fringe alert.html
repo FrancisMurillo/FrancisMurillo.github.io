@@ -1,0 +1,436 @@
+---
+title: Notifying prodigy With Fringe alert
+tagline: Using a color fringe to notify progress
+blog-category: hacker
+category:
+- hacker
+tag:
+- hacker
+- elisp
+- prodigy
+- alert
+---
+
+<div id="outline-container-orgbb6997d" class="outline-2">
+<h2 id="orgbb6997d">Problem</h2>
+<div class="outline-text-2" id="text-orgbb6997d">
+<p>
+The Elisp library <a href="https://github.com/rejeep/prodigy.el">prodigy.el</a> helps you manage your external processes;
+in particular, it allows you to listen to the process log which allows
+you to execute commands on certain states. Although we have
+<code>start-process</code> and <code>set-process-filter</code>, this library wraps those
+lower level constructs into a more manageable object with hooks and
+properties.
+</p>
+
+<p>
+One common feature when using processes is to be notified when it is
+ready or something happens. For example, I use <a href="https://github.com/OfflineIMAP/offlineimap">offlineimap</a> with <code>gnus</code>
+to get my mail where I want to be notified when there is one or <a href="http://jekyllrb.com/">jekyll</a>
+to make this blog where I want to told when the blog is built
+successfully or not. I could use the simple <code>message</code> construct but to
+be more flexible I use the library <a href="https://github.com/jwiegley/alert">alert</a>.el.
+</p>
+
+<p>
+That notifying library features more than just using <code>message</code>, it can
+use <code>libnotify</code>, <code>growl</code> and more importantly the <code>fringe</code>. A <code>fringe</code>
+alert uses <code>set-face-background</code> to change the color of the buffer
+sides and removes it on action. You can try this one liner to
+understand better:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>set-face-background 'fringe <span style="color: #68f6cb;">"red"</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So when there is a process event, I want a fringe alert. I have no
+snippet to give here only an outline on how I went about it. For this
+post, I will use <code>jekyll</code> as an example.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org37209a3" class="outline-2">
+<h2 id="org37209a3">Using <code>prodigy</code></h2>
+<div class="outline-text-2" id="text-org37209a3">
+<p>
+To define a <code>jekyll</code> process with <code>prodigy</code>, here is how you will go
+about it:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>prodigy-define-service
+  <span style="color: #96a5d9; font-style: italic;">:name</span> <span style="color: #68f6cb;">"Gnus-Offlineimap"</span>      <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Service name or id</span>
+  <span style="color: #96a5d9; font-style: italic;">:cwd</span> <span style="color: #68f6cb;">"~/Fakespace/fnlog.io"</span>  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Working directory when the service is called</span>
+
+  <span style="color: #96a5d9; font-style: italic;">:command</span> <span style="color: #68f6cb;">"jekyll"</span>             <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">The jekyll command</span>
+  <span style="color: #96a5d9; font-style: italic;">:args</span> <span style="color: #ff1493;">(</span>list                      <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Command arguments</span>
+         <span style="color: #68f6cb;">"serve"</span>
+         <span style="color: #68f6cb;">"--drafts"</span>
+         <span style="color: #68f6cb;">"--ports"</span> <span style="color: #7fff00;">(</span>number-to-string 34000<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #96a5d9; font-style: italic;">:port</span> 34000                   <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Optional port property</span>
+  <span style="color: #96a5d9; font-style: italic;">:kill-signal</span> 'sigkill         <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Kill signal to send when closing</span>
+
+  <span style="color: #96a5d9; font-style: italic;">:on-output</span> #'ignore           <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">The output listener we are interested in</span>
+  <span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This is more or less how I setup my blog process service but I use the
+tag system to make it a more reusable. To emphasize convenience, I
+would use this library instead of handling it with <code>start-process</code>,
+<code>with-temp-buffer</code> and <code>default-directory</code>. To get a better picture,
+you can see the new service with a special tabulated and process
+buffer.
+</p>
+
+<p>
+<img src="/hacker/images/notifying-prodigy-with-fringe-alert--prodigy-screenshot.png" alt="Screenshot Of Prodigy Screenshot"/>
+</p>
+
+<p>
+What we are interested in with the logs are two lines that contain
+the string/text:
+</p>
+
+<ul class="org-ul">
+<li><code>Server running</code> to indicate the blog is <code>ready</code></li>
+<li><code>...done in</code> to indicate the blog is <code>built</code> and should be refreshed</li>
+</ul>
+
+<p>
+The <code>:on-output</code> allows us to tap into this which takes a function
+with a plist argument that has <code>:service</code> and <code>:output</code> properties. In
+our context of listenting to the following lines:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/prodigy-jekyll-state-change-listener</span> <span style="color: #ff1493;">(</span><span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">defun* can also work</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>output <span style="color: #ffff00;">(</span>plist-get args <span style="color: #96a5d9; font-style: italic;">:output</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Get the arguments</span>
+      <span style="color: #00bfff;">(</span>service <span style="color: #ffff00;">(</span>plist-get args <span style="color: #96a5d9; font-style: italic;">:service</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase</span> output
+      <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>pred <span style="color: #da70d6;">(</span>string-match-p <span style="color: #68f6cb;">"Server running"</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span>prodigy-set-status service 'ready<span style="color: #ffff00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Manually set the status</span>
+       <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Trigger ready alert</span>
+       <span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>pred <span style="color: #da70d6;">(</span>string-match-p <span style="color: #68f6cb;">"Error:"</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Trigger error alert</span>
+       <span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>pred <span style="color: #da70d6;">(</span>string-match-p <span style="color: #68f6cb;">"...done"</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Trigger done built alert</span>
+       <span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>_ <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Do nothing otherwise</span>
+       nil<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Redefining the service</span>
+<span style="color: #ff8c00;">(</span>prodigy-define-service
+  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Previous definition</span>
+  <span style="color: #96a5d9; font-style: italic;">:on-output</span> 'fn/prodigy-jekyll-state-change-listener
+  <span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+If you don't have <code>string-match-p</code> since you are using an earlier
+version, it can be shivved like so:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">unless</span> <span style="color: #ff1493;">(</span>fboundp 'string-match-p<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">defsubst</span> <span style="color: #bad6e2;">string-match-p</span> <span style="color: #7fff00;">(</span>regexp string <span style="color: #f5b55f;">&amp;optional</span> start<span style="color: #7fff00;">)</span>
+    <span style="color: #68f6cb; font-style: italic;">"\</span>
+<span style="color: #68f6cb; font-style: italic;">Same as `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">string-match</span><span style="color: #68f6cb; font-style: italic;">' except this function does not change the match data.</span>
+<span style="color: #68f6cb; font-style: italic;">Taken from `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">subr-x</span><span style="color: #68f6cb; font-style: italic;">'"</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>inhibit-changing-match-data t<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>string-match regexp string start<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Aside from using <code>pcase</code>, it is pretty much just listening to the
+output. As an aside, listening to the output is pretty much determined
+by the process itself; so some awkward log state management might be
+present for other services. For example, there might be a start line,
+then followed by either an error or process line, finally an end line;
+in that scenario, one has to keep track if there is an error or not to
+determine at the end line if there is an error instead of notifying at
+each one. Logging and state machines, some nuances when dealing with
+listening to logs.
+</p>
+
+<p>
+We move on to using <code>alert</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org06a5433" class="outline-2">
+<h2 id="org06a5433">Using <code>alert</code></h2>
+<div class="outline-text-2" id="text-org06a5433">
+<p>
+Using <code>alert</code> is pretty straightforward, the first argument is the
+message and the rest are some options. I encourage you to check it out
+but for our case, we will be focused on using the fringe type:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>alert <span style="color: #68f6cb;">"Hello Alert"</span><span style="color: #ff8c00;">)</span>         <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Default alert with message</span>
+
+<span style="color: #ff8c00;">(</span>alert <span style="color: #68f6cb;">"Hello Fringe Alert"</span>   <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Using a fringe alert</span>
+       <span style="color: #96a5d9; font-style: italic;">:severity</span> 'trivial
+       <span style="color: #96a5d9; font-style: italic;">:style</span> 'fringe<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+If you use this snippet, you will get a purple fringe alert which
+comes from <code>alert-severity-colors</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span>urgent . <span style="color: #68f6cb;">"red"</span><span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span>high . <span style="color: #68f6cb;">"orange"</span><span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span>moderate . <span style="color: #68f6cb;">"yellow"</span><span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span>normal . <span style="color: #68f6cb;">"green"</span><span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span>low . <span style="color: #68f6cb;">"blue"</span><span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span>trivial . <span style="color: #68f6cb;">"purple"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Weirdly, the severity handles the color. Either way, there isn't many
+colors to work with, so if you want to add one like <code>Rebecca Purple</code>
+or <code>Lavender</code>. You have to add to do the following:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>add-to-list 'alert-log-severity-functions
+             <span style="color: #ff1493;">(</span>cons 'lavender #'alert--log-trace<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>add-to-list 'alert-severity-colors
+             <span style="color: #ff1493;">(</span>cons 'lavender <span style="color: #68f6cb;">"#b378d3"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #ff8c00;">(</span>alert <span style="color: #68f6cb;">"My lavender alert"</span>
+       <span style="color: #96a5d9; font-style: italic;">:style</span> 'fringe
+       <span style="color: #96a5d9; font-style: italic;">:severity</span> 'lavender<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This is not so bad but when you have several services that uses fringe
+alerts or have to create one, you might want a function that does
+this. Here is my version of that function after looking at the source:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">cl-lib</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun*</span> fn/alert-color <span style="color: #ff1493;">(</span>message <span style="color: #f5b55f;">&amp;rest</span> args <span style="color: #f5b55f;">&amp;key</span> color <span style="color: #f5b55f;">&amp;allow-other-keys</span><span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"A custom alert that focuses on defining a fringe with COLOR key</span>
+<span style="color: #68f6cb; font-style: italic;">with a hex value."</span>
+  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Step 01: Create hex color symbol</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>hex-color <span style="color: #ffff00;">(</span>replace-regexp-in-string <span style="color: #68f6cb;">"#"</span> <span style="color: #68f6cb;">""</span> color<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>hex-symbol-name <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Prepend alert-color-- to the hex code</span>
+       <span style="color: #ffff00;">(</span>format <span style="color: #68f6cb;">"alert-color--%s"</span> hex-color<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>hex-symbol      <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Check if the symbol exists or default</span>
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> <span style="color: #da70d6;">(</span>intern-soft hex-symbol-name<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span>intern hex-symbol-name<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+
+    <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Step 02: Add the symbol pair to the lists</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">unless</span> <span style="color: #00bfff;">(</span>cdr <span style="color: #ffff00;">(</span>assoc hex-symbol alert-log-severity-functions<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>add-to-list 'alert-log-severity-functions
+                   <span style="color: #ffff00;">(</span>cons hex-symbol #'alert--log-trace<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">unless</span> <span style="color: #00bfff;">(</span>cdr <span style="color: #ffff00;">(</span>assoc hex-symbol alert-severity-colors<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>add-to-list 'alert-severity-colors <span style="color: #ffff00;">(</span>cons hex-symbol color<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+
+    <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Step 03: Handle an extra :color property that</span>
+    <span style="color: #2872b2;">;;          </span><span style="color: #2872b2;">defaults :style and :severity</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>color-properties
+         <span style="color: #da70d6;">(</span>list
+          <span style="color: #96a5d9; font-style: italic;">:style</span> 'fringe
+          <span style="color: #96a5d9; font-style: italic;">:severity</span> hex-symbol<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>colorless-properties
+         <span style="color: #da70d6;">(</span>cl-reduce <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Just removes :color from the property list</span>
+          <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8247;">(</span>val props<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #9cb6ad;">(</span>equal <span style="color: #96a5d9; font-style: italic;">:color</span> val<span style="color: #9cb6ad;">)</span>
+                <span style="color: #9cb6ad;">(</span>cdr props<span style="color: #9cb6ad;">)</span>
+              <span style="color: #9cb6ad;">(</span>cons val props<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+          args
+          <span style="color: #96a5d9; font-style: italic;">:from-end</span> t
+          <span style="color: #96a5d9; font-style: italic;">:initial-value</span> <span style="color: #00ff7f;">(</span>list<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>apply #'alert
+         <span style="color: #ffff00;">(</span>append
+          <span style="color: #da70d6;">(</span>list message<span style="color: #da70d6;">)</span>
+          color-properties
+          colorless-properties<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Although a little long, this encapsulates the symbol creation, adding
+to the lists and handling a <code>:color</code> property. It does not handle more
+fine grained severity options and it might not property decorate
+around <code>alert</code> but it does the job. You can see it in action here:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>fn/alert-color <span style="color: #68f6cb;">"Here is my colored alert"</span>
+                <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#123456"</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+In the interest of being canonical with <code>alert</code>, I would have defined
+a custom style but I could not get a custom property or argument like
+<code>:color</code> to be used; I could have reused <code>:severity</code> but it doesn't
+fit the context. So I had to create a decorator for a custom color
+property despite the ease of doing the following:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Copied from alert-fringe-</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/alert-flash-notify</span> <span style="color: #ff1493;">(</span>info<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>set-face-background 'fringe <span style="color: #7fff00;">(</span>plist-get info <span style="color: #96a5d9; font-style: italic;">:color</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/alert-flash-restore</span> <span style="color: #ff1493;">(</span>info<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>copy-face 'alert-saved-fringe-face 'fringe<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>alert-define-style 'fn/flash
+                    <span style="color: #96a5d9; font-style: italic;">:title</span> <span style="color: #68f6cb;">"Change the fringe color"</span>
+                    <span style="color: #96a5d9; font-style: italic;">:notifier</span> #'fn/alert-flash-notify
+                    <span style="color: #96a5d9; font-style: italic;">:remover</span> #'fn/alert-flash-restore<span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">If it did work...</span>
+<span style="color: #ff8c00;">(</span>alert <span style="color: #68f6cb;">"Here is a simpler alert."</span>
+       <span style="color: #96a5d9; font-style: italic;">:style</span> 'fn/flash
+       <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#123456"</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So now we can get a colored fringe alert without handling the symbols
+and lists.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org990747b" class="outline-2">
+<h2 id="org990747b">Combining <code>alert</code> and <code>prodigy</code></h2>
+<div class="outline-text-2" id="text-org990747b">
+<p>
+Now that we have the two we can easily merge them in the following
+snippet:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/prodigy-jekyll-state-change-listener</span> <span style="color: #ff1493;">(</span><span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;;</span><span style="color: #2872b2;">defun* can also work</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>output <span style="color: #ffff00;">(</span>plist-get args <span style="color: #96a5d9; font-style: italic;">:output</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Get the arguments</span>
+      <span style="color: #00bfff;">(</span>service <span style="color: #ffff00;">(</span>plist-get args <span style="color: #96a5d9; font-style: italic;">:service</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase</span> output
+      <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>pred <span style="color: #da70d6;">(</span>string-match-p <span style="color: #68f6cb;">"Server running"</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span>prodigy-set-status service 'ready<span style="color: #ffff00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Manually set the status</span>
+       <span style="color: #ffff00;">(</span>fn/alert-color <span style="color: #68f6cb;">"Blog is up and running"</span>
+                       <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#01dddd"</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>pred <span style="color: #da70d6;">(</span>string-match-p <span style="color: #68f6cb;">"Error:"</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span>fn/alert-color <span style="color: #68f6cb;">"Blog has a build error. Check out the logs."</span>
+                       <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#fd8a5e"</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>pred <span style="color: #da70d6;">(</span>string-match-p <span style="color: #68f6cb;">"...done"</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span>fn/alert-color <span style="color: #68f6cb;">"Blog has successfully been built."</span>
+                       <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#e0e300"</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>_ <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Do nothing otherwise</span>
+       nil<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+With that, everything should be in order; however, what I did instead
+is created a hook so that other actions aside might be taken based on
+its state. As an example, I check the blog's output using <code>w3m</code> and
+when the blog is built, I want to reload all the web buffers
+pertaining to my blog. This snippet does it:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/prodigy-jekyll-state-w3m-reload</span> <span style="color: #ff1493;">(</span>service state<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>service-name <span style="color: #ffff00;">(</span>plist-get service <span style="color: #96a5d9; font-style: italic;">:name</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase</span> state <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">My hook takes a service and state argument</span>
+      <span style="color: #00bfff;">(</span>'built
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">save-window-excursion</span>
+         <span style="color: #da70d6;">(</span>mapc
+          <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8247;">(</span>w3m-buffer<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">ignore-errors</span>
+              <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span>url <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> w3m-buffer w3m-current-url<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                  <span style="color: #ff1493;">(</span>parts <span style="color: #7fff00;">(</span>w3m-parse-http-url url<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                  <span style="color: #ff1493;">(</span>host <span style="color: #7fff00;">(</span>elt parts 1<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                  <span style="color: #ff1493;">(</span>port <span style="color: #7fff00;">(</span>elt parts 2<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+                <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> <span style="color: #7fff00;">(</span>= port 34000<span style="color: #7fff00;">)</span>
+                         <span style="color: #7fff00;">(</span>string= host <span style="color: #68f6cb;">"127.0.0.1"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+                  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> w3m-buffer
+                    <span style="color: #7fff00;">(</span>w3m-reload-this-page<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+          <span style="color: #00ff7f;">(</span>w3m-list-buffers<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>_ nil<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">The hook I created, modified for this post</span>
+<span style="color: #ff8c00;">(</span>add-hook 'fn/prodigy-jekyll-state-change-hook
+          #'fn/prodigy-jekyll-state-w3m-reload<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+That's the thing about <code>:on-output</code>, you can't add to it like a hook
+so you have to make one. Using the output as a hook, I have an alert
+and auto-reload mechanism.
+</p>
+
+<p>
+Lastly, if you forgot the meaning of the color, it would be nice if
+there was also a message to back it up. By default, using this style
+of the alert produces no minibuffer message to appear which is
+appropriate. However, I would like to be reminded what it means with
+this snippet:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/alert-fringe-notify-message</span> <span style="color: #ff1493;">(</span>info<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Log `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">fringe</span><span style="color: #68f6cb; font-style: italic;">' style with `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">message</span><span style="color: #68f6cb; font-style: italic;">'.</span>
+<span style="color: #68f6cb; font-style: italic;">     This is to support `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">fn/alert-color</span><span style="color: #68f6cb; font-style: italic;">' if the color flash needs</span>
+<span style="color: #68f6cb; font-style: italic;">     a reminder."</span>
+  <span style="color: #ff1493;">(</span>message <span style="color: #7fff00;">(</span>plist-get info <span style="color: #96a5d9; font-style: italic;">:message</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>advice-add 'alert-fringe-notify <span style="color: #96a5d9; font-style: italic;">:after</span> #'fn/alert-fringe-notify-message<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Or you could add that to <code>fn/alert-color</code> if advicing is overkill.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgaeee310" class="outline-2">
+<h2 id="orgaeee310">Conclusion</h2>
+<div class="outline-text-2" id="text-orgaeee310">
+<p>
+Now that we have candied alerts for our services, what else can be
+done with these libraries?
+</p>
+
+<ul class="org-ul">
+<li>Service dependencies</li>
+<li>Log alerts to file</li>
+</ul>
+
+<p>
+If more services such as <code>react-native</code> come and go, we can now easily
+creates alerts for it.
+</p>
+</div>
+</div>
