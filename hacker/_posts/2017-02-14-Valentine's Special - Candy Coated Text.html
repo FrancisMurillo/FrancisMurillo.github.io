@@ -1,0 +1,299 @@
+---
+title: Valentine's Special - Candy Coated Text
+tagline: Giving color to love
+blog-category: hacker
+category:
+- hacker
+- watcher
+tag:
+- hacker
+- valentine day
+- special
+---
+
+<div id="outline-container-org3236ebd" class="outline-2">
+<h2 id="org3236ebd">Valentine's Day</h2>
+<div class="outline-text-2" id="text-org3236ebd">
+<p>
+<a href="https://en.wikipedia.org/wiki/Valentine%27s_Day">Valentine's Day</a> is a romantic date for some. As for me, I am content
+in rewatching one of my favorite animes <a href="https://en.wikipedia.org/wiki/Kyousogiga">Kyousougiga</a>.
+</p>
+
+<p>
+<img src="/hacker/images/valentine-day--kyousougiga.png" alt="Screenshot Of Kyousougiga"/>
+</p>
+
+<p>
+Much more than romantic love, it is a deep anime about the family
+which is brilliant in so many ways. It is well directed, interesting
+story, strong symbolisms behind its colorful facade and children which
+all showcase how anime can create a unique story from the <a href="https://en.wikipedia.org/wiki/Alice_in_Wonderland_(2010_film)">Wonderland</a>.
+</p>
+
+<p>
+<img src="/hacker/images/valentine-day--kyousougiga-family.png" alt="Screenshot Of The Theme Of Family"/>
+</p>
+
+<p>
+Instead of talking about this anime, I just want to show in this short
+article about coloring text in Elisp or making messages a bit more
+candy colored. This trick is useful in differentiating messages from
+all the other. In particular, I want my love violet.
+</p>
+
+<p>
+By the way, I recommend this anime if you are a fan of anime being a
+unique and enriching medium of visual storytelling such as with <a href="https://en.wikipedia.org/wiki/Angel%27s_Egg">Tenshi
+no Tamago</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org14b154e" class="outline-2">
+<h2 id="org14b154e">Colored Text</h2>
+<div class="outline-text-2" id="text-org14b154e">
+<p>
+If you ever wanted color in Emacs, you might have encountered
+<code>font-locking</code> which is terribly hard to use and learn. (Not that
+Emacs was on its own.) Instead, I want to focus on the function
+<code>propertize</code>. What it does is add a <code>face</code> text property or style to a
+string.
+</p>
+
+<p>
+Strings in Elisp aren't just array of characters but also objects that
+have attributes as wells. This is further emphasized by the two
+functions <code>substring</code> and <code>substring-no-properties</code> which can be seen
+in this snippet.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> normal-text
+      <span style="color: #68f6cb;">"Hello World"</span>
+      colored-text
+      <span style="color: #ff1493;">(</span>propertize <span style="color: #68f6cb;">"Hello World"</span> 'face '<span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ea4335"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">-&gt; #("Hello World" 0 11 (face (:foreground "#ea4335")))</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Get the substring hello from text</span>
+<span style="color: #ff8c00;">(</span>substring colored-text 0 5<span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">-&gt; #("Hello" 0 5 (face (:foreground "#ea4335")))</span>
+
+<span style="color: #ff8c00;">(</span>substring-no-properties colored-text 0 5<span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">-&gt; "Hello"</span>
+</pre>
+</div>
+
+<p>
+Sadly, if you want to see the result of this styline, you have two
+ways: insert in a temporary buffer or wrap it with a timer.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> colored-text
+      <span style="color: #ff1493;">(</span>propertize <span style="color: #68f6cb;">"Hello World"</span> 'face '<span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ea4335"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Does not show the styling</span>
+<span style="color: #ff8c00;">(</span>message colored-text<span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Using temporary buffer</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Use =switch-to-buffer= and create a temporary buffer which removes text decorations</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Then insert it</span>
+<span style="color: #ff8c00;">(</span>insert colored-text<span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Wrapping with idle timer</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">This makes me sad</span>
+<span style="color: #ff8c00;">(</span>run-with-idle-timer 0 nil <span style="color: #ff1493;">(</span>apply-partially #'message colored-text<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Creating a custom message function for this purpose</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/message</span> <span style="color: #ff1493;">(</span><span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>run-with-idle-timer 0 nil <span style="color: #7fff00;">(</span>apply #'apply-partially <span style="color: #00bfff;">(</span>append <span style="color: #ffff00;">(</span>list #'message<span style="color: #ffff00;">)</span> args<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Don't ask my why and I still have no idea but apparently running
+through a timer instead of directly makes it work. Why Emacs has to
+make me work harder for something it should specialize on but here it
+is and I will use the wrapped delayed message function as a checker
+<code>fn/message</code>.
+</p>
+
+<p>
+In any case there are other styling such as font color and box
+borders, you can check out <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Text-Properties.html">Text Properties</a> in the manual to get a
+deeper look or <code>customize-face</code> for the options. Instead of
+explaining, I present you with some words I found colorful which you
+can find at this <a href="https://gist.github.com/57b810f469d0ae9c061e63b8f8b875fe">snippet</a> for the whole collection I have at the time.
+(Having a color picker is useful here.)
+</p>
+</div>
+
+<div id="outline-container-orgf344fb0" class="outline-3">
+<h3 id="orgf344fb0">Google</h3>
+<div class="outline-text-3" id="text-orgf344fb0">
+<p>
+To impress, check out the Google's logo and then come back with this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>fn/message
+ <span style="color: #ff1493;">(</span>concat <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">google</span>
+  <span style="color: #7fff00;">(</span>propertize <span style="color: #68f6cb;">"g"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#4285f4"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>propertize <span style="color: #68f6cb;">"o"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ea4335"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>propertize <span style="color: #68f6cb;">"o"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#fbbc05"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>propertize <span style="color: #68f6cb;">"g"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#4285f4"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>propertize <span style="color: #68f6cb;">"l"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#34a853"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>propertize <span style="color: #68f6cb;">"e"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ea4335"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org70fe879" class="outline-3">
+<h3 id="org70fe879">Freenode</h3>
+<div class="outline-text-3" id="text-org70fe879">
+<p>
+Freenode is a kind IRC:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>fn/message
+ <span style="color: #ff1493;">(</span>concat  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">freenode</span>
+  <span style="color: #7fff00;">(</span>propertize
+   <span style="color: #68f6cb;">"free"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#e6e6e6"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+  <span style="color: #7fff00;">(</span>propertize
+   <span style="color: #68f6cb;">"node"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#4beb4a"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Another simple example, let's move on to something harder.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org1152944" class="outline-3">
+<h3 id="org1152944">Emacs</h3>
+<div class="outline-text-3" id="text-org1152944">
+<p>
+Taking from the <a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Text-Properties.html">GNU Emacs</a> site, I want Emacs to be special:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>fn/message
+ <span style="color: #ff1493;">(</span>propertize
+  <span style="color: #68f6cb;">"emacs"</span>
+  'face
+  '<span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ffffff"</span> <span style="color: #96a5d9; font-style: italic;">:background</span> <span style="color: #68f6cb;">"#7e5ab6"</span>
+                <span style="color: #96a5d9; font-style: italic;">:box</span> <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:line-width</span> 2 <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#592982"</span><span style="color: #00bfff;">)</span> <span style="color: #96a5d9; font-style: italic;">:weight</span> bold <span style="color: #96a5d9; font-style: italic;">:height</span> 0.9<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Notice the use of <code>:box</code>, which adds a border around the text,
+<code>:weight</code>, which makes the text bold or thin, and <code>:height</code>, which
+makes the text smaller or larger, that all culminates in creating the
+GNU Emacs logo.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org67413e7" class="outline-2">
+<h2 id="org67413e7">Pinkish Love</h2>
+<div class="outline-text-2" id="text-org67413e7">
+<p>
+From here we can have love, which is pink for the audience:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>fn/message
+ <span style="color: #ff1493;">(</span>propertize
+  <span style="color: #68f6cb;">"love"</span>
+  'face
+  '<span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ef2c63"</span> <span style="color: #96a5d9; font-style: italic;">:background</span>  <span style="color: #68f6cb;">"#ffdbef"</span>
+                <span style="color: #96a5d9; font-style: italic;">:box</span> <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:line-width</span> 1 <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#ffffff"</span><span style="color: #00bfff;">)</span> <span style="color: #96a5d9; font-style: italic;">:weight</span> bolder <span style="color: #96a5d9; font-style: italic;">:height</span> 2.2<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Have it whatever color you want but this trick is pretty nice to have.
+There is some limitation to all this but what is a world with more
+color and love?
+</p>
+
+<p>
+So how will we use this to show more love in Emacs?
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb73de94" class="outline-2">
+<h2 id="orgb73de94">Colored Message</h2>
+<div class="outline-text-2" id="text-orgb73de94">
+<p>
+If the word love appears when using message, we replace it with its
+colored version:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/love-text</span>
+  <span style="color: #ff1493;">(</span>propertize
+   <span style="color: #68f6cb;">"love"</span>
+   'face
+   '<span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ef2c63"</span> <span style="color: #96a5d9; font-style: italic;">:background</span>  <span style="color: #68f6cb;">"#ffdbef"</span>
+                 <span style="color: #96a5d9; font-style: italic;">:box</span> <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:line-width</span> 1 <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#ffffff"</span><span style="color: #00bfff;">)</span> <span style="color: #96a5d9; font-style: italic;">:weight</span> bolder <span style="color: #96a5d9; font-style: italic;">:height</span> 2.2<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/message-of-love</span> <span style="color: #ff1493;">(</span>orig-fun <span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>raw-message <span style="color: #ffff00;">(</span>apply #'format args<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>new-message
+       <span style="color: #ffff00;">(</span>replace-regexp-in-string <span style="color: #da70d6;">(</span>substring-no-properties fn/love-text<span style="color: #da70d6;">)</span> fn/love-text raw-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>funcall orig-fun new-message<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>advice-add 'message <span style="color: #96a5d9; font-style: italic;">:around</span> #'fn/message-of-love<span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #ff8c00;">(</span>fn/message <span style="color: #68f6cb;">"What is love?"</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This is a hack and it might be better to create a custom message
+function sucah as <code>fn/message</code> to show more intention. Either way, it
+is simple to add some color if you wanted to with <code>propertize</code>.
+</p>
+
+<p>
+Despite being a hack, this idea can be improved by adding several
+words to be replaced with its colored versions or actually changing
+the style of each word based on an algorithm. Ideas.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org74edb72" class="outline-2">
+<h2 id="org74edb72">Conclusion</h2>
+<div class="outline-text-2" id="text-org74edb72">
+<p>
+A special article to color our world for those who live in Emacs. This
+is just an idea to get people to use colored text more in Emacs
+without the need for special font coloring syntax.
+</p>
+
+<p>
+As for me, I use this trick for my unified message log which ties my
+<code>erc</code>, <code>slack</code> and <code>jabber</code> messages in one buffer so that I don't
+have to visit each one but only one. This trick helps in scanning
+where the message comes from by color coding the server and
+room/channel which helps me scan it faster. (I don't persist the
+buffer of course since it is public logging but if I did, I keep it
+personal only as a history of what happened.)
+</p>
+
+<p>
+Happy Valentines, back to watching the anime.
+</p>
+</div>
+</div>
