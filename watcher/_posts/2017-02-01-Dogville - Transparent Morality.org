@@ -1,0 +1,145 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamp:t
+#+BEGIN_EXPORT html
+---
+title: Dogville - Transparent Morality
+tagline: What does it mean to have no walls
+blog-category: watcher
+category:
+- watcher
+tag:
+- watcher
+- dogville
+---
+#+END_EXPORT
+
+* Dogville
+
+  /*Dogville removes superfluous walls to examine moral actions*/
+
+  [[https://en.wikipedia.org/wiki/Dogville][Dogville (2003)]] is a unique yet difficult film to watch. Aside from
+  using three hours and nine chapters like Quentin Tarantino's [[https://en.wikipedia.org/wiki/The_Hateful_Eight][The
+  Hateful Eight]]. It presents a town with no walls but only a chalk
+  outline akin to an architectural blueprint. A town that is bare of
+  superfluous details such as walls and trees and roads and fence, just
+  the space where people live.
+
+  [[img:watcher/images/dogville--blueprint.png][Screenshot Of Dogville]]
+
+  I like director, [[https://en.wikipedia.org/wiki/Lars_von_Trier][Lars von Trier]], and his other work [[https://en.wikipedia.org/wiki/Melancholia_%25282011_film%2529][Melancholia]] for
+  tackling different issues such as depression although his camera work
+  and visuals are somewhat stagnant. To compensate for the lack of
+  visuals, it must have a strong story or compelling characters. If you
+  have seen this and made it through, then it is for you to decide if it
+  is.
+
+  My focal point of dicussion is on the use of the setting and how it
+  correlates to its message. The message itself is somewhat direct with
+  a little subversion on tropes so I won't discuss that here.
+
+  *SPOILER ALERT*
+
+* A Town With No Walls
+
+  The audience can see the town has no walls but the actors are confined
+  by the space which they live in. This is akin to a stage play where
+  everything has been stripped to the bare minimum only to focus on the
+  actors. It is a strange setup indeed for a long and experimental film
+  but what does it really do? You may say it is a gimick to reduce
+  setting cost and excuse shoddy cinematography to which I might agree;
+  however, there is a thematic reason why it is used.
+
+  At a face value, this allows the audience to see the actors behind
+  walls. Obvious but misleading since the camera controls the viewpoint.
+  The true value of it can be seen from this unseen and horrendous rape
+  scene:
+
+  [[img:watcher/images/dogville--unseen-rape.png][Screenshot Of Unseen Rape]]
+
+  The audience sees the sexual assault but not the actors. Not only does
+  this heighten the devious act, this emphasizes the distance and denial
+  the towns people have. They are near but cannot or refuses to see what
+  is next to them. This disonnance between what the audience and actors
+  sees is what this setup bring.
+
+  However, it is not enough to justify it with a scene or two. To give
+  it meaning, it must be tied to the message or story of the film. The
+  town spiritual and moral leader is a philosopher, so this films hints
+  at saying something moral. A critical line from this philosopher is:
+
+  /*The whole country would be better served with a greater attitude of*/
+  /*openness and acceptance*/
+
+  Openness and acceptance. Hipocricy and denial, to be exact. By laying
+  down the extraneous walls, the town and its people are laid bare for
+  the audience to examine.
+
+* Reflection
+
+  After the hardships, hipocricy and cruelty the town has displayed to
+  Grace, the judgment at the end is well deserved although you could
+  reason more about it. More importantly, the initial decision to show
+  mercy yet reconsider wrath instead is very appropriate. Her reasoning
+  to be a martyr or merciful is hypocritical to what she reasons out,
+  which the film discusses with little for me to say. The theme of
+  self-examination runs deep.
+
+  The people themselves are deceptive in being kind at first but treat
+  her harshly later on and deny their abuse and wrongdoing. No one is
+  innocent specially the philosopher who merely uses words to his own
+  benefit.
+
+  [[img:watcher/images/dogville--cruelty.png][Screenshot Of The Town's Cruelty]]
+
+  When Grace attempts to leave, no one bothered asking what they did
+  wrong in why should a person leave their small community. Instead,
+  they tie her up to a proxy ball-and-chain. This film is hard to watch
+  because of the treatment and reality of Grace, which might happen to
+  anyone. A dark interpretation of human morality.
+
+  Going back to our setup, aside from the town's ironic geographic
+  emotional size, it reflects how little in the town really matters.
+  Since majority of the details could be removed even the dog, there is
+  little to care for about the town and by extension its people.
+
+  [[img:watcher/images/dogville--dog.png][Screenshot Of The Dog]]
+
+  In a way, this supports Grace's decision to remove this morally
+  deceitful town. Notice the one that remains after the massacre is the
+  unknowing and pure dog. It goes a bit more abstract.
+
+* Abstraction
+
+  #+BEGIN_SRC text
+    GRACE: Why not just call it Dogville?
+    TOM: Wouldn't work. No, it wouldn't work. It's got to be universal.
+    TOM: A lot of writers make that mistake.
+
+  #+END_SRC
+
+  Finally, the philospher indicates in naming his realized book to be a
+  universal name, not theirs furthering the meaning. However, it does
+  raise the point why the town is called Dogville. By joining the two
+  lines together, it indicates that the town itself is symbolic of
+  cruelty and hipocrisy happening anywhere.
+
+  So what if we imagine transparent walls around our homes, what would
+  it look like? Would it be just as Dogville be? If so would, that our
+  morality and courtesy be only our advantage? This is the literal
+  meaning of the setup, what is a world without walls? Do we want to see
+  beyond what our minds allow like bullying, abuse or rape in society?
+
+  Honestly as a hipocrite, I do not want to see what beyond the walls.
+  In that sense, is my morality truly a convenience? In general, is
+  morality that transparently empty?
+
+  Obviously there is more philosophical but this is the message of the
+  film. So in my opinion, the use of transparent walls was used to good
+  effect. A unique setup that I won't probably see in a long time.
+
+* Conclusion
+
+  The film is pretty straightforward in its meaning although long and
+  chatty. If you can stomach it, I encourage you to watch this gut
+  wrenching film for its unique story and depiction of morality. As for
+  me, it is one of my new favorite film that I cannot rewatch without
+  effort.

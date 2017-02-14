@@ -1,0 +1,291 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamp:t
+#+BEGIN_EXPORT html
+---
+title: Browsing w3m Anonymously With tor
+tagline: Combining w3m and tor for anonymous browsing
+blog-category: hacker
+category:
+- hacker
+tag:
+- hacker
+- elisp
+- tor
+- w3m
+- polipo
+---
+#+END_EXPORT
+
+* Problem
+
+  I'm having fun with [[http://w3m.sourceforge.net/][w3m]] but by using this I discarded several features
+  I have neglected with a GUI. One feature is private browsing which
+  keeps your history personal and private. (If people were desperate
+  enough to check a terminal browser for your secrets.) Just focusing on
+  browsing history, configuring it to ignore several sites is easy
+  enough with some glue and might warrant its own post.
+
+  Even with [[https://www.mozilla.org/en-US/firefox/new/][firefox]] or [[https://www.google.com/chrome/browser/desktop/index.html][chrome]], using [[https://duckduckgo.com/l/?kh=-1&uddg=https%253A%252F%252Fsupport.mozilla.org%252Fen%252DUS%252Fkb%252FPrivate%252520Browsing][private browsing]] is not enough as
+  servers can track your IP and then infer which sites you went to. Not
+  truly private but good enough against nosy users. Enter [[https://www.torproject.org/index.html.en][tor]], the
+  anonymizing web proxy. What makes it stand out is that it routes
+  request through several proxies while encrypting it between them to
+  mask where the request comes from and what it contains. It slows down
+  browsing speed but it will keep those pesky trackers and advertisers
+  from scarily guessing what books or movies you secretly want. For me,
+  it is a price I am willing to pay.
+
+  Sadly, that proxy protector is a [[https://en.wikipedia.org/wiki/SOCKS][SOCKS proxy]] and this browser only
+  uses [[https://en.wikipedia.org/wiki/Proxy_server][HTTP proxies]]. This means it isn't as easy and straightforward
+  combining the two of them, thus we need another middleman to join the
+  two. Enter [[https://en.wikipedia.org/wiki/Polipo][polipo]], another proxy server which is lightweight enough
+  for our merger. To lay down their relationship, =w3m= will use
+  =polipo= as its HTTP proxy which in turn uses =tor= as its SOCKS proxy
+  to send the request.
+
+  With that in mind here is the [[https://gist.github.com/0bf59110d447138d7d0a6d227d80f9a4][snippet]] to do so. The first time you run
+  this, =tor= might take some time setting up so be patient with that.
+  As hackers though, we'd like some more elaboration.
+
+* Configuration Generation
+
+  Once you installed and tried both =tor= and =polipo=, we want Emacs to
+  start these proxies when we start =w3m=. You could configure both of
+  them to be external services or daemons; however, we want portable or
+  standalone setups so that we minimize external dependencies and
+  conflicts.
+
+  Our old friend =start-process= comes to our aid again. Practically, we
+  want it to call both commands and send config command line options;
+  however, we can generate their respective configuration files via
+  Elisp so that the configuration can be tested and examined externally
+  as well as make the =list-process= entry of each cleaner.
+
+  Both configuration files can be abstracted as a list of key-value pairs or
+  cons with different line formatting. The basic snippet to accomplish
+  this with =tor=:
+
+  #+BEGIN_SRC emacs-lisp
+    (with-temp-file config-file ;; Config file path
+      (insert
+       (string-join
+        (mapcar
+         (lambda (pair)
+           (pcase-let ((`(,key . ,value) pair))
+             (format
+              "%s %s" ;; Line formatting
+              key ;; Key formatting
+              (typecase value ;; Value formatting
+                (symbolp (symbol-name value))
+                (numberp (number-to-string value))
+                (stringp value)))))
+         pairs ;; The cons list
+         )
+        "\n")))
+  #+END_SRC
+
+  Aside from using the helpful =with-temp-file= macro and destructring
+  =pcase-let=, the only nuance here is the value formatting via
+  =typecase=. How you do the formatting affects what values you place.
+  For example with =polipo=, our list of =cons= with some stylistic
+  backquoting would look something like this:
+
+  #+BEGIN_SRC emacs-lisp
+    `(("proxyAddress" . "0.0.0.0")
+      ("allowedClients" . "127.0.0.1")
+      ("diskCacheRoot" . ,fn/w3m-polipo-cache-dir)
+      ("proxyPort" . ,fn/w3m-polipo-port)
+      ("cacheIsShared" . false)
+      ("socksParentProxy" .
+       ,(format "%s:%s" "localhost" (number-to-string fn/w3m-tor-port)))
+      ("socksProxyType" . socks5))
+  #+END_SRC
+
+  Although the key types are the same, notice there are different value
+  types. Strings are quoted, numbers and symbols are stringified; if we
+  used just list of line strings, we'd have to do the formatting
+  ourselves. With this setup, it looks configurable and proper.
+
+  There is one caveat to this is that everytime you change a value
+  within the configuration, you have to update the files. Since there is
+  no data binding, you have to update it manually. Thankfully, this is
+  easily done with by calling =fn/w3m-polipo-tor-update-conf=
+  afterwards.
+
+  As a side note, there is some data binding mechanism using =defcustom=
+  and =customize-set-variable= but isn't really needed for a small shiv.
+  Also, it is fascinating how generating the files with Elisp allows us
+  to ensure they are bound by data and code.
+
+  Now, we can talk about the options we are interested in since I am
+  assuming you didn't really read the manuals.
+
+* tor Options
+
+  The configuration values for =tor=:
+
+  #+BEGIN_SRC emacs-lisp
+    `(("SocksPort" . ,fn/w3m-tor-port)
+      ("DataDirectory" . ,fn/w3m-tor-cache-dir)
+      ("ControlPort" . ,(1+ fn/w3m-tor-port))
+      ("DisableDebuggerAttachment" . 0))
+  #+END_SRC
+
+  - *SocksPort* ::
+       The port which it listens to. More importantly, this port is
+       where =polipo= points to.
+  - *DataDirectory* ::
+       The directory it uses. Not needed, but must be changed since it
+       defaults to a system directory
+  - *ControlPort* ::
+       Optional debugging port if you want to monitor it with tools such
+       as [[https://www.torproject.org/index.html.en][arm]].
+  - *DisableDebuggerAttachment* ::
+       This allows debugging and monitoring which is optional like *ControlPort*
+
+   All we strictly need is the *SocksPort* or the interface port and
+   everything else is for portability.
+
+* polipo Options
+
+  The configuration values for =polipo=:
+
+  #+BEGIN_SRC emacs-lisp
+    `(("proxyAddress" . "0.0.0.0")
+      ("allowedClients" . "127.0.0.1")
+      ("diskCacheRoot" . ,fn/w3m-polipo-cache-dir)
+      ("proxyPort" . ,fn/w3m-polipo-port)
+      ("cacheIsShared" . false)
+      ("socksParentProxy" .
+       ,(format "%s:%s" "localhost" (number-to-string fn/w3m-tor-port)))
+      ("socksProxyType" . socks5))
+  #+END_SRC
+
+  - *proxyAddress* ::
+       The address this listens to. Since this is standalone,
+       *localhost* is the only thing we need.
+  - *allowedClients* ::
+       The address that this allows. Since you can configure it to
+       be a network router, it has this option.
+  - *diskCacheRoot* ::
+       Like with =tor= and *DataDirectory*.
+  - *proxyPort* ::
+       The port this listens to which =w3m= uses as its proxy
+  - *cacheIsShared* ::
+       Set to true if there is only one instance. Since this is
+       standalone, it is false.
+  - *socksParentProxy* ::
+       The SOCKS proxy port it listens to. This is where =tor= and =polipo=
+       meet.
+  - *socksProxyType* ::
+       The SOCKS proxy type. The default =socks5= is what =tor= is.
+
+  A little more nuanced since it is the middle man. What is strictly
+  needed here is *proxyPort* and *socksParentProxy* which are just the
+  interface ports.
+
+  Now that the options are clear, we move to our browser options.
+
+* w3m Options
+
+  We now look at the main browser and the only external option it needs,
+  =http_proxy=. This is simply adding to =w3m-command-arguments= the
+  value =http_proxy=https://127.0.0.1:<polipo-port>= after =-o= option
+  and that is all there is. It is now just a matter of calling the
+  appropriate processes when =w3m= loads:
+
+  #+BEGIN_SRC emacs-lisp
+    (setq fn/w3m-tor-process
+       (start-process "w3m-tor" "*w3m-tor*" "tor" "-f" fn/w3m-tor-conf-file)
+       fn/w3m-polipo-process
+       (start-process "w3m-polipo" "*w3m-polipo*" "polipo" "-c" fn/w3m-polipo-conf-file))
+  #+END_SRC
+
+  Aside from managing the processes, all the pieces should work together
+  properly.
+
+  If there are specialized hosts or domains which you don't need
+  anonymity, you should set them via =w3m-no-proxy-domains=:
+
+  #+BEGIN_SRC emacs-lisp
+    (add-to-list 'w3m-no-proxy-domains "127.0.0.1")
+    (add-to-list 'w3m-no-proxy-domains "localhost")
+  #+END_SRC
+
+  As for me, if I don't add this, I can't test my blog since I will get
+  a proxy error. Configure to your actual and specific setup.
+
+  Optionally, the proxy might interfere with several sites so a command
+  to add the site as a proxy exception:
+
+  #+BEGIN_SRC emacs-lisp
+    (defun fn/w3m-add-current-host-to-no-proxy-domains ()
+      "Add current host to `w3m-no-proxy-domains'"
+      (interactive)
+      (when (eq major-mode 'w3m-mode)
+        (lexical-let* ((parts (w3m-parse-http-url w3m-current-url))
+            (host (elt parts 1)))
+          (add-to-list 'w3m-no-proxy-domains host t)
+          (w3m-reload-this-page))))
+  #+END_SRC
+
+  This adds the current host to =w3m-no-proxy-domains= and reloads the
+  page. Hopefully, you would not need to use this command as it
+  signifies the roadblocks the proxies bring.
+
+* Auto Start And Kill
+
+  When =w3m= loads, it might be convenient to start it up. However,
+  these processes is not as simple as =flyspell= or the like, so asking
+  permission or confirmation as a reminder might be wise. A simple
+  snippet does the job:
+
+  #+BEGIN_SRC emacs-lisp
+    (when (yes-or-no-p "Start polipo and tor for w3m? ")
+      (fn/w3m-polipo-tor-start-process))
+  #+END_SRC
+
+  Now the flip side of killing it should be handled when Emacs
+  terminates; however for some reason, =tor= doesn't cleanly stop which
+  creates a leak that is not visible by =list-process=. Strangely,
+  =polipo= closes properly but =tor= does not. So a stronger guarantee
+  is to kill it as part of Emacs:
+
+  #+BEGIN_SRC emacs-lisp
+    (add-hook 'kill-emacs-hook #'fn/w3m-polipo-tor-kill-process)
+  #+END_SRC
+
+  This hook is not a true guarantee as Emacs can be killed externally,
+  so this hook will not run, thus =tor= is still running after the next
+  session. You can check using =proced= if a =tor= is still running and
+  kill it accordingly. This is apparently normal behavior for deamons.
+
+  When Emacs is killed, it sends a SIGHUP signal to its child processes
+  or more importantly to the processes made with =start-process=. As
+  stated by the manual:
+
+  #+BEGIN_SRC text
+    SIGHUP
+    The signal instructs Tor to reload its configuration (including closing and reopening
+    logs), and kill and restart its helper processes if applicable.
+  #+END_SRC
+
+  This means when Emacs is killed externally, it restarts =tor= instead
+  of killing it. Sadly, there is no way to change the kill or intercept
+  the signal =tor= receives easily. For now, this issue is out of scope
+  for a simple process glue. You can create a custom script to start
+  =tor=, but this is a reminder that we can't control everything without
+  lower level work.
+
+* Conclusion
+
+  With this, we joined =w3m=, =polipo=, =tor= to browse more privately
+  and all within Emacs. Not perfect but it gets the job done. There are
+  features or aspects that can be improved:
+
+  - Data and argument binding, managing =w3m-command-arguments= as well
+  - Error handling
+  - Process management on open and close of =w3m=, maybe =prodigy=?
+  - Proxy fine tuning and configuration, checkout [[https://gitweb.torproject.org/torbrowser.git/plain/build-scripts/config/polipo.conf?id=1ffcd9dafb9dd76c3a29dd686e05a71a95599fb5][custom polipo conf from tor]]
+
+  The joy of Emacs, gluing things together to get what you want even if
+  its just private browsing.

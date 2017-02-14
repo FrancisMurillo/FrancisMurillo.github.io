@@ -1,0 +1,77 @@
+* Official Watch List
+  :PROPERTIES:
+  :TABLE_EXPORT_FILE: official-watch-list.yaml
+  :TABLE_EXPORT_FORMAT: fn/orgtbl-to-yaml
+  :END:
+
+  Yes, I have an unofficial watch list for myself
+
+| Title                          | Type  | Year | Public Rating | Personal Rating |       Date | Quick Word                                                                                                          | Link |
+|--------------------------------+-------+------+---------------+-----------------+------------+---------------------------------------------------------------------------------------------------------------------+------|
+| F for Fake                     | Movie | 1973 | 3 / 5         | 5 / 5           | 2017-02-14 | How fake and mesmerizing this classic movie is.                                                                     |      |
+| Full Metal Jacket              | Movie | 1987 | 4 / 5         | 5 / 5           | 2017-02-11 | Dissecting war with a gripping story about looking through its soldiers                                             |      |
+| Stagecoach                     | Movie | 1939 | 3 / 5         | 5 / 5           | 2017-02-11 | A nicely done story of travelling strangers and thier relations                                                     |      |
+| Aku no Hana                    | Anime | 2013 | 2 / 5         | Dropped         | 2017-02-11 | The rotoscoping and philosophical undertone was not enough to save the shoddy pacing, characters and (voice) acting |      |
+| Chinatown                      | Movie | 1974 | 3 / 5         | 5 / 5           | 2017-02-10 | A captivating and sublime subversion of a detective story                                                           |      |
+| Rubber                         | Movie | 2010 | 2 / 5         | 4 / 5           | 2017-02-09 | I A film about the audience expectations and a sentient telepathic rubber tire. Fascinating to burn                 |      |
+| Love                           | Movie | 2015 | 2 / 5         | 3 / 5           | 2017-02-09 | A bold concept made flacid by length and (acting) performance which bordered on pornography                         |      |
+| American Beauty                | Movie | 1999 | 4 / 5         | 5 / 5           | 2017-02-09 | One of the best drama films one can watch                                                                           |      |
+| The Legend of Drunken Master   | Movie | 1994 | 5 / 5         | 5 / 5           | 2017-02-08 | Hands down one of the best martial arts movie you can ever watch                                                    |      |
+| Wayne's World                  | Movie | 1992 | 3 / 5         | 3 / 5           | 2017-02-08 | Not that funny but I appreciate how quaint it is                                                                    |      |
+| A Boy and His Dog              | Movie | 1987 | 2 / 5         | 4 / 5           | 2017-02-08 | A post apocalyptic film not for everyone but one that I enjoy mildly                                                |      |
+| The Man With Two Brains        | Movie | 1983 | 2 / 5         | Dropped         | 2017-02-07 | Terribly unfunny, I rather watch Wayne's World instead.                                                             |      |
+| Chicago                        | Movie | 2002 | 4 / 5         | 4 / 5           | 2017-02-07 | A musical worth of being a musical                                                                                  |      |
+| Groundhog Day                  | Movie | 1993 | 3 / 5         | 5 / 5           |            | A well made life under purgatory without being religious                                                            |      |
+| Golden Boy                     | Anime | 1995 | 4 / 5         | 5 / 5           | 2017-02-05 | One of the best mature comedies I have ever seen                                                                    |      |
+| Punch Drunk Love               | Movie | 2002 | 4 / 5         | 5 / 5           | 2017-02-04 | Finally, a good Adam Sandler film that portrays a realistic relationship.                                           |      |
+| Romeo and Juliet               | Movie | 1968 | 4 / 5         | 5 / 5           | 2017-02-04 | The best version of Romeo and Juliet that really matches the time and actors                                        |      |
+| City Lights                    | Movie | 1931 | 4 / 5         | 5 / 5           | 2017-02-04 | A truly and funny romantic silent film from Charlie Chaplin                                                         |      |
+| Hatsukoi Limited               | Movie | 2008 | 4 / 5         | 4 / 5           | 2017-02-04 | One of the better romantic slice of lifes anime.                                                                    |      |
+| The Master                     | Movie | 2012 | 4 / 5         | 5 / 5           | 2017-02-04 | A nice film portraying a cult or religious sector.                                                                  |      |
+| 30 Days of Night               | Movie | 2007 | 4 / 5         | 4 / 5           | 2017-02-04 | A good horror movie about dying light                                                                               |      |
+| The Holy Mountain              | Movie | 1973 | 2 / 5         | 4 / 5           | 2017-02-03 | So crass yet so fascinating to watch.                                                                               |      |
+| Hourou Musuko                  | Anime | 2011 | 4 / 5         | 4 / 5           | 2017-02-03 | A quiet genderbender anime that one can appreciate                                                                  |      |
+| Gankutsuou                     | Anime | 2005 | 4 / 5         | 5 / 5           | 2017-02-03 | A well done and riveting story of the Count of Monte Cristo                                                         |      |
+| Casshern Sins                  | Anime | 2008 | 3 / 5         | Dropped         | 2017-02-03 | Interesting plot but pulled down by weak building, weak characters and pacing despite its artistic introspections   |      |
+| 500 Days of Summer             | Movie | 2009 | 4 / 5         | 5 / 5           | 2017-01-30 | A rare romantic gem that I find real and bittersweet                                                                |      |
+| O Brother, Where Are Thou?     | Movie | 2000 | 3 / 5         | 4 / 5           | 2017-01-30 | Not that great but fun and toned film                                                                               |      |
+| Revolutionary Girl Uthena      | Anime | 1997 | 3 / 5         | Dropped         | 2017-01-30 | The repetitive nature and shoddy quality has bored me. I rather watch Angel's Egg.                                  |      |
+| The Rose Of Versailles         | Anime | 1980 | 4 / 5         | 5 / 5           | 2017-01-30 | A strong story about the French Revolution.                                                                         |      |
+| REC                            | Movie | 2007 | 4 / 5         | 4 / 5           | 2017-01-30 | A strong found footage horror.                                                                                      |      |
+| Wild Strawberries              | Movie | 1957 | 3 / 5         | 5 / 5           | 2017-01-29 | A strong and quiet film about a life of regret                                                                      |      |
+| Cloverfield                    | Movie | 2008 | 3 / 5         | 3 / 5           | 2017-01-29 | An unique twist on the found footage style but wasn't compelled                                                     |      |
+| Speed Racer                    | Movie | 2008 | 2 / 5         | 4 / 5           | 2017-01-29 | Style over substance but this adaptation shows great effort and love.                                               |      |
+| The Squid and the Whale        | Movie | 2005 | 3 / 5         | 5 / 5           | 2017-01-28 | A powerful portrayal on the effects of divorce on the family                                                        |      |
+| Chronicle                      | Movie | 2012 | 4 / 5         | 4 / 5           | 2017-01-28 | A found footage film that is transcended by its theme and use.                                                      |      |
+| The Blair Witch Project        | Movie | 1996 | 3 / 5         | 3 / 5           | 2017-01-27 | The kickstarter of found footage film can be appreciated for style and patience but not substance                   |      |
+| Eraserhead                     | Movie | 1977 | 2 / 5         | 5 / 5           | 2017-01-26 | Another difficult watch that shows the fear of fatherhook and its responsibility                                    |      |
+| Dogville                       | Movie | 2003 | 3 / 5         | 4 / 5           | 2017-01-25 | A challenging and unique film to watch that challenges how transparently empty morality is                          |      |
+| The Fall                       | Movie | 2006 | 3 / 5         | 5 / 5           | 2017-01-24 | An unique story within a story that is deceptively visual and clever                                                |      |
+| Some Like It Hot               | Movie | 1959 | 4 / 5         | 4 / 5           | 2017-01-24 | A screwball comedy that I find funny and worthwhile                                                                 |      |
+| The Grand Budapest Hotel       | Movie | 2014 | 4 / 5         | 5 / 5           | 2017-01-24 | What a visual delight and candy that rivals the beauty of animation                                                 |      |
+| Crouching Tiger, Hidden Dragon | Movie | 2000 | 5 / 5         | 5 / 5           | 2017-01-23 | An excellent martial arts film that brings action and story nicely                                                  |      |
+| Ong Bak                        | Movie | 2003 | 4 / 5         | 5 / 5           | 2017-01-22 | Great Muay Thai action and stunt work that I enjoyed heartily.                                                      |      |
+| Anthem of the Heart            | Movie | 2015 | 4 / 5         | 4 / 5           | 2017-01-21 | A solid story about the weight of words without being heavyhanded                                                   |      |
+| Manhunter                      | Movie | 1986 | 3 / 5         | 3 / 5           | 2017-01-21 | Another okay film like with Red Dragon but I prefer this.                                                           |      |
+| Red Dragon                     | Movie | 2002 | 3 / 5         | 3 / 5           | 2017-01-19 | An okay psychological film with my favorite cannibal.                                                               |      |
+| Mother                         | Movie | 2009 | 3 / 5         | 5 / 5           |            | Deceptively told about how a mother would fight for her son.                                                        |      |
+| Memories of Murder             | Movie | 2003 | 3 / 5         | 5 / 5           |            | A great story showing morality and justice by rushing a case against time.                                          |      |
+| Zodiac                         | Movie | 2007 | 3 / 5         | 5 / 5           | 2017-01-19 | A gripping story that explores obsession and interest through an unsolved case.                                     |      |
+| That Thing Called Tadhana      | Movie | 2014 | 4 / 5         | 5 / 5           |            | It is a rare gem of a film that subverts romantic comedies to explore romantic fate                                 |      |
+| Jin-Roh: The Wolf Brigade      | Movie | 1999 | 4 / 5         | 5 / 5           |            | A brilliant inspection on black-and-white morality.                                                                 |      |
+| Princess Tutu                  | Anime | 2002 | 3 / 5         | 5 / 5           |            | Magical girl done right with a fascinating story of freedom, free will and fate.                                    |      |
+| Mushi-Shi                      | Anime | 2005 | 4 / 5         | 5 / 5           | 2017-01-16 | A very consistent psychological and philosophical series that is very human                                         |      |
+| John Wick                      | Movie | 2014 | 4 / 5         | 5 / 5           |            | A rare action film that I thoroughly enjoy and impressed.                                                           |      |
+| The Garden of Words            | Movie | 2013 | 5 / 5         | 5 / 5           | 2017-01-12 | The second best Shinkai work about responsibility and maturity                                                      |      |
+| The Raid 2                     | Movie | 2014 | 4 / 5         | 5 / 5           | 2017-01-12 | Reservation aside, this is one bloody and exciting action flick                                                     |      |
+| The Seventh Seal               | Movie | 1957 | 3 / 5         | 5 / 5           | 2017-01-12 | A subtly good film about prolonging death that gets livelier at each watch.                                         |      |
+| Hellsing Ultimate              | Movie | 2006 | 4 / 5         | 4 / 5           | 2017-01-11 | One of the better action series I've seen but is a bit long and gory                                                |      |
+| Groundhog Day                  | Movie | 1993 | 4 / 5         | 5 / 5           |            | One of the best movies exploring the purpose and grind of daily life.                                               |      |
+| Her                            | Movie | 2013 | 4 / 5         | 5 / 5           |            | A genius movie exploring love through a relationship with a machine.                                                |      |
+| Shaft                          | Movie | 1971 | 3 / 5         | 3 / 5           | 2017-01-08 | Not very griping as a movie                                                                                         |      |
+| Terminator 2: Judgment Day     | Movie | 1991 | 4 / 5         | 4 / 5           | 2017-01-08 | Excellent animation for this time although a little long                                                            |      |
+| FLCL                           | Anime | 2000 | 4 / 5         | 5 / 5           | 2017-01-04 | An energetic story on what it means to be an adult                                                                  |      |
+| Kimi no Na wa                  | Movie | 2016 | 5 / 5         | 4 / 5           | 2016-12-18 | A beautiful swapping romance with the unique use of body swapping                                                   |      |
+| Song of the Sea                | Movie | 2014 | 5 / 5         | 5 / 5           |            | Visually drawn and emotionally captivating journey of accepting loss                                                |      |
+| 5 Centimeters Per Second       | Movie | 2007 | 4 / 5         | 5 / 5           |            | The gateway film to Makoto Shinkai that hides a positive outlook of separation                                      |      |
+| School Days                    | Anime | 2007 | 2 / 5         | 3 / 5           |            | A sad story about how real teenagers would behave                                                                   |      |

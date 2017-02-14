@@ -1,0 +1,247 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamp:t
+#+BEGIN_EXPORT html
+---
+title: Kimi no Na wa - No Message
+tagline: One of Shinkai's visual masterpiece that has no obvious message
+blog-category: watcher
+category:
+- watcher
+- observation
+tag:
+- kimi no na wa
+---
+#+END_EXPORT
+
+*UPDATE 2017-01-20: Refactoring from ghosts to time travel, a logical*
+*error. Also, making it more brief than longwinded.*
+
+* Kimi no Na wa
+
+  /*Kimi no Na wa has no obvious message about an aspect of relationships.*/
+
+  [[https://en.wikipedia.org/wiki/Your_Name][Kimi no Na wa (2016)]] is one of Makoto Shinkai's beautiful work. It is
+  visually magnificent, spectacularly directed and romantically moving.
+  Praises and adulation, nothing less from his works and I would love to
+  rewatch it. After noting how great it is from a viewing experience, I
+  now want to talk about what it means to me.
+
+  As a fan of his previous films, what I look for in his works are both
+  beauty and meaning. After watching his films, I am lost in thought and
+  emotion, asking for closure and meaning. However, I am not assuming
+  you have seen his previous films, rather I will give my own
+  interpretations and contrast it with this film.
+
+  *SPOILER WARNING for this this and his previous films.*
+
+* Present
+
+  This film is a romantic story based on a body swapping mechanic. Not
+  unique but the presentation of the relationship and cinematic
+  execution is what makes this standout. And that Shinkai touch.
+
+  In the lens of a three part act, the first act introduces their
+  relationship brought about by the body swapping, the second act stops
+  the swappingg and brings much needed mechanical exposition, the last
+  act is the meeting of time and space. To elaborate the mechanic, the
+  girl exists in a time three years before the boy and swap time and
+  place every other day. The reason for it might be due to the magic of
+  the circling comet and the hint that the boy's family itself might be
+  time travellers. The actual mechanic itself is a little strange that I
+  believe ghosts and out-of-body experiences served a more believable
+  explanation than time travel. Regardless of errors in actual
+  reasoning, my sentiment and thoughts are valid.
+
+  So on my initial viewing, I stayed behind until the credits rolled
+  because I could not think how it failed to ask questions about aspects
+  of a relationship. I make this statement on the basis of asking if the
+  main characters meeting has meaning aside from closure or catharsis. I
+  find it hard to believe that this film is has nothing to say aside
+  from having a nice teenage romance, which is not wrong but strange.
+
+* Looking For Meaning
+
+  A film may or may not have meaning or message. A film may be for a
+  casual or artistic experience, so it is not required. My case is that
+  after watching so many films, I want to find and watch films that are
+  more than enjoyment. Although I do have moods in watching, I can only
+  watch so many that I have to choose those with literal meaning and
+  value.
+
+  My general claim is that if a film has a message, it has more value
+  than a film that doesn't. The judge is primarily execution and
+  context, a bad film can have a message and a good film can have none.
+  As a cerebral watcher, it is the message or themes that resonate and
+  stays with me after the film rather than the emotional punch at the
+  end. I am merely maximizing my time in watching, but it's good to have
+  fun as well.
+
+  I understand that there are pretentious films and that this is my
+  personal gripe but I had my expectations for a Shinkai film: beautiful
+  inside and out. If you want to understand my expectations, let's look
+  at what his previous films said.
+
+* Past
+
+  Here is a list of his previous work with my quick interpretations:
+
+  - [[https://en.wikipedia.org/wiki/The_Place_Promised_in_Our_Early_Days][The Place Promised in Our Early Days (2004)]] ::
+       Reality is more important than dreams
+  - [[https://en.wikipedia.org/wiki/5_Centimeters_Per_Second][5 Centimeters Per Second (2007)]] ::
+       Moving on from your past
+  - [[https://en.wikipedia.org/wiki/Children_Who_Chase_Lost_Voices][Children Who Chase Lost Voices (2011)]] ::
+       Accepting grief and sadness
+  - [[https://en.wikipedia.org/wiki/The_Garden_of_Words][The Garden of Words (2013)]] ::
+       Being mature
+
+  These may not be perfect interpretations but at least I had one for
+  each of them. Each one deserves a post looking at there theme and
+  message but for now I will justify my interpretations about each one
+  to avoiding making this longwinded. Read on with a grain of salt.
+
+** The Place Promised in Our Early Days
+
+   /*Reality is more important than dreams*/
+
+   [[img:watcher/images/kimi-no-na-wa--the-place-promised-in-our-early-days.png][Screenshot Of The Place Promised in Our Early Days]]
+
+   This film is more complicated mechanically than the main film since
+   it uses parallel worlds and scientific babble. Plotholes and
+   complexities, there is a tower reaching the heavens which unites
+   everyone in hope and dream, to reach the heavenly tower. For some
+   reason, this tower took the main girl into itself and where the main
+   boy gets into a chopper, gets the girl inside and destroys the tower.
+   A little more complex than it has to be to present a romantic story.
+
+   It took me quite a while to come to terms with this film and the
+   easiest explanation I can give is this: the tower represents dreams
+   and by destroying and getting the girl, reality is not as important.
+   Put in another way, instead of dreaming of being together, let us be
+   together.
+
+   To add to this, there is a war where two countries are struggling and
+   between them is the tower. A resistance force wants to unify the two
+   by destroying it thereby removing the towering distance between them.
+
+   More directly, the girl inside the tower and the boy outside dreams
+   to be together. The tower is their promised place but by destroying
+   it to free the girl, they have literally destroyed their paradise to
+   be together.
+
+   The tower represents that place in the distance that people can dream
+   and share together, thus the symbolic ending is disheartening. Is it
+   wrong to dream and live in that paradise?
+
+   It is a complicated film but it has a message, although not something
+   I endorse. In comparison to this theme and setup, I would prefer to
+   watch [[https://en.wikipedia.org/wiki/Royal_Space_Force:_The_Wings_of_Honn%25C3%25AAamise][Royal Space Force: The Wings of Honeeamise]] as the simple
+   symbolism of an everyday man of dreaming to launch to space is much
+   more triumphant.
+
+** 5 Centimeters Per Second
+
+   /*Moving on from things that cannot be*/
+
+   [[img:watcher/images/kimi-no-na-wa--5-centimeters-per-second.png][Screenshot Of 5 Centimeters Per Second]]
+
+   This film is the reason why I am a Shinkai fan. It is a literal
+   three-part structure represented by short stories, the first part
+   shows the relationship between the leads, the second piece the
+   distant growing between them, the last indicates how far they are.
+   From the outset, I praise this film for showing how people get
+   distant over time, a rare topic to cover. Although the film appears
+   to be a sad, it is actually a happy one by showing the main
+   protagonist moving on.
+
+   Here the relationship has meaning. Although the can get close
+   physically, they are worlds apart. During their separation, the woman
+   has found a life while the man is longing for her too much. If they
+   did hook up, it would simply be a tale in fate and destiny. However,
+   by choosing to move on, it shows acceptance of things that cannot be.
+   No matter how close they get, they are worlds apart despite how they
+   dream of those early days.
+
+   This is a subversion on the romantic ending and relationship that is
+   well executed in tackling isolation and longing in a simple and
+   realistic relationship. This is the essential Shinkai film in my eyes
+   from which others are judged. Moving on.
+
+** Children Who Chase Lost Voices
+
+   /*Understanding and moving on from grief*/
+
+   [[img:watcher/images/kimi-no-na-wa--children-who-chase-lost-voices.png][Screenshot Of Children Who Chase Lost Voices]]
+
+   This film is standout from the roster. First, the message is very
+   easy to understand, accepting grief. Nothing much to say or do with
+   its simplicity but not that it is bad. If you consider grief as
+   longing, then it is a reasonable theme for a Shinkai film.
+
+   Secondly, this has a magical world much more akin to a Studio Ghibli
+   film. Perhaps from social pressure of being a Miyazaki which is not
+   needed as with Mamoru Hosoda? Not that I discourage it, he already
+   has a distinct style that I appreciate.
+
+   Lastly, the film has no romantic relationship to address, instead the
+   question is changed to should they call for their dearly departed?
+   The least Shinkai film.
+
+   This film is not a masterpiece of story telling or world building but
+   it does address grief on a journey to the other world simply.
+
+** Garden Of Words
+
+   /*Being mature is not being an aduly but a person maturing.*/
+
+   [[img:watcher/images/kimi-no-na-wa--the-garden-of-words.png][Screenshot Of The Garden Of Words]]
+
+   My second favorite Shinkai film while being a return to form from the
+   previous one. It presents a relationship between a high schooler and
+   a teacher in a way that puts them on equal footing. Their meetings on
+   rainy morning in a park is an escapist paradise, where people who can
+   be isolated from their fear. Through their meetings, they grow a
+   relationship that transcend status and responsibility. It is a true
+   Shinkai film.
+
+   At some point in the film, the illusion is shattered and their
+   relationship meets up with reality. Questioning both the maturity of
+   the student and the responsibility of the teacher. What makes this
+   different is that it ends on an open ending. By using such, the
+   relationship is allowed a new start when both are more mature in
+   their lives, instead of forcing an issue of age, status and
+   responsibility.
+
+   Among his previous films, this is the most complex in terms of
+   understanding which I appreciate. A similar theme is done by [[https://duckduckgo.com/l/?kh=-1&uddg=https%253A%252F%252Fen.wikipedia.org%252Fwiki%252FFLCL][FLCL]] but
+   I prefer this for how much you have to look and think about the
+   meaning of their relationship.
+
+* The Meaining In Their Relationship
+
+  /*What does it mean for the characters to be in a relationship?*/
+
+  So the previous films have clearly a message about an aspect of
+  relationship. Whether is it dreams, grief, maturity or distance, the
+  main relationship has a question to answer. Coming back to the main
+  film, what does it mean for the main characters to be in a
+  relationship?
+
+  If they meet up, it merely means fate and destiny; if they did not, do
+  not mess with time travel. For the life of me, I cannot think of a
+  deeper meaning to the film aside from the body swapping mechanics.
+  Sitting in that theatre, I felt disappointed intellectually.
+
+  In retrospect, this film is unique in that regard. Just being a solid
+  teenage romance story but it feels hollow. For me, I watch Shinkai
+  film because it has meaning, something most films can't give me.
+
+* Conclusion
+
+  Again, this is just my personal gripe, but I am marking this film. If
+  we take Hideo Kojima's elegant but hollow [[https://en.wikipedia.org/wiki/Metal_Gear_Solid_V:_The_Phantom_Pain][Metal Gear 5: The Phantom
+  Pain]] or the wonderful but decaying series [[https://duckduckgo.com/lite/?q=spongebob][Spongebob]] as examples, these
+  are reminders of being a fan.
+
+  Anyhow, it is still a commercial success so I hope that funds a more
+  meaningful film. I still recommend this film but it falls at the last
+  place. I would strongly suggest _5 Centimeters Per Second_ or _The
+  Garden of Words_ as the go-to Shinkai films.

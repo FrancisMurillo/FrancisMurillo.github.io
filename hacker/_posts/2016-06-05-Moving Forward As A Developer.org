@@ -1,0 +1,140 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamps:t
+#+BEGIN_EXPORT html
+---
+title: Moving Forward As A Developer
+tagline: The meaning of staying
+layout: post
+author: Francis Murillo
+categories: Reflection, Hacker
+blog-category: hacker
+tags: Reflection
+---
+#+END_EXPORT
+
+Two years and nine months in a company, what have I learned?
+
+- Learn to learn
+
+  Don't expect anyone to teach you, learning to learn is a vital skill
+  in order to stay relevant and fresh. Once you are on the job, there is
+  no teacher or syllabus given, you are the teacher and student.
+
+  It would be nice though if you can learn more formally as a group or
+  really have a teacher. No book learning can ever teach you experience
+  learned as from a veteran.
+
+- Linux and Bash
+
+  As a developer, I owe it to myself to use other OS aside from Windows
+  which I came to grow up with. Diversity and variety is always a
+  welcome perspective in knowledge and system operation.
+
+  The benefit I found the most productive about it is working with the
+  terminal or bash. By being adept with the terminal, you can work with
+  more flexible and detailed commands that are under your
+  fingertip. Once I realized how fast to work with the terminal, I
+  wanted to stay there.
+
+- Emacs
+
+  Not really Emacs, Vi would also do. Learning a powerful text editor,
+  not an IDE, is an investment in the future. I plan to develop for
+  probably the rest of my life so I need a life partner who I can make a
+  contract with.
+
+  For me, it was Emacs. The versatility and the concept is the selling
+  point for me, a Lisp interpreter with a text editor. I could have
+  chosen the focused editor Vi but speed is not my target, customization
+  is such a sweet word for a tinkerer like me.
+
+- Functional Programming
+
+  As a mathematician and developer, functional programming hit home for
+  me. During my time, object oriented and state management was a bit
+  harder to understand in my experience. Thinking in input and output
+  was way easier than passing messages between ill defined objects.
+
+  Regardless of my preferences, there are newer ideas and tools I can
+  learn that it was too good to pass up. Diversity is again welcome if
+  not exciting.
+
+
+But technical matters aside, there are more things I can be a better
+developer as a person.
+
+- Due diligence
+
+  Good lord knows I have my own mistakes during my stay. I am known to
+  be careless and have at one time given everyone in the office
+  administrator privilege due to a Python automation script I got
+  narcoleptic with. I have ignored overwritten commits and have caused
+  some backward compatibility breaks.
+
+  I have been a bit more careful in how I proceed since. This is one
+  thing I can never learn by myself.
+
+- Business architecture
+
+  Working with a group, I come to realize the inadequacy of
+  understanding some business rules. Rather how it translates to a
+  solution sometimes. Whereas adding a column is easy, deciding whether
+  to add a column is something else entirely.
+
+  If I am to live longer, I need to connect the rules with the
+  structure. As a purist mathematician, context might be my weakness
+  here.
+
+- Teaching
+
+  Not really a big point but when I did my talk at Functional
+  JavaScript, there is something lacking in how I talk. I am
+  enthusiastic and I do know what I am talking about, but I have talked
+  quite a bit too fast.
+
+  I do enjoy teaching and I do owe my fellow group leaders my share of
+  preaching but I wonder if I really did my job. Sharing the knowledge
+  is sharing the love.
+
+
+Regardless of faults or gifts, there is one thing I do want to stress is
+one thing that is harder to control. Environment.
+
+- Being the worst in a group
+
+  If you are one of the best in the group, then you might want to
+  consider looking for a group where you are the worst. Being the
+  weakest in the chain keeps me on my toes. Being the greenhorn had
+  forced to learn as much without disappointing my peers, some healthy
+  social pressure here.
+
+  If you are one of the best without really doing anything, then the
+  group might not teach you anything else if you are not in a leadership
+  position. I lament this on reading Douglas Crockford's JavaScript The
+  Good Parts does not make you a master. That itself is a little sad.
+
+  I want to be in a group where I can learn more but of course you can't
+  really choose who you're with sometimes but the group can bring you up
+  or down to their level.
+
+- Poor management
+
+  Whatever good hopes you have, a poor project management is obviously
+  going to derail you have. Even if I want to teach Emacs or Functional
+  JavaScript, the company or project may not support it despite being a
+  labor of love and good will to others.
+
+  The focus within a poorly managed project is just the project which is
+  sad for everyone. I find the journey more important than the end goal.
+
+
+There are more things to hinder a developer but the environment is a bit
+harder to control or manage itself. At the end of it all, if the
+environment is not suitable for growth; change it and that may mean
+changing places which is hard in itself. Sometimes moving on is better
+in the long run. Do I want to do the same things over and over again
+even if I get paid more? Perhaps but if it doesn't grant me a sense of
+happiness or purpose then I need to travel the world. Diversity and agency.
+
+At the end of ten years, have I become an international coder? At the
+end of ten years, have I mastered Emacs? At the end, have I done all
+that I can? Only time.

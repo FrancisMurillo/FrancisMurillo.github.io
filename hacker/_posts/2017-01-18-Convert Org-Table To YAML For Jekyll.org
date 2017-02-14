@@ -1,0 +1,230 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamp:t
+#+BEGIN_EXPORT html
+---
+title: Convert Org-Table To YAML For Jekyll
+tagline: Creating an YAML exporter for Org-Table
+blog-category: hacker
+category:
+- hacker
+- exploration
+tag:
+- hacker
+- elisp
+- org-mode
+- yaml
+---
+#+END_EXPORT
+
+* Problem
+
+  So in making the page for my watch list for the other watcher blog, I
+  have to convert my unofficial list in Org-Table format to a YAML
+  format. There are other default formats such as CSV that Jekyll reads
+  but in keeping with the spirit, I opt to do it as such. The sad thing
+  about this though is that *there is no YAML exporter for
+  org-table-export*, so I made my own. Here is the [[https://gist.github.com/3fcc4452ce9714f2d3a6f81ac0cd7ccd][snippet]] to do and a
+  demonstration.
+
+  [[img:hacker/images/orgtbl-to-yaml--screencast.gif][Screencast]]
+
+  And to use it, you point the mark at a table and use
+  =org-table-export= and at the format selection you type
+  =fn/orgtbl-to-yaml=. With Jekyll, you have to export it to your =_data=
+  Jekyll directory to work as stated by the [[https://jekyllrb.com/docs/datafiles/][manual]]. But of course, we
+  are here to explore further to what it means.
+
+* Org-Table Export
+
+  Initially, I thought I had to create a table parser and transformer
+  but there is usually a command or function that does what you want
+  albeit with a little tweaking. The command =org-table-export= is our
+  friend here but it is lacking when presented with the format: CSV,
+  TSV, HTML, LaTeX and others but not YAML. One thing to look at where
+  this option comes from is =org-export-backends= but might be overkill
+  to configure. As an caveat, if you add a backend to it you need to
+  run this script.
+
+  #+BEGIN_SRC emacs-lisp
+    (progn
+      (setq org-export-registered-backends
+         (cl-remove-if-not
+          (lambda (backend)
+            (let ((name (org-export-backend-name backend)))
+              (or (memq name val)
+                 (catch 'parentp
+                   (dolist (b val)
+                     (and (org-export-derived-backend-p b name)
+                        (throw 'parentp t)))))))
+          org-export-registered-backends))
+      (let ((new-list (mapcar #'org-export-backend-name
+                            org-export-registered-backends)))
+        (dolist (backend val)
+          (cond
+           ((not (load (format "ox-%s" backend) t t))
+            (message "Problems while trying to load export back-end `%s'"
+                     backend))
+           ((not (memq backend new-list)) (push backend new-list))))
+        (set-default 'org-export-backends new-list)))
+  #+END_SRC
+
+  Something simple would be better for our cause. Is crafting a custom
+  exporter instead an option? Thankfully, the manual tells us how to
+  create a simple custom exporter according to this [[http://orgmode.org/manual/Translator-functions.html#Translator-functions][link]]:
+
+  #+BEGIN_SRC emacs-lisp
+    (defun orgtbl-to-language (table params)
+      "Convert the orgtbl-mode TABLE to language."
+      (orgtbl-to-generic
+       table
+       (org-combine-plists
+        '(:tstart "!BTBL!" :tend "!ETBL!" :lstart "!BL!" :lend "!EL!" :sep "\t")
+        params)))
+  #+END_SRC
+
+  After reading the documentation, we are interested in two properties:
+  =:skip= and =:lfmt=. The later is more important which controls how a
+  line is formatted. It accepts a function which takes a list of row
+  values and returns the record line it represents. Using it as
+  function, the first value are the row headers and the remaining row
+  values. We mainly want to focus the function on the value so that is
+  why have =:skip= to ignore the first header row. Aside from that, we
+  can craft our row formatter.
+
+  Since this is YAML, our record line is a bit more complex. Each record
+  starts with a dash and space, ends with a newline, separated by a
+  newline and two spaces for alignment. Each value must be in a =<key>:
+  <value>= format and escaped by ="=. With a sample data, it would look
+  something like this:
+
+  #+BEGIN_SRC org
+    - id: "1"
+      name: "Muffin"
+      description: "Khajit Assassin"
+    - id: "2"
+      name: "Marble"
+      description: "Barbarian Alchemist"
+  #+END_SRC
+
+  To accomplish this, we need to get the row =headers= which can be also
+  found with the =car= of the =table= parameter. We then use a
+  functional zip with the headers and each row values, format
+  accordingly and profit. With a quick =zip= shiv, it looks like this.
+
+  #+BEGIN_SRC emacs-lisp
+    (lambda (values)
+      (concat
+       "- "
+       (string-join
+        (mapcar
+         (lambda (pair)
+           (lexical-let ((header (car pair))
+               (value (cdr pair)))
+             (format "%s: \"%s\"" header value)))
+         (funcall zip headers values))
+        "\n  ")))
+  #+END_SRC
+
+  That finishes the core formatter.
+
+* Front Matter and Jekyll
+
+  So this exporter is aimed for Jekyll and I know little about YAML
+  since I rarely use it.
+
+  I only want to discuss how the key is produced. You can simply take
+  the key as is but what if it has spaces? I find it odd having spaces
+  within object keys, so I prefer to hyphenate it and lowercase for my
+  ease but obviously you can change it to be camelCase if you want.
+  Using this in Jekyll, it will look like this:
+
+  #+BEGIN_SRC emacs-lisp
+    (lexical-let ((headers
+         (mapcar
+          (lambda (header) ;; Shiv camel casing
+            (replace-regexp-in-string
+             " " "-"
+             (downcase header)))
+          (car table))))
+      ;; Rest of the code
+      )
+  #+END_SRC
+
+  #+BEGIN_SRC javascript
+    {% for watch in site.data.official-watch-list %}
+    <p>{{ watch.field }}</p>
+    {% endfor %}
+  #+END_SRC
+
+  As an example on this, my watch list has a =Public Rating= field and
+  my question is how will you access it with a dot notation? You are
+  welcome to inform me how but I wouldn't like how it would feel and I
+  am comfortable writing =watch.public-rating= instead. Aside from that
+  I have nothing much to say about the naming convention and quoting the
+  value just in case it gets too long.
+
+* Default Properties
+
+  As a final exploration, let's see how to set the default export
+  options for a table. I thought setting a header property would be good
+  enough but according to =org-set-property= I have to put it under a
+  header which I find weird since the file represents a single solitary
+  data set but not a big deal. To show that off from my official file:
+
+  #+BEGIN_SRC org
+    ,* Official Watch List
+       :PROPERTIES:
+       :TABLE_EXPORT_FILE: official-watch-list.yaml
+       :TABLE_EXPORT_FORMAT: fn/orgtbl-to-yaml
+       :END:
+
+       Yes, I have an unofficial watch list for myself
+  #+END_SRC
+
+  For my use case when updating my watch list, I want to auto export
+  then publish the table when it is saved just like my
+  =org-jekyll-blogger-auto-publish-on-save= from [[https://github.com/FrancisMurillo/org-jekyll-blogger.el][org-jekyll-blogger.el]].
+  It takes a few minutes to write that glue code:
+
+  #+BEGIN_SRC emacs-lisp
+    (defun fn/org-jekyll-blogger-export-and-publish ()
+      "Export a table and publish the file accordingly."
+      (interactive)
+      (if (not (org-at-table-p))
+          (if (not (called-interactively-p 'interactive))
+              (message "No table at point to publish.")
+            (error "Point is not at a table"))
+        (org-table-export)
+
+        (lexical-let ((export-file (org-entry-get (point) "TABLE_EXPORT_FILE" t)))
+          (if (not export-file)
+              (message "No TABLE_EXPORT_FILE property")
+            (lexical-let ((export-buffer (find-file-noselect export-file)))
+              (with-current-buffer export-buffer
+                (org-publish-current-file))
+              (message "Table published."))))))
+
+    (defun fn/org-jekyll-blogger-auto-publish-table-on-save ()
+      "Auto export and publish table on save."
+      (interactive)
+      (add-hook 'after-save-hook #'fn/org-jekyll-blogger-export-and-publish t t))
+  #+END_SRC
+
+  Not the best code but it does the job and not that hard to write
+  although I had to peek at =org-table-export= to determine the name of
+  the file. A small point in this code is using =called-interactively-p=
+  which merely indicates if the containing function is called as a
+  command(via =M-x= or =execute-extended-command=) or a function(via
+  Elisp); this allows me to either throw an error message or an info
+  message depending on the context. For example, using it directly you
+  should get an error that you need to mark what table you should export
+  with the point; but if it is called by a hook, you wouldn't want it to
+  throw an error since there might be other hooks in play so better an
+  info message.
+
+* Conclusion
+
+  The two things I deliberately ignored are performance and escaping but
+  I pray I not see more than 10,000 visual experiences before I worry
+  about it. With this base, you can come up with a [[https://duckduckgo.com/l/?kh=-1&uddg=https%253A%252F%252Fen.wikipedia.org%252Fwiki%252FJSON][JSON]] exporter from a
+  quick read. For me, I can continue to work with my =org= workflow and
+  not worry about the export format.

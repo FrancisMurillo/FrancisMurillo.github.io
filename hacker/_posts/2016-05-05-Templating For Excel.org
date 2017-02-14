@@ -1,0 +1,174 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamps:t
+#+BEGIN_EXPORT html
+---
+title: Templating For Excel
+tagline: Returning to Excel probably one more time
+layout: post
+author: Francis Murillo
+categories: Insight, Hacker
+blog-category: hacker
+tags: Excel
+---
+#+END_EXPORT
+
+When I was running/reading a test script written in Excel, I noticed
+several repeating snippets or blocks that the tester would have to
+update based on a pending clarification; this means that the tester
+would have to change several repeating blocks of around 30 test
+sheets. What a menial task for a tester or anyone to do.
+
+And so, I did the unthinkable. I said that somebody can come up with a
+simple templating macro language  which is the mini equivalent of
+[[https://mustache.github.io/][Mustache]] or  [[https://angularjs.org/][Angular]] for Excel. I said it would be small and simple
+where a tester can define snippets or blocks and compile it into an test
+sheet, more or less. I said it would save testers the task of editing
+several sheets over and over again.
+
+That what I said if I was the tester. Why did I say that? Now I had to
+create a POC for it or risk being insulted for coming up with an idea
+that no one can do. Actually, if I did not do it, they might believe
+that it is the only way.
+
+Maybe hope? Or just use a text file format with Emacs and org-mode. Or
+that I'm an idiot for suggesting testers learn Emacs. And after my
+weekend work, I decided to install VirtualBox and download an Window 7
+image, yuck; On May 01, 2016, I decided to work on it.
+
+And within 24 hours, I cranked out a small templating engine for Excel
+called [[https://github.com/FrancisMurillo/xlnosheet][xlnosheet]] (pun very much intended). It accomplishes the task
+which I thought it would do and here I reflect on my work.
+
+* VBA sucks
+
+  So many things to say here but I am quite happy that my previous
+  tooling was easy to integrate into this new endeavor. The git
+  integration, unit testing and utilities. Using it gave me a sense of zen or
+  harmony with my work.
+
+  Although there is no strong coding style for modules or classes. I
+  decided to implement a JavaScript object type or Python dictionary
+  class using a simple array implementation and it works good enough
+  considering VBA is very restrictive and a map or object allows greater
+  freedom with the data types.
+
+  Although the language sucks, I still had some fun with redefining the
+  basic atoms of a language as a sort of homage or analysis
+
+* Inspired Templates
+
+  Again, the idea is to declare several snippets and then combine and
+  compile it. The question is how to declare snippets: one snippet per
+  sheet or multiple snippets per sheet. I took the later one since if
+  you create a lot of snippets, it would be a maintenance nightmare to
+  scroll or browse through the snippets and into the actual text blocks;
+  so I opted to define multiple snippets. By the way, text blocks are
+  combined snippets and lines which you compile to create your new
+  block.
+
+  I decided to use a simple start token and end token to create snippet
+  blocks. Next problem: how do you call them by name? This problem is
+  pretty much just giving snippets properties and how do you do that?
+  How do you put metadata or properties with Excel?
+
+  I chose to implement key value pairs with pair lines starting with a
+  property prefix. Something like an inline property file with Excel
+  using the first column as keys and the second as values. It was easy
+  to implement with the new object data type I just crafted.
+
+  With the naming system in place, it looks something like this.
+
+  #+BEGIN_SRC text
+    <<<
+    :name MySnipet
+    Start of block
+    Do some wierd things
+    Blah blah
+    >>>
+  #+END_SRC
+
+  Now how do we call this snippets? I choose the Mustache way of
+  declaring it. Finally, I get my way.
+
+  #+BEGIN_SRC text
+    <<<
+    :name SomeTextBlock
+    About to call my snippet
+    {{SomeSnippetName}}
+    End of snippet
+    >>>
+  #+END_SRC
+
+  With that idea, I am set to implement it.
+
+* Passing Parameters
+
+  As a developer, I prefer my snippets to have some parameters. Which
+  was easily implemented with the help of the new object data
+  type. I'm thinking of some sort of dynamic object scope, since
+  functional scope is way too hard or complex for this project PoC. Here
+  is what I though of property scopes
+
+  - Application
+
+    The main application properties which blocks inherit.
+
+    - Block
+
+      Text blocks get the application properties as well as the chance
+      to override it
+
+  - Snippet
+
+    Snippet properties are independent of the application
+
+  So with a simple property hierarchy in place, I have a mild form of
+  reuse with static parameters. The driving idea here is that imagine
+  you have two paragraphs and it only differs in one word, wouldn't it
+  be nice to have that wild word as a parameter that you can replace and
+  keep the paragraph in tact. Basically, avoid repeating myself over one
+  word.
+
+  The two things I found fun with this is merging two objects or
+  properties like in JavaScript [[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign][Object.assign]] and the power to define
+  what syntax to call a property. It sort of feels good to do it out of
+  a cheap language. It looks like this
+
+  #+BEGIN_SRC text
+    <<<
+    :role Admin
+    {{snippetThatDependsOnRole}}
+    A random line
+    A random line invoking role: #{role}
+    This is the document author #{author}, so say hello to him
+    >>>
+  #+END_SRC
+
+  Aside from the implementation detail, it looks really fine enough for
+  a simple templating engine
+* Conclusion
+
+At the end of it all, I had fun implementing the old concepts from a
+modern standpoint. I guess there is joy in going back to how it all came
+to be. The engine has a lot more improvements which I can foresee.
+
+- Snippets within a snippet
+  - Circular recursion check
+- Overwrite, not delete
+  - Bounded regions
+- Go to a snippet or block (like in Emacs buffer)
+  - Go to target sheet
+  - Refactor snippets
+  - Snippet depedency
+- Codintional snippets (Sweet mercy, a language within a language)
+  - Dynamic properties
+
+But the hardest thing I have to do is make some form of documentation,
+yuck, because I fear no one will ever use it. But if I were really a
+tester, I would improve it like it was no one's business. It's really
+just nice creating your own tool.
+
+But really my point is not really about VBA, it was just an annotation;
+rather it is about trying to automate your own task. I guess it is just
+a mindset whenever you find a menial task that can be simply automated
+or a block of code that can be refactored, then why not? Whatever our
+craft is, I guess we just want to do our job.

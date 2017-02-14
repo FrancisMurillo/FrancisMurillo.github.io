@@ -1,0 +1,40 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamps:t
+#+BEGIN_EXPORT html
+---
+title: My First Code Camp
+tagline: The first time leaves you wanting
+layout: post
+author: Francis Murillo
+categories: Event, Hacker
+blog-category: hacker
+tags: Event
+---
+#+END_EXPORT
+
+After hearing about a code camp on Python [[http://docs.fabfile.org/en/1.10/][fabric]] and as a developer, I owe it to myself to join. I've seen a lot of PyCon videos and I had an impression or expectation what a code camp would be or better. It was held in an usual corporate venue and you knew it was a little of recruitment as well but you can expect that when they pay for your meal and knowledge.
+
+So what happened there? I went there, I sat down and listened to what appears more of a class lecture than a code camp; I took their written exam, I stood up, got my photo taken, and I had to leave like everyone else did. Wait... what happened? Where is the code? Where are the people?
+
+Suffice to say, my expectations were not met. I was expecting to code, I was expecting to chat, I think it was just a class. Looking back on it, it may have been just a recruitment event with a nice hook. For my first time, I hoped it would have been like the one I though of.
+
+So here are the things I thought of what was wrong with the event I attended.
+
+1. Technical difficulties - This is just a minor point I can understand. During the lecture, the projector kept turning off and on. If I was the speaker, I would be very nervous that my talk had problems but as the audience it would break the rhythm of the connection with the speaker. Little annoyances add up to a big thing.
+2. No code - They told us to bring our laptops but apparently it wasn't needed at all for the event. I was thinking that we were going to connect to a network and start accessing there machines as a way to show how =fabric= works. What we got was an PDF file that one can read from start to end without loss of knowledge. Sure, it had snippets but only snippets. I expected to be grouped and do some nifty scripts to make it stick.
+3. Prize money - The weird thing about the lecture is that there was a quiz at the end of it with some considerable money offered to whoever scores highest and fastest, in that order. But even weirder is that the organizers kept pressing the point about the money and the money. It was as if the reason we went there was for the money and not the code. There was even a review session at the end just for everyone to be on par, so what's the point of being attentive when all you need is memory? On the paper they gave the answer, I wrote =I am not a whore=; I felt they were trying to pay me of to compensate for the lack of content.
+4. Speaker - I felt the speaker wasn't really as a Python enthusiast as I thought he would be. I asked if he knew the =request= library and he didn't. I can't really judge him but almost every Python programmer knows that wonderful library to automate and get stuff. But from that, I think he was just using Python to get the job done not because it's Python. Not judging him for the lack of enthusiasm at that day, he might had a bad day and couldn't show his great love for it. What I felt sad of is that I feel he wasn't in control of the room, it was the recruitment people. I felt he was just a speaker, a man talking.
+
+This is what I just felt, I would love to be told wrong. I don't hate or dislike the event but I really felt it could have been better. Here are some things that I thought that could be done to make it better.
+
+1. Show me the code - I hoped the speaker would tell us a code story, what was his problem and how we used this wonderful library and made him cool and got a lot of praise. Hold back your applause gentlemen. Story telling draws people in whereas a vanilla lecture does less. How it relates to the speaker then to the audience might be better.
+2. Team competition - Instead of a written exam, an exercise that groups the gang into  different pieces of a problem. Say one does checks if the servers are up, others check if there is a missing piece of software, one does something neat and they combine their solution into one epic or nice package. It makes it coherent, relevant and a little exciting which group gets the job done quickest.
+3. Hardware - Instead of giving away money, it could have been better place to invest that in hardware to be used for the event. Hell, they could use a Raspberry Pi to simulate cloud computing with a small cluster. If the lure of the event is money or extrinsic, the motivation would less than if they had fun doing the camp with people and say this company hosts some nice event, maybe I would like to join them. Money or motivation, the money could have given them more mileage.
+4. After party or mixers - After the event, they could entice people to stay and then talk to them. Not only would people hook up, the recruiters can talk to the people their as well. Everyone gets to talk and listen and have some new friends while they were at it.
+
+This is my first time but I can this would have made it better form me. The way it ended, it seems to be more an recruitment event than a developer event. If they wanted better retention, they have to show the community that this company knows there code and can show it. For me, it would be a win-win for both the coders and company: happy coders and better branding for the company. I believe everyone could be happy even if it was a code camp or a recruitment drive.
+
+Again, I am sad to say it wasn't as good as I thought but I am not saying they should rot in hell. I do appreciate more events that brings people together albeit it might have been the money. I do really want to attend more of this events even if it was hosted by the same company despite my discouraging first experience with it. As a last word for the code camp, I want to say thanks although it could have been better for everyone.
+
+Actually, my objective for the code camp was not really to learn anything but to learn about the community or if there any =Emacs= users in the group. I mostly found =Windows= users and only a few =Mac= users. I might have only been the =Linux= user there, I pray not. I really wish I could have talked to the speaker at the end, I wanted to ask him if he loved Python, why he works there, why make that talk, what inspires him. In short, what motivates him and why he codes.
+
+The week after this, I am going to attend a community meeting in another known company but this time for Javascript. I don't know if it another recruitment drive but I want to see the community. I think developers are glued together by code and their experience with it. In that sense for me, I want to see how people code and how it affects them. Code and community, I want to see more of it.

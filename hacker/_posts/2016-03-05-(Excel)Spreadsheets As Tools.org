@@ -1,0 +1,46 @@
+#+OPTIONS: H:2 num:nil tags:nil timestamps:t
+#+BEGIN_EXPORT html
+---
+title: (Excel)Spreadsheets As Tools
+blog: Hacker
+tagline: An introspection on Microsoft Excel as an development tool
+layout: post
+author: Francis Murillo
+categories: Musings, Hacker
+blog-category: hacker
+tags: Excel
+---
+#+END_EXPORT
+
+I recently watched the video [[https://www.youtube.com/watch?v=0CKru5d4GPk][Spreadsheets For Developers]] and it echoed within my experiences developing tools within Microsoft Excel.
+
+Up front, I don't really like Excel or spreadsheets in general as an tool or language for the following reasons.
+
+1. Dealing with formulas is messy - Making branching or stateful logic is dirty. Wrapping a lot of =ifs= in one line is a lot dirtier than a Lisp language can pull off.
+2. The language is restrictive - Class, object, functional. The support for any of these styles is close to =nil= or just annoying. Procedural is the only style.
+3. No package manager - There are third party libraries but they come in the form of =ActiveX= or =OLE= or whatnot. Point is if you make a module, good luck copy pasting the code from one worksheet to the other.
+4. There is only one IDE - Since all of the code is within Excel itself, the code cannot be read by others such as =Emacs= or just plain =Notepad=. This means your IDE is whatever the Excel gives you. Very restrictive.
+
+I have more beef with Excel as a language but not as a tool. I do admit after listening to the talk it, it left me with the following thoughts.
+
+1. Functional Cells - Since cells don't contain state mutations, the cells are considered stateless which is in direct contrast with the macro language.
+2. REPL - The cells themselves act like a REPL where you type a formula and a result comes out. I do admit this is a nice feature
+3. Lingua Franca - Everyone knows spreadsheets. Instead of making expensive code, one could see results immediately and cheaply using spreadsheets instead.
+4. The Same Developer Problems - Debugging, refactoring, validation. It seems so similar.
+
+The talk focused more on the sheet side, not on the macro language which developers such as myself feel at hell with. Despite all my moaning about how crappy the language is I can't believe I did the following things along with some shameless self-reference.
+
+1. Data Checker - My first exposure to heavy Excel programming. The idea is to validate an Excel UI export  with an SQL query export. I learned first how to do fuzzy matching with Excel which I picked up from Python's =fuzzywuzzy= library. This is where my weird journey started.
+2. Export/Import Tool([[https://github.com/FrancisMurillo/xlwheat][xlwheat]]) - After developing for quite some time, I lamented a lack of VCS for Excel specially when you're on a team project. Sharing code is copy pasting  modules and diffing them. There has to be a better way. Thankfully, Excel allows you to import and export modules albeit one at a time. I automated this process and created an import/export tool which would be linked to a Git repository. That is somewhat cool but still awkward.
+3. Unit Test Framework([[https://github.com/FrancisMurillo/xlvase][xlvase]]) - I've been making modules left and right mostly recreating utilities that a lot of languages implemented. I also lamented the lack of unit test tools to at least have some testing capability. So I made an unit test framework before making new code to verify all that I've done. It wasn't perfect but I felt pretty giddy about doing it but still awkward.
+4. Package Manager([[https://github.com/FrancisMurillo/xlchip][xlchip]]) - Okay, you know where this is going. Since there is none, I made one. It's not perfect as usual and it doesn't have a cool online repository like =MELPA= or =SourceForge= but now I can share my code like a boss or monkey. Still awkward
+5. Functional Support([[https://github.com/FrancisMurillo/xlfn][xlfn]]) - I started getting interested with functional programming at the time and wished with all my heart that Excel at least support. Problem is that Excel doesn't have functions as first class objects. My workaround? Make pseudo named lambdas that can be invoked by name using =Application.Run=. With that I have pseudo functions that can compose, curry and have also quasi closure. Awesome and awkward.
+
+So in hindsight, Excel as a language sucks, Excel with development support sucks, but why the hell did I still continue making these tools if it really sucked? Before I started with all of it, I thought of Excel as an inferior language, a language for the masses, a language not worthy of recognition. I also thought of Javascript as an inferior language due to its weird design decisions. But despite that, they have their good parts. If you code with guidelines within the language construct you can still make kickass modules like I did but still awkward. Hmm.. perhaps I made these continued because I could learn more about making those tools instead of just using it and it was a wonderful journey.
+
+As it stands today, I can no longer work with Excel since I am on a Linux machine which I don't lament. If =Excel= were open source, I would go back and recheck my code and see what else I can do like the following.
+
+1. Lisp Interpreter - The language itself sucks as I have said, but can we put another language within it? Easiest to implement is a Lisp interpreter. Problem is how are modules going to be stored and there is no =paredit= to balance those expression. One thing I thought of is putting files externally and having a load path of sorts like in Python or Java. I really wish I could done this last.
+2. Window Shell - Like in Python =sh=, I would like to see how you can access the filesystem using Excel. This would open up the ability to look at external files and let other modules parse it. It would be great.
+
+Spreadsheet is indeed code. It's just nice that someone made a thesis and talk about it to rectify my actions of being obsessed with a language such as Excel.
