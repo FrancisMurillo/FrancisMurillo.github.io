@@ -25,9 +25,9 @@ in rewatching one of my favorite animes <a href="https://en.wikipedia.org/wiki/K
 
 <p>
 Much more than romantic love, it is a deep anime about the family
-which is brilliant in so many ways. It is well directed, interesting
-story, strong symbolisms behind its colorful facade and children which
-all showcase how anime can create a unique story from the <a href="https://en.wikipedia.org/wiki/Alice_in_Wonderland_(2010_film)">Wonderland</a>.
+which is brilliant in so many ways. It has excellent directing,
+interesting story, strong symbolisms which all showcase how anime can
+create a unique twist or story from the familiar <a href="https://en.wikipedia.org/wiki/Alice_in_Wonderland_(2010_film)">Wonderland</a>.
 </p>
 
 <p>
@@ -36,9 +36,8 @@ all showcase how anime can create a unique story from the <a href="https://en.wi
 
 <p>
 Instead of talking about this anime, I just want to show in this short
-article about coloring text in Elisp or making messages a bit more
-candy colored. This trick is useful in differentiating messages from
-all the other. In particular, I want my love violet.
+special article about coloring text in Elisp or making messages a bit
+more candy colored. In particular, I want my love violet.
 </p>
 
 <p>
@@ -148,6 +147,10 @@ To impress, check out the Google's logo and then come back with this:
   <span style="color: #7fff00;">(</span>propertize <span style="color: #68f6cb;">"e"</span> 'face '<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:foreground</span> <span style="color: #68f6cb;">"#ea4335"</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
+
+<p>
+Simple yet effective, let's look at another example.
+</p>
 </div>
 </div>
 
@@ -194,18 +197,19 @@ Taking from the <a href="https://www.gnu.org/software/emacs/manual/html_node/eli
 <p>
 Notice the use of <code>:box</code>, which adds a border around the text,
 <code>:weight</code>, which makes the text bold or thin, and <code>:height</code>, which
-makes the text smaller or larger, that all culminates in creating the
-GNU Emacs logo.
+makes the text smaller or larger. All that culminates in creating the
+GNU Emacs logo albeit as colored text.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org67413e7" class="outline-2">
-<h2 id="org67413e7">Pinkish Love</h2>
-<div class="outline-text-2" id="text-org67413e7">
+<div id="outline-container-org3d305a5" class="outline-2">
+<h2 id="org3d305a5">I Love Text</h2>
+<div class="outline-text-2" id="text-org3d305a5">
 <p>
-From here we can have love, which is pink for the audience:
+From here we can have love as a colored text, which I find pink to be
+more common than red in my search:
 </p>
 
 <div class="org-src-container">
@@ -219,9 +223,9 @@ From here we can have love, which is pink for the audience:
 </div>
 
 <p>
-Have it whatever color you want but this trick is pretty nice to have.
-There is some limitation to all this but what is a world with more
-color and love?
+Change the color to whatever you want, I am not a that good with
+matching colors. There is some limitation to all this but it is enough
+to make it standout from different text or words.
 </p>
 
 <p>
@@ -247,7 +251,7 @@ colored version:
                  <span style="color: #96a5d9; font-style: italic;">:box</span> <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:line-width</span> 1 <span style="color: #96a5d9; font-style: italic;">:color</span> <span style="color: #68f6cb;">"#ffffff"</span><span style="color: #00bfff;">)</span> <span style="color: #96a5d9; font-style: italic;">:weight</span> bolder <span style="color: #96a5d9; font-style: italic;">:height</span> 2.2<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/message-of-love</span> <span style="color: #ff1493;">(</span>orig-fun <span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #ff1493;">)</span>
-  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>raw-message <span style="color: #ffff00;">(</span>apply #'format args<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>raw-message <span style="color: #ffff00;">(</span>apply #'format-message args<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
       <span style="color: #00bfff;">(</span>new-message
        <span style="color: #ffff00;">(</span>replace-regexp-in-string <span style="color: #da70d6;">(</span>substring-no-properties fn/love-text<span style="color: #da70d6;">)</span> fn/love-text raw-message<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
     <span style="color: #7fff00;">(</span>funcall orig-fun new-message<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -261,14 +265,18 @@ colored version:
 
 <p>
 This is a hack and it might be better to create a custom message
-function sucah as <code>fn/message</code> to show more intention. Either way, it
-is simple to add some color if you wanted to with <code>propertize</code>.
+function sucah as <code>fn/message</code> to show more intention. Since this is a
+fundamental function, you might screw your interpreter if there is an
+error specially if the internal <code>format</code> is used incorrectly as I have
+during testing.
 </p>
 
 <p>
 Despite being a hack, this idea can be improved by adding several
 words to be replaced with its colored versions or actually changing
-the style of each word based on an algorithm. Ideas.
+the style of each word based on a machine learning algorithm. For me,
+I rather leave <code>message</code> alone but since this is a demo I have to show
+you something.
 </p>
 </div>
 </div>
@@ -277,23 +285,21 @@ the style of each word based on an algorithm. Ideas.
 <h2 id="org74edb72">Conclusion</h2>
 <div class="outline-text-2" id="text-org74edb72">
 <p>
-A special article to color our world for those who live in Emacs. This
-is just an idea to get people to use colored text more in Emacs
-without the need for special font coloring syntax.
+This is just an idea to get people to use colored text more in Emacs.
+With basic font styling, I wonder what else can be done creatively?
 </p>
 
 <p>
 As for me, I use this trick for my unified message log which ties my
 <code>erc</code>, <code>slack</code> and <code>jabber</code> messages in one buffer so that I don't
-have to visit each one but only one. This trick helps in scanning
-where the message comes from by color coding the server and
-room/channel which helps me scan it faster. (I don't persist the
-buffer of course since it is public logging but if I did, I keep it
-personal only as a history of what happened.)
+have to visit each one but only one. This helps in scanning where the
+message comes from by color coding the server and room/channel which
+helps me scan it faster amidst the lines of text. (No, I don't persist
+the public log)
 </p>
 
 <p>
-Happy Valentines, back to watching the anime.
+Happy Valentines.
 </p>
 </div>
 </div>
