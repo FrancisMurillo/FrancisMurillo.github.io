@@ -1,0 +1,515 @@
+---
+title: Project Script Loader
+tagline: An easier hack to .dir-locals
+blog-category: hacker
+category:
+- hacker
+tag:
+- hacker
+- emacs
+- projectile
+---
+
+<div id="outline-container-org8ef3563" class="outline-2">
+<h2 id="org8ef3563">Problem</h2>
+<div class="outline-text-2" id="text-org8ef3563">
+<p>
+An early Emacs hack and study is creating a project script loader that
+when I open a project such as Java or NodeJS, I want to load a custom
+script specific to that project. Since I am using <code>projectile</code>, it was
+a great learning experience on understanding symbols and lambdas.
+</p>
+
+<p>
+The Emacs way of loading project specific configuration is through
+=<a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Directory-Variables.html">.dir-locals.el=</a> that has an unfortunately elaborate structure to fill
+out. Emacs is a Lisp interpreter, thus this mechanism enforces safety
+even in evaluating malicious code since it is possible in a multi-user
+setup that someone tamper any automatic <code>eval</code> mechanism to cause
+harm. Remember the saying, <a href="https://duckduckgo.com/l/?kh=-1&amp;uddg=https%3A%2F%2Fblogs.msdn.microsoft.com%2Fericlippert%2F2003%2F11%2F01%2Feval%2Dis%2Devil%2Dpart%2Done%2F">eval is evil</a>.
+</p>
+
+<p>
+A stronger and direct reason you want to use such mechanism is to
+avoid tangling your global configuration with a project specific
+configuration. Keep the business and pure logic separate goes the
+mantra. My use is with this blog, when I want to write I want to load
+the <a href="https://github.com/FrancisMurillo/org-jekyll-blogger.el">org-jekyll-blogger.el</a> setup but not tangle the environment if I'm
+not.
+</p>
+
+<p>
+Although it is the builtin and preferred mechanism, it is slightly
+frustrating to debug if your script is being run or that the variables
+are set. Not to mention it is harder to edit. Sometimes you just want
+to write the code and not worry about security, trust is overrated.
+</p>
+
+<p>
+Since the project library <code>projectile</code> does not offer this simple yet
+security riddled functionality, it leaves the ecosystem to fill in
+that blank. Packages offering this mechanism already exist such as
+<a href="https://github.com/kotfic/defproject">defproject</a> but it is simple to write the code without relying on a
+third-party package.
+</p>
+
+<p>
+<img src="/hacker/images/projectile-project-loadeer--screencast.gif" alt="Screencast Sample"/>
+</p>
+
+<p>
+For the impatient, here is the complete <a href="https://gist.github.com/65d639fb8e7cac30c99f058d7586aabd">snippet</a>; for the curious,
+let's discuss aspects of it.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org129479f" class="outline-2">
+<h2 id="org129479f">Project Library</h2>
+<div class="outline-text-2" id="text-org129479f">
+<p>
+I am using <a href="https://github.com/bbatsov/projectile">projectile</a> as project managing library. For this task, we
+need two functions from it:
+</p>
+
+<dl class="org-dl">
+<dt><code>projectile-project-p</code></dt><dd>This tells us if the current buffer is in a project.</dd>
+<dt><code>projectile-project-root</code></dt><dd>This gives us the current project root the current buffer is in.</dd>
+<dt><code>projectile-project-name</code></dt><dd>The optional third function, this prettifies the file path into a
+more debuggable name.</dd>
+</dl>
+
+<p>
+If you aren't using <code>projectile</code>, Emacs has a builtin project library
+<code>vc</code> that is tied closely to a VCS. An example of checking if the
+buffer is in a project.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">vcs-project-root</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> <span style="color: #7fff00;">(</span>current-buffer<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>current-file <span style="color: #da70d6;">(</span>buffer-file-name<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> <span style="color: #ffff00;">(</span>vc-git-root current-file<span style="color: #ffff00;">)</span>
+         <span style="color: #ffff00;">(</span>vc-svn-root current-file<span style="color: #ffff00;">)</span>
+         <span style="color: #ffff00;">(</span>vc-hg-root current-file<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This is rather primitive but it works if the project is under a
+version control with <code>git</code>, <code>svn</code> or <code>hg</code>. Thankfully, this assumption
+was not taken by <code>projectile</code> and it finds the root by looking for key
+files that signify a project such as <code>.git</code>, <code>pom.xml</code> or others. The
+builtin <code>vc</code> does not cut it; rather, a builtin function that finds
+the project root is <code>locate-dominating-file</code>. This function takes a
+file path and file name and recursively travels the parent to find the
+file name starting at file path. If we assume a project is in a
+directory that contains a <code>.project.el</code> file, here is the snippet for
+this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">locate-project-root</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #ff1493;">(</span>locate-dominating-file <span style="color: #7fff00;">(</span>buffer-file-name<span style="color: #7fff00;">)</span> <span style="color: #68f6cb;">".project.el"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+<code>projectile</code> also has their own copy of this function to avoid
+depending on <code>files.el</code> where the original comes from. If you have
+multiple key files aside from <code>.project.el</code>, it is better to create a
+more performant version of this since you do not want to traverse the
+disk several times.
+</p>
+
+<p>
+The lesson in this is that this job is better left to a library.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5061442" class="outline-2">
+<h2 id="org5061442">Core</h2>
+<div class="outline-text-2" id="text-org5061442">
+<p>
+With this, we implement it quite easily:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/load-project-file</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Loads the `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">fn/project-file</span><span style="color: #68f6cb; font-style: italic;">' for a project.</span>
+<span style="color: #68f6cb; font-style: italic;">This is run once after the project is loaded signifying project setup."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #7fff00;">(</span>projectile-project-p<span style="color: #7fff00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Check if buffer is in a project</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>current-project-root <span style="color: #da70d6;">(</span>projectile-project-root<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>project-init-file <span style="color: #da70d6;">(</span>expand-file-name <span style="color: #68f6cb;">".project.el"</span> current-project-root<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #ffff00;">(</span>file-exists-p project-init-file<span style="color: #ffff00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Check if project script exists</span>
+        <span style="color: #ffff00;">(</span>message <span style="color: #68f6cb;">"Loading project init file for %s"</span> <span style="color: #da70d6;">(</span>projectile-project-name<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Some extra logging</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">condition-case</span> ex <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Load it</span>
+            <span style="color: #da70d6;">(</span>load project-init-file t<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span>'error <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Report the error</span>
+           <span style="color: #00ff7f;">(</span>message <span style="color: #68f6cb;">"There was an error loading %s: %s"</span> project-init-file <span style="color: #ff8247;">(</span>error-message-string ex<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>add-hook 'find-file-hook #'fn/load-project-file<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+During my early writing, there was a bug that loading the project file
+would trigger the <code>find-file-hook</code> endlessly. Thankfully, such subtle
+issue had existed but either way it is simple to write.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9a77903" class="outline-2">
+<h2 id="org9a77903">Symbols Or Lambdas</h2>
+<div class="outline-text-2" id="text-org9a77903">
+<p>
+This quick implementation triggers the project configuration each time
+a file in the project is opened. What we want is each main project
+script be loaded once, not every time. This is true for the project
+locals but not for the main project script.
+</p>
+
+<p>
+Thinking functionally, this is <a href="https://en.wikipedia.org/wiki/Memoization">memoization</a> of the main loader. We shiv
+a quick memoization function:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/memoize</span> <span style="color: #ff1493;">(</span>fn<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>fn fn<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>cache-table <span style="color: #ffff00;">(</span>make-hash-table <span style="color: #96a5d9; font-style: italic;">:test</span> 'equal<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span><span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #00bfff;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Assuming `</span><span style="color: #afc0fd; font-weight: bold;">args</span><span style="color: #2872b2;">' can be used with the hash function `</span><span style="color: #afc0fd; font-weight: bold;">equal</span><span style="color: #2872b2;">'</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #ffff00;">(</span><span style="color: #da70d6;">(</span>cached-value
+           <span style="color: #00ff7f;">(</span>gethash args cache-table<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> cached-value
+            cached-value
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>computed-value <span style="color: #9cb6ad;">(</span>apply fn args<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>puthash args computed-value cache-table<span style="color: #00ff7f;">)</span>
+            computed-value<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fib</span> <span style="color: #ff1493;">(</span>n<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase</span> n
+    <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> 1 2<span style="color: #00bfff;">)</span> 1<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>_ <span style="color: #00bfff;">(</span>+ <span style="color: #ffff00;">(</span>fib <span style="color: #da70d6;">(</span>- n 1<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+          <span style="color: #ffff00;">(</span>fib <span style="color: #da70d6;">(</span>- n 2<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #ff1493;">(</span><span style="color: #7fff00;">(</span>fib-memoized <span style="color: #00bfff;">(</span>fn/memoize #'fib<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>mapcar
+   <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span>n<span style="color: #00bfff;">)</span>
+     <span style="color: #00bfff;">(</span>funcall fib-memoized n<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span>list 3 5 15 30 3 30<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Not the best implementation but notice we had to use <code>let</code>, <code>funcall</code>
+and <code>apply</code> to use it instead just the usual function invocation. This
+syntactic mismatch or hoop is the difference with symbols and lambdas.
+The memoization function returns a lambda, if we wanted to use it as a
+function we need to use <code>defun</code> or <code>fset</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>fset 'what-symbol-name <span style="color: #ff1493;">(</span>fn/memoize #'fib<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+This raises the question what symbol name you should use? Generated or
+clobbered? Managing symbols is another task but if we just ignore this
+issue and plugin a lambda for a hook, we get this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>add-hook
+ 'find-file-hook
+ <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">()</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Written hastily, not representative</span>
+   <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>wrapped-func <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">We are wrapping `</span><span style="color: #afc0fd; font-weight: bold;">fn/load-project-file</span><span style="color: #2872b2;">' since it needs to take an argument</span>
+        <span style="color: #da70d6;">(</span>fn/memoize
+         <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8247;">(</span>project-file<span style="color: #ff8247;">)</span>
+           <span style="color: #ff8247;">(</span>fn/load-project-file<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+     <span style="color: #00bfff;">(</span>funcall wrapped-func <span style="color: #ffff00;">(</span>buffer-file-name<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+</pre>
+</div>
+
+<p>
+Looks ugly doesn't it, what I find uglier is what is written in
+<code>find-file-hook</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(cl-prettyprint find-file-hook)</span>
+<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> nil
+   <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">progn</span>
+     <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">--cl-wrapped-func--</span><span style="color: #00bfff;">)</span>
+     <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ffff00;">(</span><span style="color: #da70d6;">(</span>--cl-wrapped-func-- <span style="color: #00ff7f;">(</span>fn/memoize <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">function</span>
+                                             <span style="color: #9cb6ad;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ff8c00;">(</span>project-file<span style="color: #ff8c00;">)</span>
+                                               <span style="color: #ff8c00;">(</span>fn/load-project-file<span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span>funcall <span style="color: #da70d6;">(</span>symbol-value '--cl-wrapped-func--<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+ recentf-track-opened-file
+ auto-insert
+ whitespace-turn-on-if-enabled
+ global-command-log-mode-check-buffers
+ projectile-find-file-hook-function
+ #<span style="color: #ff1493;">[</span>0 <span style="color: #68f6cb;">"\302\301!\210\303\304&#8;!8\211&#17;\207"</span> <span style="color: #7fff00;">[</span>buffer-file-name auto-revert-tail-pos make-local-variable 7 file-attributes<span style="color: #7fff00;">]</span> 3<span style="color: #ff1493;">]</span>
+ global-visual-line-mode-check-buffers
+ auto-compile-on-save-mode-check-buffers
+ url-handlers-set-buffer-mode
+ global-font-lock-mode-check-buffers
+ epa-file-find-file-hook
+ vc-refresh-state
+ fn/load-project-file
+ fn/load-project-local-file
+ which-func-ff-hook
+ org-jekyll-blogger--find-file-hook<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Do you see the <code>lambda</code> standing out from the rest of the symbols? This
+happens because anonymous functions are represented as a closure
+object. Here lies the crossroad of being functional in Emacs: symbols
+overs lambdas.
+</p>
+
+<p>
+To express this notion, let me craft a different form for memoization.
+</p>
+</div>
+
+<div id="outline-container-org8f87f87" class="outline-3">
+<h3 id="org8f87f87">Wrapped Symbol</h3>
+<div class="outline-text-3" id="text-org8f87f87">
+<p>
+As contrary as this is, it is better to write the wrapped function as
+another separate function using <code>defun</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/loaded-projects</span> <span style="color: #ff1493;">(</span>list<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/wrapped-load-project-file</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">There is a bug here, can you figure it out?</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>project-root <span style="color: #ffff00;">(</span>projectile-project-root<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>loaded-project <span style="color: #ffff00;">(</span>member project-root fn/loaded-projects<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> loaded-project
+        nil
+      <span style="color: #00bfff;">(</span>fn/load-project-file<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>add-to-list 'fn/loaded-projects project-root<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>add-hook 'find-file-hook #'fn/wrapped-load-project-file<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+So this version looks a little cleaner but exposes an extra internal
+variable <code>fn/loaded-projects</code> and an excess wrapper for
+<code>fn/load-project-file</code>. This is contrary in hiding state in the
+functional style.
+</p>
+
+<p>
+Strangely, this is easier to debug and test. If you wanted to test
+the wrapped function, you set <code>fn/loaded-projects</code> to <code>nil</code> or a
+value and repeat the test; this is harder to do with a closure. If a
+bug is in <code>fn/wrapped-load-project-file</code>, you simply reevaluate the
+function without having to clean or replace the hook value; with a
+closure, you have a bugged and patched hook coexisting.
+</p>
+
+<p>
+I intentionally left a bug in <code>fn/wrapped-load-project-file</code> to
+demonstrate this. Patch then eval the new version. I don't have to
+think about the hook management.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/wrapped-load-project-file</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #7fff00;">(</span>projectile-project-p<span style="color: #7fff00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">`</span><span style="color: #afc0fd; font-weight: bold;">projectile-project-root</span><span style="color: #2872b2;">' needs a project first</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let*</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>project-root <span style="color: #da70d6;">(</span>projectile-project-root<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>loaded-project <span style="color: #da70d6;">(</span>member project-root fn/loaded-projects<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> loaded-project
+          nil
+        <span style="color: #ffff00;">(</span>fn/load-project-file<span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>add-to-list 'fn/loaded-projects project-root<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> fn/loaded-projects <span style="color: #ff1493;">(</span>list<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">If you want to reset its state</span>
+</pre>
+</div>
+
+<p>
+This correctly loads <code>fn/load-project-file</code> once, what does this tell us anyway?
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgef4a962" class="outline-3">
+<h3 id="orgef4a962">Symbols Over Function</h3>
+<div class="outline-text-3" id="text-orgef4a962">
+<p>
+Am I saying that when I want to memoize a function I need to create
+an extra variable and wrapper and expose state? Not really. You
+create a memoizing macro that used <code>defun</code> or <code>fset</code> to alleviate
+this as with _<a href="https://github.com/skeeto/emacs-memoize">emacs-memoize_</a>. In being simple, revealing state and
+using symbols seems to be the way to go.
+</p>
+
+<p>
+I had struggled with this at first preferring closures, but it does
+feel cleaner and simple specially in the context of Emacs. Since
+everything is extensible, exposing and manipulating state, declaring
+and advicing private functions, hiding things in Emacs seem to
+counter the notion of customization.
+</p>
+
+<p>
+The notion of encapsulation is not disregarded but rather not
+preferred. Since (almost) everything id found via <code>describe-function</code>
+or <code>describe-variable</code>, being open is really the way to go. If you
+find pain in writing more code for a repeating concept, if
+abstracting the state and logic is worth it in simplicity and
+extensibility.
+</p>
+
+<p>
+I can't speak for Scheme or Clojure; for me, Emacs has changed my
+hand and mind in writing lisp.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgf795b53" class="outline-2">
+<h2 id="orgf795b53">Security</h2>
+<div class="outline-text-2" id="text-orgf795b53">
+<p>
+We now shiv a final feature that asks permission or trust in
+loading the project files. Let us create a secure wrapper for
+<code>fn/load-project-file</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/loaded-projects</span> <span style="color: #ff1493;">(</span>list<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Projects that have been loaded by `</span><span style="color: #afc0fd; font-weight: bold; font-style: italic;">fn/load-project-file</span><span style="color: #68f6cb; font-style: italic;">'."</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/safe-load-project-file</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Similar to `</span><span style="color: #afc0fd; font-weight: bold;">fn/wrapped-load-project-file</span><span style="color: #2872b2;">' but ...</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #7fff00;">(</span>projectile-project-p<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>project-root <span style="color: #da70d6;">(</span>projectile-project-root<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>project-name <span style="color: #da70d6;">(</span>projectile-project-name<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #ffff00;">(</span>not <span style="color: #da70d6;">(</span>member project-root fn/loaded-projects<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #da70d6;">(</span>not <span style="color: #00ff7f;">(</span>fn/safe-project-p project-root<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">... asks permission first</span>
+            <span style="color: #da70d6;">(</span>message <span style="color: #68f6cb;">"Project script for %s is not trusted."</span> project-name<span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span>fn/load-project-file<span style="color: #da70d6;">)</span>
+
+          <span style="color: #da70d6;">(</span>add-to-list 'fn/loaded-projects project-root<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+What we are left with is implementing the symbol <code>fn/safe-project-p</code>.
+The question is indeed what scheme? A simple scheme is just to use
+<code>yes-or-no-p</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/safe-project-p</span> <span style="color: #ff1493;">(</span>project-root<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>yes-or-no-p
+   <span style="color: #7fff00;">(</span>format <span style="color: #68f6cb;">"Do you trust the project at %s?"</span> project-root<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+It is as simple as that. Or be more complex and check for last
+modified time, expiration period, user ownership and what not. For me,
+I simply ask permission as well but allow for a deeper setup if needed
+that I am not going to show. I do want to show how to get the last
+modified time:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>file-attribute-modification-time <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">file-attribute-* and its company</span>
+ <span style="color: #ff1493;">(</span>file-attributes
+  user-emacs-directory<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Do explore the other functions such as <code>file-attribute-user-id</code> for
+getting file attributes.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org731ea04" class="outline-2">
+<h2 id="org731ea04">Persistence</h2>
+<div class="outline-text-2" id="text-org731ea04">
+<p>
+If you use this snippet, you might get annoyed when Emacs opens and
+needs permission when running the projects you allowed previously.
+What I am talking about is persistence that is a tricky subject in
+itself. Several tricks exists for this:
+</p>
+
+<dl class="org-dl">
+<dt><b>Customize Mechanics</b></dt><dd>But what if you don't use a <code>custom-file</code>?</dd>
+<dt><b>p-cache</b></dt><dd>Too rich for my blood</dd>
+<dt><b>Write the lisp object to file</b></dt><dd>A bit low level</dd>
+</dl>
+
+<p>
+A simpler builtin mechanism exist: <code>savehist</code>. It primarily works for
+lispy data and it does save it to a file in <code>savehist-file</code>. I love
+the ease of use just by adding the variable symbol to
+<code>savehist-additional-variables</code>. To demonstrate in modifying
+<code>fn/safe-project-p</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/checked-projects</span> <span style="color: #ff1493;">(</span>list<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/safe-project-p</span> <span style="color: #ff1493;">(</span>project-root<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>checked-project
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span>
+        <span style="color: #da70d6;">(</span>cdr <span style="color: #00ff7f;">(</span>assocproject-root fn/checked-projects<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Maybe 'trusted or 'untrusted</span>
+        'unchecked<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase</span> checked-project
+      <span style="color: #00bfff;">(</span>'trusted t<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>'untrusted nil<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>'unchecked <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">If the project hasn't been trusted yet</span>
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #da70d6;">(</span><span style="color: #00ff7f;">(</span>trusted
+            <span style="color: #ff8247;">(</span>yes-or-no-p
+             <span style="color: #9cb6ad;">(</span>format <span style="color: #68f6cb;">"Do you trust the project at %s?"</span> project-root<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span>add-to-list
+          'fn/checked-projects
+          <span style="color: #00ff7f;">(</span>cons project-root <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> trusted 'trusted 'untrusted<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">with-eval-after-load</span> 'savehist
+  <span style="color: #ff1493;">(</span>add-to-list 'savehist-additional-variables 'fn/checked-projects<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+The function <code>fn/checked-projects</code> is an association list of the
+project root string and a symbol of <code>'trusted</code> or <code>'untrusted</code> and
+what we want to persist. As I mentioned, all you have to do is add it
+to <code>savehist-additional-variables</code> and our preference is persisted
+without any fuss. Nothing much to say but if you want more details
+about this simple persistence <a href="https://www.emacswiki.org/emacs/SaveHist">SaveHist</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3e3f227" class="outline-2">
+<h2 id="org3e3f227">Conclusion</h2>
+<div class="outline-text-2" id="text-org3e3f227">
+<p>
+After all that, the code is still simple to hack without needing to
+rely on other packages. Getting work done is more important instead of
+being worried by setup and security but still valid concerns.
+</p>
+</div>
+</div>
