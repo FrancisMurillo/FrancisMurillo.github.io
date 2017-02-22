@@ -1,0 +1,327 @@
+---
+title: Literate Org-Haskell
+tagline: Using org-mode with Haskell
+blog-category: hacker
+category:
+- hacker
+tag:
+- haskell
+- emacs
+- org
+---
+
+<div id="outline-container-orgc837772" class="outline-2">
+<h2 id="orgc837772">Problem</h2>
+<div class="outline-text-2" id="text-orgc837772">
+<p>
+I've been studying <a href="https://www.haskell.org/">Haskell</a> and loving it. In order to facilitate my
+learning, I wanted to explore it using <a href="https://en.wikipedia.org/wiki/Literate_programming">literate programming</a> via
+<a href="http://orgmode.org/worg/org-contrib/babel/intro.html">org-babel</a>. Aside from the usual setup of <a href="https://github.com/haskell/haskell-mode">haskell-mode</a> and its
+associates, I was eager to write the following block.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="color: #2872b2;">#+BEGIN_SRC haskell</span>
+<span style="color: #bad6e2;">myHead</span><span style="color: #1d5483;"> </span><span style="color: #ff694d;">::</span><span style="color: #1d5483;"> </span><span style="color: #ff8c00;">[</span><span style="color: #1d5483;">x</span><span style="color: #ff8c00;">]</span><span style="color: #1d5483;"> </span><span style="color: #ff694d;">-&gt;</span><span style="color: #1d5483;"> </span><span style="color: #f5b55f;">Maybe</span><span style="color: #1d5483;"> x</span>
+<span style="color: #2872b2;">#+END_SRC</span>
+</pre>
+</div>
+
+<p>
+Once I went to the coding, there is one significant problem I
+encountered: <b>my haskell tooling doesn't work when it has no backing
+file.</b> Emacs buffers represent just a file or nothing, such is the
+case with <code>org-src</code> buffers. Much of the tooling comes from <code>ghc-mod</code>,
+<code>intero</code>, <code>stack</code> and what not but all of them depend on a real file
+and when a buffer doesn't have a file, it doesn't work. The obvious
+solution is to simply make the virtual file into a real one.
+</p>
+
+<p>
+As obvious the solution is, the true error with haskell is that it
+does not recognize files without a <code>.hs</code> extension as such you cannot
+just load a haskell source file without it having the correct
+extension which is weird. So it is not enough to realize the file but
+to add the proper extension as well. Here is the <a href="https://gist.github.com/05c7d2f95c0f343d0954694b6c5a0635">snippet</a> for the impatient.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defconst</span> <span style="color: #ff694d;">fn/haskell-file-extension</span> <span style="color: #68f6cb;">".hs"</span>
+  <span style="color: #68f6cb; font-style: italic;">"The de facto haskell file extension."</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/add-haskell-file-extension</span> <span style="color: #ff1493;">(</span>name<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Add the extension of .hs to a file or buffer NAME."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #7fff00;">(</span>string/ends-with name fn/haskell-file-extension<span style="color: #7fff00;">)</span>
+      name <span style="color: #7fff00;">(</span>concat name fn/haskell-file-extension<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/org-haskell-mode-hook</span> nil
+  <span style="color: #68f6cb; font-style: italic;">"Hook when buffer is haskellized."</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/haskellize-buffer-file</span> <span style="color: #ff1493;">(</span><span style="color: #f5b55f;">&amp;optional</span> buffer<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Renames an BUFFER with a .hs extension if it doesn't have one."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> buffer <span style="color: #00bfff;">(</span>current-buffer<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>save-buffer<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #00bfff;">(</span><span style="color: #ffff00;">(</span>name <span style="color: #da70d6;">(</span>buffer-name<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>file-name <span style="color: #da70d6;">(</span>buffer-file-name<span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">if</span> <span style="color: #ffff00;">(</span>not <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> file-name <span style="color: #00ff7f;">(</span>file-exists-p file-name<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span>
+          <span style="color: #ffff00;">(</span><span style="color: #f5b55f; text-decoration: underline;">error</span> <span style="color: #68f6cb;">"Buffer '%s' has no backing file"</span> name<span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #da70d6;">(</span><span style="color: #00ff7f;">(</span>haskellized-name <span style="color: #ff8247;">(</span>fn/add-haskell-file-extension name<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+            <span style="color: #00ff7f;">(</span>haskellized-file-name <span style="color: #ff8247;">(</span>fn/add-haskell-file-extension file-name<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+          <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">cond</span>
+           <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>get-buffer haskellized-name<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span><span style="color: #f5b55f; text-decoration: underline;">error</span> <span style="color: #68f6cb;">"A buffer named '%s' already exists"</span> haskellized-name<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+           <span style="color: #00ff7f;">(</span><span style="color: #ff8247;">(</span>string-equal name haskellized-name<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Buffer %s is already haskellized"</span> haskellized-name<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+           <span style="color: #00ff7f;">(</span>t
+            <span style="color: #ff8247;">(</span>rename-file file-name haskellized-file-name t<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span>rename-buffer haskellized-name<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span>set-visited-file-name haskellized-file-name<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span>set-buffer-modified-p nil<span style="color: #ff8247;">)</span>
+            <span style="color: #ff8247;">(</span>message <span style="color: #68f6cb;">"Buffer %s is now haskellized"</span> haskellized-name<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/org-haskell-buffer-p</span> <span style="color: #ff1493;">(</span><span style="color: #f5b55f;">&amp;optional</span> buffer<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Check if BUFFER is an org-haskell buffer."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> buffer <span style="color: #00bfff;">(</span>current-buffer<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> <span style="color: #00bfff;">(</span>eq major-mode 'haskell-mode<span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>fboundp 'org-src-edit-buffer-p<span style="color: #00bfff;">)</span>
+       <span style="color: #00bfff;">(</span>org-src-edit-buffer-p<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/haskellize-org-haskell-buffer</span> <span style="color: #ff1493;">(</span><span style="color: #f5b55f;">&amp;rest</span> _<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Haskellize org haskell buffer."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #7fff00;">(</span>fn/org-haskell-buffer-p<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>fn/haskellize-buffer-file <span style="color: #00bfff;">(</span>current-buffer<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>run-hooks 'fn/org-haskell-mode-hook<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/save-org-haskell-buffer</span> <span style="color: #ff1493;">(</span><span style="color: #f5b55f;">&amp;rest</span> _<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Save haskell buffer along with the edit buffer."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #7fff00;">(</span>fn/org-haskell-buffer-p<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>save-buffer<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/cleanup-org-haskell-buffer</span> <span style="color: #ff1493;">(</span>orig-fun <span style="color: #f5b55f;">&amp;rest</span> args<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Cleanup the org-haskell buffer when exiting the edit buffer."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>org-haskell-file-name <span style="color: #ffff00;">(</span>buffer-file-name<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>org-haskell-buffer-p <span style="color: #ffff00;">(</span>fn/org-haskell-buffer-p<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">prog1</span>
+        <span style="color: #00bfff;">(</span>apply orig-fun args<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">when</span> <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> <span style="color: #da70d6;">(</span>file-exists-p org-haskell-file-name<span style="color: #da70d6;">)</span> org-haskell-buffer-p<span style="color: #ffff00;">)</span>
+        <span style="color: #ffff00;">(</span>delete-file org-haskell-file-name<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>add-hook 'org-src-mode-hook #'fn/haskellize-org-haskell-buffer t<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>advice-add 'org-edit-src-save <span style="color: #96a5d9; font-style: italic;">:before</span> #'fn/save-org-haskell-buffer<span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>advice-add 'org-edit-src-exit <span style="color: #96a5d9; font-style: italic;">:around</span> #'fn/cleanup-org-haskell-buffer<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Quite a mouthful for such a simple intent and this might apply to
+other babel buffers. I want to explore the nuance of being literate
+in <span class="underline">org-mode</span>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga9dbb6f" class="outline-2">
+<h2 id="orga9dbb6f">Buffers</h2>
+<div class="outline-text-2" id="text-orga9dbb6f">
+<p>
+In Emacs, you usually create a buffer associated with a file via
+<code>find-file</code>. There are times when all you need is a temporary
+scratchpad and you do not want the cost of managing the file system,
+such is the purpose of <code>switch-buffer</code> and <code>*scratch*</code> buffer. If I
+didn't use the literate style, the book I am reading would create a
+clutter and would I remember all the files after I finish with the
+book? Literate programming allows me to keep one file and export it
+via <code>org-tangle</code>.
+</p>
+
+<p>
+The way <code>org-babel</code> does it by creating special buffers that rebind
+the <code>save-buffer</code> command to <code>org-edit-src-save</code> which updates the
+original block region thereby creating no extra files while editing
+inside blocks. The case is also true for several libraries such as
+<a href="https://github.com/magit/magit">magit</a> and <a href="https://github.com/emacs-helm/helm">helm</a>. Thankfully, Emacs allows us to realize buffers by
+simply using <code>save-buffer</code> and it creates a backing file for it.
+</p>
+
+<p>
+However, we are left now with managing the realized file as well as
+changing the file extension of it.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbea7c41" class="outline-2">
+<h2 id="orgbea7c41">Babel Blocks</h2>
+<div class="outline-text-2" id="text-orgbea7c41">
+<p>
+From the problems above, what we want is:
+</p>
+
+<ul class="org-ul">
+<li>When opening the block buffer, create a realized file with the
+correct extension.</li>
+<li>When using the remapped <code>org-edit-src-save</code>, also save the backing
+file as with the original <code>save-buffer</code>.</li>
+<li>When closing the block buffer, delete the realized file</li>
+</ul>
+
+<p>
+The first thing anyone wants to look for when making an extension are
+hooks. Sadly, the hooks that are relevant to our goal is only
+<code>org-src-mode-hook</code>. You can also add <code>kill-buffer-hook</code> but it might
+be out of its scope. Since we have no hooks, we have to resort to the
+devious extensible <code>advice-add</code>.
+</p>
+
+<p>
+After fiddling around with <code>describe-function</code>, the exit command we
+are interested in is <code>org-edit-src-exit</code> and the entry command is the
+<code>org-src-mode-hook</code>. We include <code>org-edit-src-save</code> to complete the
+CRUD life cycle.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga4511f7" class="outline-2">
+<h2 id="orga4511f7">Renaming Files</h2>
+<div class="outline-text-2" id="text-orga4511f7">
+<p>
+The approach is hooking to <code>org-src-mode-hook</code> to call <code>save-buffer</code>
+at the same time changing the file to add the extension. This is what
+<code>fn/haskellize-buffer-file</code> does which I want to give some focus on.
+Once we realize the file, there is still the buffer and file
+separation: if you rename the file, does it rename the buffer or
+vice-versa?
+</p>
+
+<p>
+If you rename the buffer, it does not change the file associated with;
+what is changed is <code>buffer-name</code> via the <code>rename-buffer</code> function. If
+you rename the file through <code>rename-file</code>, Emacs only see the old file
+missing does creates another one if saved; what needs to be changed
+rather is the file association which is done through the function
+<code>set-visited-file-name</code>. Emphasizing these lines are:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>rename-file file-name haskellized-file-name t<span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>rename-buffer haskellized-name<span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>set-visited-file-name haskellized-file-name<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Aside from the usual file handling, his is the only nuance with the
+separation when changing file or buffer names. Now we created realized
+and renamed the buffer. Updating and deleting it is as simple calling
+<code>save-buffer</code> after <code>org-edit-src-save</code> and removing it with
+<code>delete-file</code> after <code>org-edit-src-exit</code>. Easy enough, but we have a
+problem if we advice it head-on.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org4b4db6f" class="outline-2">
+<h2 id="org4b4db6f">Local Advice</h2>
+<div class="outline-text-2" id="text-org4b4db6f">
+<p>
+Since our code depends on a specific mode but advicing does not, if
+you add the advice and modify some other code block, it will create
+the file unintentionally. Our code needs to run on a specific major
+mode, namely <code>haskell-mode</code>. Wouldn't it be nice to have buffer local
+advices like with variables? Since we don't, we add safety by checking
+for the major mode.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> <span style="color: #ff1493;">(</span>current-buffer<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>eq major-mode 'haskell-mode<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+And to be sure the current buffer is a babel buffer, we have
+<code>org-src-edit-buffer-p</code> which checks if the buffer is intended for
+literacy.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">with-current-buffer</span> <span style="color: #ff1493;">(</span>current-buffer<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>org-src-edit-buffer-p<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Combining the two is enough safety. With that, it is enough to get
+through our intent.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org0fc8c61" class="outline-2">
+<h2 id="org0fc8c61">Custom Hook</h2>
+<div class="outline-text-2" id="text-org0fc8c61">
+<p>
+A feature you can add lastly is a custom hook, which is just a list of
+functions and not some ethereal object such as a kill ring, when the
+buffer is haskell-ized. Remember how to declare it still reminds me
+how I need to write more lisp:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defvar</span> <span style="color: #ff694d;">fn/org-haskell-mode-hook</span> <span style="color: #ff1493;">(</span>list<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"Hook when buffer is haskellized."</span>
+  <span style="color: #96a5d9; font-style: italic;">:type</span> 'hook<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+It is just a normal variable but with the type <code>'hook</code>, not obvious.
+What can we do with this new hook, here is what I've done:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/haskell-process-load-or-reload</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Invoke reload process without switching buffers"</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">save-window-excursion</span>
+    <span style="color: #7fff00;">(</span>haskell-process-load-or-reload<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/haskell-reload-on-save</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Reload interactive haskell process on save."</span>
+  <span style="color: #ff1493;">(</span>add-hook 'after-save-hook 'fn/haskell-process-load-or-reload t t<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/hindent-before-save</span> <span style="color: #ff1493;">()</span>
+  <span style="color: #68f6cb; font-style: italic;">"Reformat before saving."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">interactive</span><span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>add-hook 'before-save-hook 'hindent-reformat-buffer t t<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>add-hook 'fn/org-haskell-mode-hook 'fn/haskell-process-load-or-reload<span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>add-hook 'fn/org-haskell-mode-hook 'fn/haskell-reload-on-save<span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>add-hook 'fn/org-haskell-mode-hook 'fn/hindent-before-save<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;</span>
+</pre>
+</div>
+
+<p>
+What I is to automatically feed the haskell code into the REPL and
+update it once I saved it and some linting won't hurt as well. The
+thing is I can't run any of these unless the buffer has an associated
+haskell file with it. You can think of others.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9906c08" class="outline-2">
+<h2 id="org9906c08">Conclusion</h2>
+<div class="outline-text-2" id="text-org9906c08">
+<p>
+As usual, this isn't enough to cover all cases but it does it good
+enough. There is one other issue I haven't fully resolved which is the
+tangling. The book exercises sometimes puts the code into a per
+chapter folder which after updating the code must be tangled, the real
+issue is how <code>ox-haskell</code> or <code>ob-haskell</code> has not respected the block
+headers to do advanced tangling. More things to hack I guess.
+</p>
+</div>
+</div>
