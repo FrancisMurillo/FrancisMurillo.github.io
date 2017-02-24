@@ -12,44 +12,46 @@ tag:
 - polipo
 ---
 
+<p>
+<b>UPDATE: 2017-01-24: Add https<sub>proxy</sub> to the command arguments.</b>
+<b>Also, updating style and grammar.</b>
+</p>
+
 <div id="outline-container-orgbf422ff" class="outline-2">
 <h2 id="orgbf422ff">Problem</h2>
 <div class="outline-text-2" id="text-orgbf422ff">
 <p>
-I'm having fun with <a href="http://w3m.sourceforge.net/">w3m</a> but by using this I discarded several features
-I have neglected with a GUI. One feature is private browsing which
-keeps your history personal and private. (If people were desperate
-enough to check a terminal browser for your secrets.) Just focusing on
-browsing history, configuring it to ignore several sites is easy
-enough with some glue and might warrant its own post.
+I'm having fun with <a href="http://w3m.sourceforge.net/">w3m</a> on Emacs but by using this I discarded several
+features I have neglected with a GUI: private browsing. This is useful
+if prying eyes were desperate enough to check the terminal browser for
+browsing history. Gluing it to ignore several sites is simple enough
+that might warrant a post itself.
 </p>
 
 <p>
-Even with <a href="https://www.mozilla.org/en-US/firefox/new/">firefox</a> or <a href="https://www.google.com/chrome/browser/desktop/index.html">chrome</a>, using <a href="https://duckduckgo.com/l/?kh=-1&amp;uddg=https%3A%2F%2Fsupport.mozilla.org%2Fen%2DUS%2Fkb%2FPrivate%2520Browsing">private browsing</a> is not enough as
-servers can track your IP and then infer which sites you went to. Not
-truly private but good enough against nosy users. Enter <a href="https://www.torproject.org/index.html.en">tor</a>, the
-anonymizing web proxy. What makes it stand out is that it routes
-request through several proxies while encrypting it between them to
-mask where the request comes from and what it contains. It slows down
-browsing speed but it will keep those pesky trackers and advertisers
-from scarily guessing what books or movies you secretly want. For me,
-it is a price I am willing to pay.
+Even with <a href="https://www.mozilla.org/en-US/firefox/new/">firefox</a> or <a href="https://www.google.com/chrome/browser/desktop/index.html">chrome</a>, <a href="https://duckduckgo.com/l/?kh=-1&amp;uddg=https%3A%2F%2Fsupport.mozilla.org%2Fen%2DUS%2Fkb%2FPrivate%2520Browsing">private browsing</a> may not be enough as
+servers can track your IP and infer which sites you went to. Not truly
+private but good enough against nosy users. Enter <a href="https://www.torproject.org/index.html.en">tor</a>, the anonymizing
+web proxy, that routes HTTP requests through several proxies/relays
+and adding layers of encryption between them to mask where the request
+comes from. Despite slowing down browsing speed, it will keep those
+pesky trackers and advertisers from scarily guessing what books or
+movies you secretly want.
 </p>
 
 <p>
-Sadly, that proxy protector is a <a href="https://en.wikipedia.org/wiki/SOCKS">SOCKS proxy</a> and this browser only
-uses <a href="https://en.wikipedia.org/wiki/Proxy_server">HTTP proxies</a>. This means it isn't as easy and straightforward
-combining the two of them, thus we need another middleman to join the
-two. Enter <a href="https://en.wikipedia.org/wiki/Polipo">polipo</a>, another proxy server which is lightweight enough
-for our merger. To lay down their relationship, <code>w3m</code> will use
-<code>polipo</code> as its HTTP proxy which in turn uses <code>tor</code> as its SOCKS proxy
-to send the request.
+Sadly, <code>tor</code> is a <a href="https://en.wikipedia.org/wiki/SOCKS">SOCKS proxy</a> and <code>w3m</code> uses only <a href="https://en.wikipedia.org/wiki/Proxy_server">HTTP proxies</a>. This
+means it isn't as quick and straightforward joining the two, thus we
+need a middleman. Enter <a href="https://en.wikipedia.org/wiki/Polipo">polipo</a>, a caching HTTP proxy that is
+lightweight for the experiment. To finalize, <code>w3m</code> will use <code>polipo</code>
+as its HTTP proxy which in turn uses <code>tor</code> as its SOCKS proxy to send
+the request.
 </p>
 
 <p>
-With that in mind here is the <a href="https://gist.github.com/0bf59110d447138d7d0a6d227d80f9a4">snippet</a> to do so. The first time you run
-this, <code>tor</code> might take some time setting up so be patient with that.
-As hackers though, we'd like some more elaboration.
+With that idea, here is the <a href="https://gist.github.com/0bf59110d447138d7d0a6d227d80f9a4">snippet</a> that glues them. The first time
+you run this, <code>tor</code> might take some time setting up thus be patient.
+As hackers, we want elaboration.
 </p>
 </div>
 </div>
@@ -59,24 +61,23 @@ As hackers though, we'd like some more elaboration.
 <div class="outline-text-2" id="text-org3c3264b">
 <p>
 Once you installed and tried both <code>tor</code> and <code>polipo</code>, we want Emacs to
-start these proxies when we start <code>w3m</code>. You could configure both of
-them to be external services or daemons; however, we want portable or
-standalone setups so that we minimize external dependencies and
-conflicts.
+start these proxies for us when we start <code>w3m</code>. They can be configured
+as external services or daemons; instead, we want portable setups that
+minimize external dependencies and conflicts.
 </p>
 
 <p>
-Our old friend <code>start-process</code> comes to our aid again. Practically, we
-want it to call both commands and send config command line options;
-however, we can generate their respective configuration files via
-Elisp so that the configuration can be tested and examined externally
-as well as make the <code>list-process</code> entry of each cleaner.
+To start an external process, we use <code>start-process</code>. Practically, we
+want it to call both proxies and their respective command line
+options; however, generating their respective configuration files via
+Elisp is more interesting. A minor bonus, the configuration can be
+tested and examined externally.
 </p>
 
 <p>
-Both configuration files can be abstracted as a list of key-value pairs or
-cons with different line formatting. The basic snippet to accomplish
-this with <code>tor</code>:
+Both configurations can be abstracted as a list of key-value pairs or
+cons with different line formatting. A basic formatter for this with
+<code>tor</code>:
 </p>
 
 <div class="org-src-container">
@@ -104,7 +105,7 @@ Aside from using the helpful <code>with-temp-file</code> macro and destructring
 <code>pcase-let</code>, the only nuance here is the value formatting via
 <code>typecase</code>. How you do the formatting affects what values you place.
 For example with <code>polipo</code>, our list of <code>cons</code> with some stylistic
-backquoting would look something like this:
+backquoting looks something like this:
 </p>
 
 <div class="org-src-container">
@@ -123,27 +124,24 @@ backquoting would look something like this:
 Although the key types are the same, notice there are different value
 types. Strings are quoted, numbers and symbols are stringified; if we
 used just list of line strings, we'd have to do the formatting
-ourselves. With this setup, it looks configurable and proper.
+ourselves. With this setup, it looks configurable and proper. A caveat
+to this is than when a value is changed, the files and processes needs
+to be updated or refreshed. This is natural since this is external to
+Emacs. Wrapping the generation as a function,
+<code>fn/w3m-polipo-tor-update-conf</code>, it is not a big issue to invoke it
+each time.
 </p>
 
 <p>
-There is one caveat to this is that everytime you change a value
-within the configuration, you have to update the files. Since there is
-no data binding, you have to update it manually. Thankfully, this is
-easily done with by calling <code>fn/w3m-polipo-tor-update-conf</code>
-afterwards.
+As an aside, <code>customize-set-variable</code> has some data binding mechanism
+through <code>:set</code> and <code>:get</code> property but it isn't necessary for a small
+shiv. Also, it is fascinating how generating the files with Elisp
+binds the data and code.
 </p>
 
 <p>
-As a side note, there is some data binding mechanism using <code>defcustom</code>
-and <code>customize-set-variable</code> but isn't really needed for a small shiv.
-Also, it is fascinating how generating the files with Elisp allows us
-to ensure they are bound by data and code.
-</p>
-
-<p>
-Now, we can talk about the options we are interested in since I am
-assuming you didn't really read the manuals.
+We now talk about the options we are interested in since I am assuming
+you didn't really read the manuals.
 </p>
 </div>
 </div>
@@ -164,14 +162,13 @@ The configuration values for <code>tor</code>:
 </div>
 
 <dl class="org-dl">
-<dt><b>SocksPort</b></dt><dd>The port which it listens to. More importantly, this port is
-where <code>polipo</code> points to.</dd>
-<dt><b>DataDirectory</b></dt><dd>The directory it uses. Not needed, but must be changed since it
+<dt><b>SocksPort</b></dt><dd>The port it listens to. This port is what <code>polipo</code> points to.</dd>
+<dt><b>DataDirectory</b></dt><dd>The directory it uses. Optional, but must be changed since it
 defaults to a system directory</dd>
 <dt><b>ControlPort</b></dt><dd>Optional debugging port if you want to monitor it with tools such
 as <a href="https://www.torproject.org/index.html.en">arm</a>.</dd>
 <dt><b>DisableDebuggerAttachment</b></dt><dd><p>
-       This allows debugging and monitoring which is optional like <b>ControlPort</b>
+       If you want to monitor, set this flag
 </p>
 
 <p>
@@ -202,16 +199,14 @@ The configuration values for <code>polipo</code>:
 </div>
 
 <dl class="org-dl">
-<dt><b>proxyAddress</b></dt><dd>The address this listens to. Since this is standalone,
-<b>localhost</b> is the only thing we need.</dd>
-<dt><b>allowedClients</b></dt><dd>The address that this allows. Since you can configure it to
-be a network router, it has this option.</dd>
+<dt><b>proxyAddress</b></dt><dd>The address this listens to. For portability, <b>localhost</b> is the
+value.</dd>
+<dt><b>allowedClients</b></dt><dd>The IP address allowed. Portability again, <b>localhost</b> is the value.</dd>
 <dt><b>diskCacheRoot</b></dt><dd>Like with <code>tor</code> and <b>DataDirectory</b>.</dd>
-<dt><b>proxyPort</b></dt><dd>The port this listens to which <code>w3m</code> uses as its proxy</dd>
-<dt><b>cacheIsShared</b></dt><dd>Set to true if there is only one instance. Since this is
-standalone, it is false.</dd>
-<dt><b>socksParentProxy</b></dt><dd>The SOCKS proxy port it listens to. This is where <code>tor</code> and <code>polipo</code>
-meet.</dd>
+<dt><b>proxyPort</b></dt><dd>The port this listens to. This port is what <code>w3m</code> uses.</dd>
+<dt><b>cacheIsShared</b></dt><dd>Set to true if the configuration is used by only one instance.</dd>
+<dt><b>socksParentProxy</b></dt><dd>The SOCKS proxy port it listens to. This port is the meeting of
+<code>tor</code> and <code>polipo</code>.</dd>
 <dt><b>socksProxyType</b></dt><dd>The SOCKS proxy type. The default <code>socks5</code> is what <code>tor</code> is.</dd>
 </dl>
 
@@ -233,9 +228,28 @@ Now that the options are clear, we move to our browser options.
 <p>
 We now look at the main browser and the only external option it needs,
 <code>http_proxy</code>. This is simply adding to <code>w3m-command-arguments</code> the
-value <code>http_proxy=https://127.0.0.1:&lt;polipo-port&gt;</code> after <code>-o</code> option
-and that is all there is. It is now just a matter of calling the
-appropriate processes when <code>w3m</code> loads:
+value <code>http_proxy=https://127.0.0.1:&lt;polipo-port&gt;</code> after <code>-o</code> option.
+Aside, a nuance is also duplicating it for <code>https_proxy</code> as such:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> w3m-command-arguments
+   <span style="color: #ff1493;">(</span>append w3m-command-arguments
+           <span style="color: #7fff00;">(</span>list <span style="color: #68f6cb;">"-o"</span>
+              <span style="color: #00bfff;">(</span>format
+               <span style="color: #68f6cb;">"http_proxy=http://127.0.0.1:%s/"</span>
+               fn/w3m-privoxy-port<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+           <span style="color: #7fff00;">(</span>list <span style="color: #68f6cb;">"-o"</span>
+              <span style="color: #00bfff;">(</span>format
+               <span style="color: #68f6cb;">"https_proxy=https://127.0.0.1:%s/"</span>
+               fn/w3m-privoxy-port<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+To note, <code>w3m</code> has its own configuration thus this configuration can
+be set there but it does ruin the data and code binding. It is now
+just a matter of calling the appropriate processes when <code>w3m</code> loads:
 </p>
 
 <div class="org-src-container">
@@ -252,8 +266,8 @@ properly.
 </p>
 
 <p>
-If there are specialized hosts or domains which you don't need
-anonymity, you should set them via <code>w3m-no-proxy-domains</code>:
+If you don't need anonymity for some specialized hosts or domain, set
+it via <code>w3m-no-proxy-domains</code>:
 </p>
 
 <div class="org-src-container">
@@ -265,11 +279,8 @@ anonymity, you should set them via <code>w3m-no-proxy-domains</code>:
 <p>
 As for me, if I don't add this, I can't test my blog since I will get
 a proxy error. Configure to your actual and specific setup.
-</p>
-
-<p>
-Optionally, the proxy might interfere with several sites so a command
-to add the site as a proxy exception:
+Refactoring that, here is a command to add the site as a proxy
+exception:
 </p>
 
 <div class="org-src-container">
@@ -283,12 +294,6 @@ to add the site as a proxy exception:
       <span style="color: #00bfff;">(</span>w3m-reload-this-page<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 </pre>
 </div>
-
-<p>
-This adds the current host to <code>w3m-no-proxy-domains</code> and reloads the
-page. Hopefully, you would not need to use this command as it
-signifies the roadblocks the proxies bring.
-</p>
 </div>
 </div>
 
@@ -312,7 +317,7 @@ snippet does the job:
 Now the flip side of killing it should be handled when Emacs
 terminates; however for some reason, <code>tor</code> doesn't cleanly stop which
 creates a leak that is not visible by <code>list-process</code>. Strangely,
-<code>polipo</code> closes properly but <code>tor</code> does not. So a stronger guarantee
+<code>polipo</code> closes properly but <code>tor</code> does not. A stronger guarantee
 is to kill it as part of Emacs:
 </p>
 
@@ -325,7 +330,7 @@ is to kill it as part of Emacs:
 This hook is not a true guarantee as Emacs can be killed externally,
 so this hook will not run, thus <code>tor</code> is still running after the next
 session. You can check using <code>proced</code> if a <code>tor</code> is still running and
-kill it accordingly. This is apparently normal behavior for deamons.
+kill it accordingly. This is apparently standard behavior for deamons.
 </p>
 
 <p>
@@ -343,11 +348,11 @@ logs), and kill and restart its helper processes if applicable.
 
 <p>
 This means when Emacs is killed externally, it restarts <code>tor</code> instead
-of killing it. Sadly, there is no way to change the kill or intercept
-the signal <code>tor</code> receives easily. For now, this issue is out of scope
-for a simple process glue. You can create a custom script to start
-<code>tor</code>, but this is a reminder that we can't control everything without
-lower level work.
+of killing it. Sadly, changing the kill or intercept the signal <code>tor</code>
+receives is not easy. For now, this issue is out of scope for a simple
+process glue. You can create a custom script to start <code>tor</code>, but this
+is a reminder that we can't control everything without lower level
+work.
 </p>
 </div>
 </div>
@@ -365,12 +370,13 @@ features or aspects that can be improved:
 <li>Data and argument binding, managing <code>w3m-command-arguments</code> as well</li>
 <li>Error handling</li>
 <li>Process management on open and close of <code>w3m</code>, maybe <code>prodigy</code>?</li>
-<li>Proxy fine tuning and configuration, checkout <a href="https://gitweb.torproject.org/torbrowser.git/plain/build-scripts/config/polipo.conf?id=1ffcd9dafb9dd76c3a29dd686e05a71a95599fb5">custom polipo conf from tor</a></li>
+<li>Proxy fine-tuning and configuration, checkout <a href="https://gitweb.torproject.org/torbrowser.git/plain/build-scripts/config/polipo.conf?id=1ffcd9dafb9dd76c3a29dd686e05a71a95599fb5">custom polipo conf from tor</a></li>
 </ul>
 
 <p>
-The joy of Emacs, gluing things together to get what you want even if
-its just private browsing.
+As disclaimer, this does not fully make you anonymous specially in
+cases where you need to login, but it is an improvement over private
+browsing.
 </p>
 </div>
 </div>
