@@ -45,12 +45,12 @@
         {% endif %}
 
         <li class="segment segment-major-mode segment-fourth">
-            {% if page.major_mode %}
-            {{ page.major_mode }}
-            {% elsif page.categories %}
-            {{ page.categories | first | capitalize }}
+            {% if page.major-mode %}
+            {{ page.major-mode }}
+            {% elsif page.category %}
+            {{ page.category | first | capitalize }}
             {% else %}
-            {{ site.major_mode }}
+            {{ site.major-mode }}
             {% endif %}
         </li>
 
