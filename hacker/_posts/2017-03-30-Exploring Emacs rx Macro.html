@@ -1,0 +1,463 @@
+---
+title: Exploring Emacs rx Macro
+tagline: The regular s-expression macro
+blog-category: hacker
+major-mode: Exploration
+category:
+- hacker
+tag:
+- hacker
+- emacs 25
+- rx
+---
+
+<div id="outline-container-org2ed86e2" class="outline-2">
+<h2 id="org2ed86e2">Regular Expression</h2>
+<div class="outline-text-2" id="text-org2ed86e2">
+<p>
+<i><b>Some people, when confronted with a problem, think "I know, I'll use
+regular expressions." Now they have two problems.</b></i> - <i>Jamie Zawinski</i>
+</p>
+
+<p>
+<a href="https://en.wikipedia.org/wiki/Regular_expression">Regular Expressions</a> are difficult to write and maintain. Instead of
+harping about the problems, I want to explore what Emacs offers to
+make writing them easier. In particular, I want to tackle the <a href="https://www.emacswiki.org/emacs/rx">rx</a>
+macro, <b>the regular s-expression or lispy regular expression</b>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>  <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">All we need is =s-matches-p=</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">rx</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Creating a regexp that will match -&gt; &lt;File&gt; [&lt;Line&gt;:&lt;Column] &lt;Suggestion&gt;</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> this-file-name <span style="color: #68f6cb;">"blog.org"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>s-matches-p
+ <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> bol
+     <span style="color: #7fff00;">(</span>eval this-file-name<span style="color: #7fff00;">)</span>
+     space
+     <span style="color: #68f6cb;">"["</span> <span style="color: #7fff00;">(</span>group <span style="color: #00bfff;">(</span>one-or-more digit<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span> <span style="color: #68f6cb;">":"</span> <span style="color: #7fff00;">(</span>group <span style="color: #00bfff;">(</span>one-or-more digit<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span> <span style="color: #68f6cb;">"]"</span>
+     space
+     <span style="color: #7fff00;">(</span>group <span style="color: #00bfff;">(</span>zero-or-more anything<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+     eol<span style="color: #ff1493;">)</span>
+ <span style="color: #68f6cb;">"blog.org [17:16] Emacs Lisp, not emacs lisp"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Produced regexp, I do not want to write or maintain this by hand</span>
+<span style="color: #68f6cb;">"^blog\\.org[[:space:]]\\[</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(</span><span style="color: #68f6cb;">[[:digit:]]+</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">:</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(</span><span style="color: #68f6cb;">[[:digit:]]+</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">][[:space:]]</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">.</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span>
+<span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">*</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">$"</span>
+</pre>
+</div>
+
+<p>
+Although it is less concise, the example above illustrates the selling
+point of writing regular expressions at a higher level: <b>it is more
+understandable, comfortable to write and easier to maintain</b>. Rather,
+the "<i>lispyness</i>" of the expressions is more appropriate in the style
+and heart of Emacs, working with symbolic expressions.
+</p>
+
+<p>
+The builtin <code>rx</code> macro has no obvious manual but it has a symbol
+documentation found via <code>describe-function</code>. For a powerful idea, it
+doesn't have strong examples in the wiki or web to promote it. Hackers
+before users. To be fair, <b>reading the documentation is enough but
+examples or recipes would hasten comprehension</b>. This is what this
+article explores, thus the following sections are exploring some
+syntax or construct. (Aside, the problems I use are found in <a href="https://www.amazon.com/Regular-Expressions-Cookbook-Jan-Goyvaerts/dp/0596520689">Regular
+Expression Cookbook</a> and if you found them intriguing, support the
+author and buy the book.)
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9cd3d4c" class="outline-2">
+<h2 id="org9cd3d4c">Strings And Quoting</h2>
+<div class="outline-text-2" id="text-org9cd3d4c">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">STRING
+     matches string STRING literally.
+
+CHAR
+     matches character CHAR literally.
+
+&#8216;<span style="color: #ff8c00;">(</span>eval FORM<span style="color: #ff8c00;">)</span>&#8217;
+     evaluate FORM and insert result.  If result is a string,
+     &#8216;<span style="color: #afc0fd; font-weight: bold;">regexp-quote</span>&#8217; it.
+</pre>
+</div>
+
+<p>
+<b>PROBLEM:</b> What (regular) expression matches this string:
+<code>The punctuation characters in the ASCII table are: !"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}</code>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Escape the double quote here</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> input <span style="color: #68f6cb;">"The punctuation characters in the ASCII table are: !\"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #68f6cb;">"The punctuation characters in the ASCII table are: !\"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}"</span><span style="color: #ff1493;">)</span>
+             input<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Direct use of strings</span>
+
+<span style="color: #ff8c00;">(</span>not <span style="color: #ff1493;">(</span>s-matches-p input input<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Does not work because of quoting</span>
+<span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span>regexp-quote input<span style="color: #ff1493;">)</span> input<span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span>eval input<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span> input<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">More rx</span>
+</pre>
+</div>
+
+<p>
+This problem is merely quoting or escaping syntax characters, that is
+if you know what those syntax characters are. The function
+<code>regexp-quote</code>, which escapes those characters, is simple enough. This
+is done by default by <code>rx</code> when a string is passed in for simplicity.
+Finally, string variables can be used through the <code>eval</code> syntax, which
+is like inserting values with backquoting.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org78436f2" class="outline-2">
+<h2 id="org78436f2">Variables And Ranges</h2>
+<div class="outline-text-2" id="text-org78436f2">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">&#8216;<span style="color: #ff8c00;">(</span>any SET ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>in SET ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>char SET ...<span style="color: #ff8c00;">)</span>&#8217;
+     matches any character in SET ....  SET may be a character or string.
+     Ranges of characters can be specified as &#8216;<span style="color: #afc0fd; font-weight: bold;">A-Z</span>&#8217; in strings.
+     Ranges may also be specified as conses like &#8216;<span style="color: #ff8c00;">(</span>?A . ?Z<span style="color: #ff8c00;">)</span>&#8217;.
+
+     SET may also be the name of a character class: &#8216;<span style="color: #afc0fd; font-weight: bold;">digit</span>&#8217;,
+     &#8216;<span style="color: #afc0fd; font-weight: bold;">control</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">hex-digit</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">blank</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">graph</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">print</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">alnum</span>&#8217;,
+     &#8216;<span style="color: #afc0fd; font-weight: bold;">alpha</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">ascii</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">nonascii</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">lower</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">punct</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">space</span>&#8217;, &#8216;<span style="color: #afc0fd; font-weight: bold;">upper</span>&#8217;,
+     &#8216;<span style="color: #afc0fd; font-weight: bold;">word</span>&#8217;, or one of their synonyms.
+</pre>
+</div>
+
+<p>
+<b>PROBLEM:</b> Create one regular expression to match all common
+misspellings of calendar, so you can find this word in a document
+without having to trust the author’s spelling ability. Allow an a or e
+to be used in each of the vowel positions.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #68f6cb;">"c"</span>
+                 <span style="color: #7fff00;">(</span>any <span style="color: #68f6cb;">"a"</span> <span style="color: #68f6cb;">"e"</span><span style="color: #7fff00;">)</span>
+                 <span style="color: #68f6cb;">"l"</span>
+                 <span style="color: #7fff00;">(</span>any <span style="color: #68f6cb;">"a"</span> <span style="color: #68f6cb;">"e"</span><span style="color: #7fff00;">)</span>
+                 <span style="color: #68f6cb;">"nd"</span>
+                 <span style="color: #7fff00;">(</span>any <span style="color: #68f6cb;">"a"</span> <span style="color: #68f6cb;">"e"</span><span style="color: #7fff00;">)</span>
+                 <span style="color: #68f6cb;">"r"</span><span style="color: #ff1493;">)</span>
+             <span style="color: #68f6cb;">"celander"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> misspelling-pattern `<span style="color: #ff1493;">(</span>any <span style="color: #68f6cb;">"a"</span> <span style="color: #68f6cb;">"e"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #68f6cb;">"c"</span>
+                 <span style="color: #7fff00;">(</span>eval misspelling-pattern<span style="color: #7fff00;">)</span>
+                 <span style="color: #68f6cb;">"l"</span>
+                 <span style="color: #7fff00;">(</span>eval misspelling-pattern<span style="color: #7fff00;">)</span>
+                 <span style="color: #68f6cb;">"nd"</span>
+                 <span style="color: #7fff00;">(</span>eval misspelling-pattern<span style="color: #7fff00;">)</span>
+                 <span style="color: #68f6cb;">"r"</span><span style="color: #ff1493;">)</span>
+             <span style="color: #68f6cb;">"calendar"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #68f6cb;">"c[ae]l[ae]nd[ae]r"</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated pattern</span>
+</pre>
+</div>
+
+<p>
+Aside from demonstrating a simple range construct, the use of
+sub-patterns through the familiar <code>eval</code> allows us to treat these
+expressions more modularly, which helps us move away from a monolithic
+concatenated string.
+</p>
+
+<p>
+<b>PROBLEM:</b> Create a regular expression to match a single
+hexadecimal character.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span>any <span style="color: #68f6cb;">"a-f"</span> <span style="color: #68f6cb;">"A-F"</span> <span style="color: #68f6cb;">"0-9"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+             <span style="color: #68f6cb;">"A"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span>in <span style="color: #68f6cb;">"a-f"</span> <span style="color: #68f6cb;">"A-F"</span> <span style="color: #68f6cb;">"0-9"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+             <span style="color: #68f6cb;">"A"</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Equivalently</span>
+
+<span style="color: #68f6cb;">"[0-9A-Fa-f]"</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated pattern</span>
+
+
+<span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span>char hex-digit<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+             <span style="color: #68f6cb;">"d"</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">More rx</span>
+<span style="color: #ff8c00;">(</span>s-matches-p <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> hex-digit<span style="color: #ff1493;">)</span>
+             <span style="color: #68f6cb;">"d"</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Equivalently</span>
+
+<span style="color: #68f6cb;">"[[:xdigit:]]"</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated pattern</span>
+</pre>
+</div>
+
+<p>
+Lastly, the range syntax allows the familiar dashes to add character
+range. Rather, the abstraction of special character ranges like
+<code>[:upper:]</code> or <code>[:xdigit:]</code> is nice to know. Other useful constructs
+such as <code>word-start</code>, <code>line-end</code>, and <code>punctuation</code> exist that is
+worthy to be explored.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org66cb4db" class="outline-2">
+<h2 id="org66cb4db">Alternatives And Depth</h2>
+<div class="outline-text-2" id="text-org66cb4db">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">&#8216;<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>| SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+     matches anything that matches SEXP1 or SEXP2, etc.  If all
+     args are strings, use &#8216;<span style="color: #afc0fd; font-weight: bold;">regexp-opt</span>&#8217; to optimize the resulting
+     regular expression.
+
+&#8216;<span style="color: #ff8c00;">(</span>zero-or-one SEXP ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>optional SEXP ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>opt SEXP ...<span style="color: #ff8c00;">)</span>&#8217;
+     matches zero or one occurrences of A.
+
+&#8216;<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>: SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>seq SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>sequence SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+     matches what SEXP1 matches, followed by what SEXP2 matches, etc.
+
+&#8216;<span style="color: #ff8c00;">(</span>repeat N SEXP<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>= N SEXP ...<span style="color: #ff8c00;">)</span>&#8217;
+     matches N occurrences.
+</pre>
+</div>
+
+<p>
+<b>PROBLEM:</b> Create a regular expression that when applied repeatedly to
+the text <code>Mary, Jane, and Sue went to Mary's house</code> will match <code>Mary</code>,
+<code>Jane</code>, <code>Sue</code> and then <code>Mary</code> again.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>s-match-strings-all
+ <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> <span style="color: #68f6cb;">"Mary"</span> <span style="color: #68f6cb;">"Jane"</span> <span style="color: #68f6cb;">"Sue"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+ <span style="color: #68f6cb;">"Mary, Jane, and Sue went to Mary's house"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Output</span>
+'<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Mary"</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Jane"</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Sue"</span><span style="color: #ff1493;">)</span> <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Mary"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated pattern</span>
+<span style="color: #68f6cb;">"</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">Jane</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">Mary</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">Sue</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">"</span>
+</pre>
+</div>
+
+<p>
+This simple problem is a demonstration of using the alternation
+construct, which is related to ranges and classes. Nothing fancy but
+the possibility of making it nuanced exist.
+</p>
+
+<p>
+<b>PROBLEM:</b> Create a regular expression matching 0 to 255.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> range-expression <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Expression and pattern separated for reuse</span>
+      `<span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> <span style="color: #68f6cb;">"0"</span>
+           <span style="color: #7fff00;">(</span>sequence <span style="color: #68f6cb;">"1"</span> <span style="color: #00bfff;">(</span>optional digit <span style="color: #ffff00;">(</span>optional digit<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+           <span style="color: #7fff00;">(</span>sequence <span style="color: #68f6cb;">"2"</span> <span style="color: #00bfff;">(</span>optional
+                          <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span>
+                           <span style="color: #da70d6;">(</span>sequence <span style="color: #00ff7f;">(</span>any <span style="color: #68f6cb;">"0-4"</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>optional digit<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+                           <span style="color: #da70d6;">(</span>sequence <span style="color: #68f6cb;">"5"</span> <span style="color: #00ff7f;">(</span>optional <span style="color: #ff8247;">(</span>any <span style="color: #68f6cb;">"0-5"</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+                           <span style="color: #da70d6;">(</span>sequence <span style="color: #00ff7f;">(</span>any <span style="color: #68f6cb;">"6-9"</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>optional digit<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+           <span style="color: #7fff00;">(</span>any <span style="color: #68f6cb;">"3-9"</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> range-pattern <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span>eval range-expression<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">A test for the regular expression</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">cl</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff8c00;">(</span>cl-every <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #7fff00;">(</span>number<span style="color: #7fff00;">)</span>
+            <span style="color: #7fff00;">(</span>s-matches-p range-pattern <span style="color: #00bfff;">(</span>number-to-string number<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>
+          <span style="color: #ff1493;">(</span>number-sequence 0 255<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated pattern</span>
+<span style="color: #68f6cb;">"0</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">1</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">[[:digit:]][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">2</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">[0-4][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">5[0-5]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">[6-9][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">[3-9]"</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">To use this IP Addresses</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> ip4-pattern <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span>repeat 3 <span style="color: #00bfff;">(</span>sequence <span style="color: #ffff00;">(</span>eval range-expression<span style="color: #ffff00;">)</span> <span style="color: #68f6cb;">"."</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+                      <span style="color: #7fff00;">(</span>eval range-expression<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Testing for permutation might take too long, one is good enough</span>
+<span style="color: #ff8c00;">(</span>s-matches-p ip4-pattern
+             <span style="color: #68f6cb;">"61.12.234.251"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated pattern,</span>
+<span style="color: #68f6cb;">"</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">0</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">1</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">[[:digit:]][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">2</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">[0-4][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">5[0-5]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">[6-9][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">[3-9]</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">\\.</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">\\{3\\}</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">0</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">1</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">[[:digit:]][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">2</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?:</span><span style="color: #68f6cb;">[0-4][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">5[0-5]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">[6-9][[:digit:]]?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">?</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">|</span><span style="color: #68f6cb;">[3-9]</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">"</span>
+</pre>
+</div>
+
+<p>
+The idea of this expression is matching the first digit, then
+considering the branches. Even if I don't explain in depth, the syntax
+should be helpful; but three new constructs deserve some words. First,
+the <code>optional</code> or <code>opt</code> syntax is the equivalent of the zero-or-one
+construct. Second, the <code>sequence</code> or <code>seq</code> syntax is primarily an
+expression wrapper, where a list not an atom is required. Third,
+<code>repeat</code> syntax is the same as the repetition construct of a prior
+pattern. Regardless of the new syntax, the problem is just flexing the
+syntax.
+</p>
+
+<p>
+Also, remember to write tests for regular expressions. I
+made three mistakes on my first draft, thus test before publishing.
+Strangely, regular expressions are like functions that can be property
+checked.
+</p>
+
+<p>
+Before I forget, the <code>eval</code> construct requires that the variables
+exist in the interpreter; meaning, they have to be globally set via
+<code>setq</code> before being used. That is why two setters in the snippet set
+up the expression and pattern separately and respectively. I suggest
+setting the expression or pattern via <code>defconst</code> or <code>defvar</code> as
+refactoring. It is unfortunate that <code>let</code> will not work with <code>eval</code> ,
+but it isn't a huge cost.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgef69d54" class="outline-2">
+<h2 id="orgef69d54">Groups And Backreferencs</h2>
+<div class="outline-text-2" id="text-orgef69d54">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">&#8216;<span style="color: #ff8c00;">(</span>submatch SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>group SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+     like &#8216;<span style="color: #afc0fd; font-weight: bold;">and</span>&#8217;, but makes the match accessible with &#8216;<span style="color: #afc0fd; font-weight: bold;">match-end</span>&#8217;,
+     &#8216;<span style="color: #afc0fd; font-weight: bold;">match-beginning</span>&#8217;, and &#8216;<span style="color: #afc0fd; font-weight: bold;">match-string</span>&#8217;.
+
+&#8216;<span style="color: #ff8c00;">(</span>submatch-n N SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+&#8216;<span style="color: #ff8c00;">(</span>group-n N SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
+     like &#8216;<span style="color: #afc0fd; font-weight: bold;">group</span>&#8217;, but make it an explicitly-numbered group with
+     group number N.
+</pre>
+</div>
+
+<p>
+<b>PROBLEM:</b> Create a regular expression that matches any date in
+yyyy-mm-dd format and separately captures the year, month, and day. As
+extra challenge, make the groups named.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> date-pattern
+   <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> <span style="color: #7fff00;">(</span>group-n 3 <span style="color: #00bfff;">(</span>repeat 4 digit<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+       <span style="color: #68f6cb;">"-"</span>
+       <span style="color: #7fff00;">(</span>group-n 2 <span style="color: #00bfff;">(</span>repeat 2 digit<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+       <span style="color: #68f6cb;">"-"</span>
+       <span style="color: #7fff00;">(</span>group-n 1 <span style="color: #00bfff;">(</span>repeat 2 digit<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>s-match-strings-all date-pattern
+                     <span style="color: #ff1493;">(</span>format-time-string <span style="color: #68f6cb;">"%F"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Output and pattern, notice it is day, month and year or reverse order</span>
+<span style="color: #68f6cb;">"</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?3:</span><span style="color: #68f6cb;">[[:digit:]]\\{4\\}</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">-</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?2:</span><span style="color: #68f6cb;">[[:digit:]]\\{2\\}</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">-</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?1:</span><span style="color: #68f6cb;">[[:digit:]]\\{2\\}</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">"</span>
+'<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"2017-03-30"</span> <span style="color: #68f6cb;">"30"</span> <span style="color: #68f6cb;">"03"</span> <span style="color: #68f6cb;">"2017"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Capturing groups are fundamental; however, this is where the syntax
+needs works. Named groups aren't possible here, instead we are limited
+to numbered groups. Closely, this is not a limitation of the macro but
+the specific Emacs Lisp regex syntax; a more domain specific version
+can be tuned. This example just shows not every feature is translated.
+</p>
+
+<p>
+The <code>group-n</code> or <code>group</code> syntax is obvious in intention. The first
+argument represent the group number and the rest are the actual
+expression. Nothing fancy.
+</p>
+
+<p>
+<b>PROBLEM:</b> Create a regular expression that matches "<i>magical</i>" dates
+in yyyy-mm-dd format. A date is magical if the year minus the century,
+the month, and the day of the month are all the same number. For
+example, <code>2008-08-08</code> is a magical date.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> magical-pattern
+   <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span>
+    <span style="color: #7fff00;">(</span>repeat 2 digit<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>group-n 1 <span style="color: #00bfff;">(</span>repeat 2 digit<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #68f6cb;">"-"</span>
+    <span style="color: #7fff00;">(</span>backref 1<span style="color: #7fff00;">)</span>
+    <span style="color: #68f6cb;">"-"</span>
+    <span style="color: #7fff00;">(</span>backref 1<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>s-matches-p magical-pattern
+             <span style="color: #68f6cb;">"2008-08-08"</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated pattern</span>
+<span style="color: #68f6cb;">"[[:digit:]]\\{2\\}</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">(?1:</span><span style="color: #68f6cb;">[[:digit:]]\\{2\\}</span><span style="color: #68f6cb; font-weight: bold;">\\</span><span style="color: #68f6cb; font-weight: bold;">)</span><span style="color: #68f6cb;">-\\1-\\1"</span>
+</pre>
+</div>
+
+<p>
+This just shows backreferences are available. The <code>backref</code> syntax is
+just invoking the group with the numeric argument. Again, nothing
+complicated.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org98002d4" class="outline-2">
+<h2 id="org98002d4">re-builder</h2>
+<div class="outline-text-2" id="text-org98002d4">
+<p>
+To conclude this exploration, a UI exist for testing and experimenting
+on regular expressions: <code>re-builder</code>. Execute the command,
+<code>re-builder</code> or <code>regexp-builder</code>, on a buffer containing the text,
+then execute <code>reb-change-syntax</code> and select <code>rx</code>. The following
+screencast can be illuminating.
+</p>
+
+<p>
+<img src="/hacker/images/exploring-emacs-rx--screencast.gif" alt="Screencast Of regexp-builder"/>
+</p>
+
+<p>
+This UI can handle raw expression but we are interested in how this
+ties to <code>rx</code>. To elaborate, every time the expression is updated, it
+highlights any possible matches. Although it is not as dynamic or
+programmatic, it is handy as a quick experiment and check.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd1a2f13" class="outline-2">
+<h2 id="orgd1a2f13">Conclusion</h2>
+<div class="outline-text-2" id="text-orgd1a2f13">
+<p>
+This macro is not a replacement for learning regular expressions since
+there are nuances that a DSL can cover such language specific syntax
+like <a href="https://en.wikipedia.org/wiki/Perl_Compatible_Regular_Expressions">PCRE</a>; rather, productivity is the key. As for me, I do not want
+to write raw regular expression, I would prefer an abstraction to make
+it easier on the eyes and hands.
+</p>
+
+<p>
+Finally, I did not discuss all constructs but only the interesting
+features that draw me in. <b>Read The Function Documentation</b>.
+</p>
+
+<p>
+If this can be done for regular expressions, can it be applied for
+SQL? An idea still waiting to be written.
+</p>
+</div>
+</div>
