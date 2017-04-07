@@ -25,11 +25,7 @@ blog-category: blog
             </p>
             <p class="post-meta">
               Blog:
-              {% if post.categories contains 'hacker'  %}
-              Hacker
-              {% else %}
-              Watcher
-              {% endif %}
+              {{ post.blog-category | capitalize }}
             </p>
             <p class="post-meta">
                 Log Date:

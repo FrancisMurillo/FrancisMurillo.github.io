@@ -13,7 +13,7 @@ blog-category: watcher
 
   <ul class="post-list">
     {% for post in site.posts %}
-    {% if post.categories contains page.blog-category %}
+    {% if post.categories contains page.blog-category  %}
     <li class="post-item">
       <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">
         {{ post.title }}
