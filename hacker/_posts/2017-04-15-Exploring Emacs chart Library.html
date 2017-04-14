@@ -1,0 +1,320 @@
+---
+title: Exploring Emacs chart Library
+tagline: A bar chart buffer library
+blog-category: hacker
+major-mode: Exploration
+category:
+- hacker
+tag:
+- hacker
+- emacs-25
+- chart
+---
+
+<div id="outline-container-org9a9b82e" class="outline-2">
+<h2 id="org9a9b82e">Bar Charts</h2>
+<div class="outline-text-2" id="text-org9a9b82e">
+<p>
+<a href="https://en.wikipedia.org/wiki/Bar_chart#p-search">Bar Charts</a> is a simple way to visualize grouped data through colorful
+rectangles. In the world of text buffers and shell output, it is
+surprising that Emacs has a library to draw colored rectangles:
+<code>chart</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">chart</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>chart-bar-quickie
+ 'vertical <span style="color: #68f6cb;">"Favorite Type of Movie"</span>                        <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Type &amp; Title</span>
+ '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Comedy"</span> <span style="color: #68f6cb;">"Action"</span> <span style="color: #68f6cb;">"Romance"</span> <span style="color: #68f6cb;">"Drama"</span> <span style="color: #68f6cb;">"Sci-Fi"</span><span style="color: #ff1493;">)</span> <span style="color: #68f6cb;">"Genre"</span>   <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Keys &amp; Label</span>
+ '<span style="color: #ff1493;">(</span>4 5 6 1 4<span style="color: #ff1493;">)</span> <span style="color: #68f6cb;">"People"</span>                                     <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Values &amp;  Label</span>
+ <span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+<img src="/hacker/images/exploring-emacs-chart--cover.png" alt="Screenshot Of chart.el"/>
+</p>
+
+<p>
+As the screenshot shows above, it is not sophisticated enough to
+warrant deep examination but still impressive within the realm of text
+buffers. The context of being builtin leads to fascinating queries
+about the Emacs interpreter such as <code>memory-usage</code>.
+</p>
+
+<p>
+<img src="/hacker/images/exploring-emacs-chart--memory-usage.png" alt="Screenshot Of memory-usage"/>
+</p>
+
+<p>
+If you want to try it out, you can use the command <code>load-library</code> to
+import <code>chart</code>. It defines the following demo command for exploration:
+</p>
+
+<dl class="org-dl">
+<dt><code>chart-emacs-storage</code></dt><dd>This charts the output of <code>memory-usage</code></dd>
+<dt><code>chart-emacs-lists</code></dt><dd>Like <code>chart-emacs-storage</code>, this counts <i>buffers</i>, <i>frames</i>,
+<i>processes</i>, <i>faces</i> and <i>x-display</i> within the Emacs session</dd>
+<dt><code>chart-rmail-from</code></dt><dd>With <code>rmail</code>, it groups user sender occurrences by mail</dd>
+<dt><code>chart-space-usage</code></dt><dd>After selecting a directory, it shows the disk usage by file type
+within said directory</dd>
+<dt><code>chart-file-count</code></dt><dd>After selecting a directory, it displays file type occurrences
+within the directory</dd>
+<dt><code>chart-test-it-all</code></dt><dd>A chart testing positive and negative values</dd>
+</dl>
+
+<p>
+Aside from those demo commands, how can we use it and make a chart?
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgff4f6b1" class="outline-2">
+<h2 id="orgff4f6b1">Making A Chart</h2>
+<div class="outline-text-2" id="text-orgff4f6b1">
+<p>
+After some reading and exploration, the starting command or function
+to understand this library is <code>chart-bar-quickie</code>, the rest seem
+internal. Although this function has a total of eight arguments which
+two are optional, it encapsulates everything needed to make the chart
+including labels and data rather than instantiating <i>classes</i> and
+<i>objects</i>. A small snippet to elaborate:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">fn/chart-comparator-&lt;</span> <span style="color: #ff1493;">(</span>left right<span style="color: #ff1493;">)</span>
+  <span style="color: #68f6cb; font-style: italic;">"A sample comparator for the values.</span>
+<span style="color: #68f6cb; font-style: italic;">Each parameter is a key-value cos pair and should function as a</span>
+<span style="color: #68f6cb; font-style: italic;">comparator like `&lt;', `=', or `&gt;'."</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,left-key . ,left-value<span style="color: #ffff00;">)</span> left<span style="color: #00bfff;">)</span>    <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">left is a cons of key and value</span>
+              <span style="color: #00bfff;">(</span>`<span style="color: #ffff00;">(</span>,right-key . ,right-value<span style="color: #ffff00;">)</span> right<span style="color: #00bfff;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">ditto with right</span>
+              <span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>&lt; left-value right-value<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>chart-bar-quickie
+ 'vertical                           <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Chart direction, either 'vertical or 'horizontal</span>
+ <span style="color: #68f6cb;">"Chart Title"</span>                       <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Chart title</span>
+ '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Alpha"</span> <span style="color: #68f6cb;">"Beta"</span> <span style="color: #68f6cb;">"Gamma"</span> <span style="color: #68f6cb;">"Delta"</span><span style="color: #ff1493;">)</span>   <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">X-Axis values or keys</span>
+ <span style="color: #68f6cb;">"X Line"</span>                            <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">X-Axis label</span>
+ '<span style="color: #ff1493;">(</span>4 3 2 1<span style="color: #ff1493;">)</span>                          <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Y-Axis values</span>
+ <span style="color: #68f6cb;">"Y Line"</span>                            <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Y-Axis label</span>
+ <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Optional</span>
+ 3                                   <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Max value allowed, anything higher is not shown</span>
+ #'fn/chart-comparator-&lt;             <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Sorting or ordering function</span>
+ <span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+<img src="/hacker/images/exploring-emacs-chart--sample.png" alt="Screenshot Of A Sample Chart"/>
+</p>
+
+<p>
+Once evaluated, this creates a new buffer based on the title and
+renders the bar chart there. The display itself is inert unlike
+<code>tabulated-list-mode</code> or any special buffer modes, so do not expect
+special key bindings or commands that sort, zoom, refresh the chart
+out of the box. Aside from tempering expectations, all the major (if
+not all) functionality is within that function. (Sadly, looking any
+deeper does not yield any more insights.) Lastly, the only caveat here
+is that the size of the keys and values should be the same which is
+natural as it matches each key with the corresponding value.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3dfd9a1" class="outline-2">
+<h2 id="org3dfd9a1">Demonstration</h2>
+<div class="outline-text-2" id="text-org3dfd9a1">
+<p>
+As an example, let us tackle a statistical query on a dataset. We will
+play with the <a href="https://vincentarelbundock.github.io/Rdatasets/csv/datasets/HairEyeColor.csv">Hair Eye Color dataset</a> which looks like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #68f6cb;">""</span>,<span style="color: #68f6cb;">"Hair"</span>,<span style="color: #68f6cb;">"Eye"</span>,<span style="color: #68f6cb;">"Sex"</span>,<span style="color: #68f6cb;">"Freq"</span>
+<span style="color: #68f6cb;">"1"</span>,<span style="color: #68f6cb;">"Black"</span>,<span style="color: #68f6cb;">"Brown"</span>,<span style="color: #68f6cb;">"Male"</span>,32
+<span style="color: #68f6cb;">"2"</span>,<span style="color: #68f6cb;">"Brown"</span>,<span style="color: #68f6cb;">"Brown"</span>,<span style="color: #68f6cb;">"Male"</span>,53
+<span style="color: #68f6cb;">"3"</span>,<span style="color: #68f6cb;">"Red"</span>,<span style="color: #68f6cb;">"Brown"</span>,<span style="color: #68f6cb;">"Male"</span>,10
+<span style="color: #68f6cb;">"4"</span>,<span style="color: #68f6cb;">"Blond"</span>,<span style="color: #68f6cb;">"Brown"</span>,<span style="color: #68f6cb;">"Male"</span>,3
+<span style="color: #68f6cb;">"5"</span>,<span style="color: #68f6cb;">"Black"</span>,<span style="color: #68f6cb;">"Blue"</span>,<span style="color: #68f6cb;">"Male"</span>,11
+</pre>
+</div>
+
+<p>
+Before we query, let us import the data which is a good exercise for
+CSV parsing in Emacs:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> csv-dataset-file <span style="color: #ff1493;">(</span>expand-file-name <span style="color: #68f6cb;">"HairEyeColor.csv"</span> <span style="color: #68f6cb;">"~/Downloads"</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">read-lines</span> <span style="color: #ff1493;">(</span>file<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Take your pick: custom, find-file, f-read-text</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">with-temp-buffer</span>
+    <span style="color: #7fff00;">(</span>insert-file-contents-literally file<span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>split-string
+     <span style="color: #00bfff;">(</span>decode-coding-region <span style="color: #ffff00;">(</span>point-min<span style="color: #ffff00;">)</span> <span style="color: #ffff00;">(</span>point-max<span style="color: #ffff00;">)</span> 'utf-8 t<span style="color: #00bfff;">)</span>
+     <span style="color: #68f6cb;">"\n"</span>
+     t<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">read-csv-field</span> <span style="color: #ff1493;">(</span>field<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Remove the pesky enclosed double quoting</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">cond</span>
+   <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>zerop <span style="color: #ffff00;">(</span>length field<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span> <span style="color: #68f6cb;">""</span><span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">and</span> <span style="color: #ffff00;">(</span>string-equal <span style="color: #da70d6;">(</span>substring-no-properties field 0 1<span style="color: #da70d6;">)</span> <span style="color: #68f6cb;">"\""</span><span style="color: #ffff00;">)</span>
+         <span style="color: #ffff00;">(</span>string-equal <span style="color: #da70d6;">(</span>substring-no-properties field -1<span style="color: #da70d6;">)</span> <span style="color: #68f6cb;">"\""</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+    <span style="color: #00bfff;">(</span>substring-no-properties field 1 -1<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+   <span style="color: #7fff00;">(</span>t <span style="color: #00bfff;">(</span>string-to-number field<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">read-csv-line</span> <span style="color: #ff1493;">(</span>line<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>raw-fields <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">This assumes no rogue commas need escaping</span>
+         <span style="color: #ffff00;">(</span>split-string line <span style="color: #68f6cb;">","</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>mapcar #'read-csv-field raw-fields<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">read-csv-file</span> <span style="color: #ff1493;">(</span>file<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>mapcar #'read-csv-line <span style="color: #7fff00;">(</span>read-lines file<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> dataset <span style="color: #ff1493;">(</span>read-csv-file csv-dataset-file<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated output</span>
+<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #68f6cb;">""</span> <span style="color: #68f6cb;">"Hair"</span> <span style="color: #68f6cb;">"Eye"</span> <span style="color: #68f6cb;">"Sex"</span> <span style="color: #68f6cb;">"Freq"</span><span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"1"</span> <span style="color: #68f6cb;">"Black"</span> <span style="color: #68f6cb;">"Brown"</span> <span style="color: #68f6cb;">"Male"</span> 32<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"2"</span> <span style="color: #68f6cb;">"Brown"</span> <span style="color: #68f6cb;">"Brown"</span> <span style="color: #68f6cb;">"Male"</span> 53<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"3"</span> <span style="color: #68f6cb;">"Red"</span> <span style="color: #68f6cb;">"Brown"</span> <span style="color: #68f6cb;">"Male"</span> 10<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"4"</span> <span style="color: #68f6cb;">"Blond"</span> <span style="color: #68f6cb;">"Brown"</span> <span style="color: #68f6cb;">"Male"</span> 3<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Libraries exist for this purpose such as <code>csv</code>, <code>el-csv</code> or
+<code>parse-csv</code> and utilities like <code>f</code> or <code>parsec</code> but doing it yourself
+is an occasional opportunity to review the basics. With that handled,
+what can we ask of the data? <b>What is the frequency of eye colors?</b>
+Before that, we need to group the data:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> headers <span style="color: #ff1493;">(</span>car dataset<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Only mentioned, not needed</span>
+      records <span style="color: #ff1493;">(</span>cdr dataset<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">group-by</span> <span style="color: #ff1493;">(</span>f xs<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">A quick write on -group-by</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>groups <span style="color: #ffff00;">(</span>list<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span>mapc
+     <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ffff00;">(</span>x<span style="color: #ffff00;">)</span>
+       <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">let*</span> <span style="color: #da70d6;">(</span><span style="color: #00ff7f;">(</span>key <span style="color: #ff8247;">(</span>funcall f x<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span>
+              <span style="color: #00ff7f;">(</span>key-group <span style="color: #ff8247;">(</span>assoc key groups<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">unless</span> key-group
+           <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">push</span> <span style="color: #ff8247;">(</span>cons key <span style="color: #9cb6ad;">(</span>list<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span> groups<span style="color: #00ff7f;">)</span>
+           <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> key-group <span style="color: #ff8247;">(</span>assoc key groups<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+         <span style="color: #da70d6;">(</span>setcdr key-group <span style="color: #00ff7f;">(</span>cons x <span style="color: #ff8247;">(</span>cdr key-group<span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+     xs<span style="color: #7fff00;">)</span>
+    groups<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">group-records-by-eye-color</span> <span style="color: #ff1493;">(</span>records<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">let*</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>raw-eye-groups <span style="color: #ffff00;">(</span>group-by <span style="color: #da70d6;">(</span>apply-partially #'nth 2<span style="color: #da70d6;">)</span> records<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span>
+         <span style="color: #00bfff;">(</span>eye-groups <span style="color: #ffff00;">(</span>mapcar
+                      <span style="color: #da70d6;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00ff7f;">(</span>eye-group<span style="color: #00ff7f;">)</span>
+                        <span style="color: #00ff7f;">(</span><span style="color: #96a5d9; font-weight: bold;">pcase-let</span> <span style="color: #ff8247;">(</span><span style="color: #9cb6ad;">(</span>`<span style="color: #ff8c00;">(</span>,eye-color . ,eye-records<span style="color: #ff8c00;">)</span> eye-group<span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span>
+                          <span style="color: #ff8247;">(</span><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #9cb6ad;">(</span><span style="color: #ff8c00;">(</span>eye-frequencies <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Extract frequencies and collect it</span>
+                                 <span style="color: #ff1493;">(</span>mapcar <span style="color: #7fff00;">(</span>apply-partially #'nth 4<span style="color: #7fff00;">)</span> eye-records<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span><span style="color: #9cb6ad;">)</span>
+                            <span style="color: #9cb6ad;">(</span>cons eye-color
+                                  <span style="color: #ff8c00;">(</span>apply #'+ eye-frequencies<span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Shiv for sum</span>
+                                  <span style="color: #9cb6ad;">)</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
+                      raw-eye-groups<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    eye-groups<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> eye-color-groups <span style="color: #ff1493;">(</span>group-records-by-eye-color records<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Generated output</span>
+<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Green"</span> . 64<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Hazel"</span> . 93<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Blue"</span> . 215<span style="color: #ff1493;">)</span>
+ <span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Brown"</span> . 220<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+After writing the extraction, getting the bar chart is
+straightforward.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span>chart-bar-quickie
+ 'horizontal
+ <span style="color: #68f6cb;">"Eye Colors"</span>
+ <span style="color: #ff1493;">(</span>mapcar #'car eye-color-groups<span style="color: #ff1493;">)</span> <span style="color: #68f6cb;">"Colors"</span>
+ <span style="color: #ff1493;">(</span>mapcar #'cdr eye-color-groups<span style="color: #ff1493;">)</span> <span style="color: #68f6cb;">"Frequency"</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+<img src="/hacker/images/exploring-emacs-chart--eye-color.png" alt="Screenshot Of Horizontal Eye Color Bar Chart"/>
+</p>
+
+<p>
+Neat but let's arrange it by descending order:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">on</span> <span style="color: #ff1493;">(</span>f op<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Haskell's on operator</span>
+  <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">lexical-let</span> <span style="color: #7fff00;">(</span><span style="color: #00bfff;">(</span>f f<span style="color: #00bfff;">)</span>    <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Sad that parameters aren't lexically scoped here</span>
+                <span style="color: #00bfff;">(</span>op op<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+    <span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #00bfff;">(</span>left right<span style="color: #00bfff;">)</span>
+      <span style="color: #00bfff;">(</span>funcall op <span style="color: #ffff00;">(</span>funcall f left<span style="color: #ffff00;">)</span> <span style="color: #ffff00;">(</span>funcall f right<span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>chart-bar-quickie
+ 'horizontal
+ <span style="color: #68f6cb;">"Eye Colors - Descending"</span>
+ <span style="color: #ff1493;">(</span>mapcar #'car eye-color-groups<span style="color: #ff1493;">)</span> <span style="color: #68f6cb;">"Colors"</span>
+ <span style="color: #ff1493;">(</span>mapcar #'cdr eye-color-groups<span style="color: #ff1493;">)</span> <span style="color: #68f6cb;">"Frequency"</span>
+ nil
+ <span style="color: #ff1493;">(</span>on #'cdr #'&gt;<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">A comparator lambda also works but done for variety</span>
+ <span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+<img src="/hacker/images/exploring-emacs-chart--eye-color-descending.png" alt="Screenshot Of Descending Eye Color Bar Graph"/>
+</p>
+
+<p>
+Looking at it, <i>brown</i> and <i>blue</i> eye colors are quite frequent.
+Nothing groundbreaking or epic. How about applying the same process
+with <i>hair color</i>? We get the following chart:
+</p>
+
+<p>
+<img src="/hacker/images/exploring-emacs-chart--hair-color.png" alt="Screenshot Of Hair Color Bar Graph"/>
+</p>
+
+<p>
+With <i>hair color</i> as the variable, <i>brown</i> and <i>blonds</i> are many.
+Nothing fancy. We could change the variable into <i>gender</i> but nothing
+more would be gained. The real question for any visualization is <b>what
+does it mean?</b> Rather, what insights can we interpret from the data?
+Since it is a sample, it might not mean anything nor does it have to.
+This is a library exploration, not a statistical lesson that is beyond
+scope.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org454b2f4" class="outline-2">
+<h2 id="org454b2f4">Conclusion</h2>
+<div class="outline-text-2" id="text-org454b2f4">
+<p>
+Strangely, that is all there is to it: <b>a neat and easy builtin bar
+chart library.</b> Since it is not pixel precise, it does not compete
+with the modern visualizations tools or languages such as <a href="https://en.wikipedia.org/wiki/Python_%28programming_language%29">Python</a>, <a href="https://www.r-project.org/">R</a> or
+<a href="https://www.haskell.org/">Haskell</a> although it does not have to. It simply is nice to have and
+fun to know.
+</p>
+
+<p>
+Interestingly, if bar charts can be made with ASCII, how about pies or
+bubbles. Can Emacs be a modern visualization tool?
+</p>
+</div>
+</div>
