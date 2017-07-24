@@ -1,0 +1,383 @@
+---
+title: Elixir Exploration - Pipe Operator
+tagline:
+blog-category: writing
+major-mode: Writing
+category:
+- writing
+tag:
+- writing
+- elixir
+---
+
+<div id="outline-container-org39fa6ee" class="outline-2">
+<h2 id="org39fa6ee">Motivation</h2>
+<div class="outline-text-2" id="text-org39fa6ee">
+<p>
+To begin our exploration into <a href="https://elixir-lang.org/">Elixir</a>, let us start with a quaint
+problem: <b>hashing</b>. Given the first name, last name and birth date,
+our simple algorithm will <b>concatenate</b> them with a hyphen,
+<b>duplicate</b> thrice it for redundancy and finally <b>shuffle</b> by
+reversing it once. Using the standard library:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #ff694d;">hasher</span> = <span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #ff8c00;">(</span>first_name, last_name, birth_date<span style="color: #ff8c00;">)</span> -&gt;
+  <span style="color: #f5b55f;">String</span>.reverse<span style="color: #ff8c00;">(</span>
+    <span style="color: #f5b55f;">String</span>.duplicate<span style="color: #ff1493;">(</span>
+      <span style="color: #f5b55f;">Enum</span>.join<span style="color: #7fff00;">(</span>
+        <span style="color: #00bfff;">[</span>first_name, last_name, birth_date<span style="color: #00bfff;">]</span>,
+        <span style="color: #68f6cb;">"-"</span><span style="color: #7fff00;">)</span>,
+      3<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+hasher.<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"Clara"</span>, <span style="color: #68f6cb;">"Oswald"</span>,<span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">"2102/10/90-dlawsO-aralC2102/10/90-dlawsO-aralC2102/10/90-dlawsO-aralC"</span>
+</pre>
+</div>
+
+<p>
+The hashing function, <code>hasher</code>, is correct despite the lack of entropy
+or randomness; however, the function itself is not aesthetically
+pleasing despite the indentation or style. From an editing standpoint,
+it is hard to change the middle function, <code>String.duplicate</code>, if it
+changes arity nor is it easy to add a new function in the sequence
+without mangling parenthesis specially without structured editing
+capabilities such as <a href="https://www.emacswiki.org/emacs/ParEdit">paredit</a> or <a href="https://github.com/Fuco1/smartparens">smartparens</a> in your editor. From a
+reading standpoint, finding the innermost function and working up is
+cumbersome specially while finding the parameters of each function in
+the chain. In short, this form or style has its issues despite the
+standard method in chaining functions.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org6d0989d" class="outline-2">
+<h2 id="org6d0989d">Pipe Operator</h2>
+<div class="outline-text-2" id="text-org6d0989d">
+<p>
+In functional languages such as <a href="https://www.haskell.org/">Haskell</a> or <a href="https://elixir-lang.org/">Elixir</a> boast of builtin <a href="https://en.wikipedia.org/wiki/Function_composition">function
+composition</a>. In the case of <a href="https://elixir-lang.org/">Elixir</a>, we have the <a href="https://hexdocs.pm/elixir/Kernel.html#%7C%3E/2">pipe operator</a>, <code>|&gt;</code>,
+which is compactly defined by the documentation as:
+</p>
+
+<blockquote>
+<p>
+This operator introduces the expression on the left-hand side as the
+first argument to the function call on the right-hand side.
+</p>
+</blockquote>
+
+<p>
+Reflecting it on our motivating problem with some modification:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #ff694d;">value</span> = <span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"Amy"</span>, <span style="color: #68f6cb;">"Pond"</span>, <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff8c00;">]</span>
+<span style="color: #ff694d;">joined_value</span> = <span style="color: #f5b55f;">Enum</span>.join<span style="color: #ff8c00;">(</span>value, <span style="color: #68f6cb;">"-"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #ff694d;">duplicated_value</span> = <span style="color: #f5b55f;">String</span>.duplicate<span style="color: #ff8c00;">(</span>joined_value, 3<span style="color: #ff8c00;">)</span>
+<span style="color: #ff694d;">shuffled_value</span> = <span style="color: #f5b55f;">String</span>.reverse<span style="color: #ff8c00;">(</span>duplicated_value<span style="color: #ff8c00;">)</span>
+<span style="color: #ff694d;">final_value</span> = shuffled_value
+
+final_value
+</pre>
+</div>
+
+<p>
+This operator allows us expressively write it as:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"Amy"</span>, <span style="color: #68f6cb;">"Pond"</span>, <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff8c00;">]</span>
+|&gt; <span style="color: #f5b55f;">Enum</span>.join<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"-"</span><span style="color: #ff8c00;">)</span>
+|&gt; <span style="color: #f5b55f;">String</span>.duplicate<span style="color: #ff8c00;">(</span>3<span style="color: #ff8c00;">)</span>
+|&gt; <span style="color: #f5b55f;">String</span>.reverse<span style="color: #ff8c00;">()</span>
+</pre>
+</div>
+
+<p>
+Since the operator is a macro, it allows us to omit the first argument
+of each function and assume the results are passed as the first in
+each chain as promised. Going back on the issues of the original form,
+it is easy to add and remove functions in the chain as it is simple as
+adding or removing lines in this new form. Also, reading it from top
+to bottom is easier to understand at a glance instead of scanning in
+the middle. This chaining operator is a welcome addition to the coding
+toolbox and is encouraged by the <a href="https://github.com/christopheradams/elixir_style_guide#pipe-operator">style guide</a>.
+</p>
+
+<p>
+As an example, I want to replace all <code>"/"</code> by <code>"&amp;"</code> before duplicating
+it. This is quickly done:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"Amy"</span>, <span style="color: #68f6cb;">"Pond"</span>, <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff8c00;">]</span>
+|&gt; <span style="color: #f5b55f;">Enum</span>.join<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"-"</span><span style="color: #ff8c00;">)</span>
+|&gt; <span style="color: #f5b55f;">String</span>.replace<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"/"</span>, <span style="color: #68f6cb;">"&amp;"</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Or can be added before the Enum.join</span>
+|&gt; <span style="color: #f5b55f;">String</span>.duplicate<span style="color: #ff8c00;">(</span>3<span style="color: #ff8c00;">)</span>
+|&gt; <span style="color: #f5b55f;">String</span>.reverse<span style="color: #ff8c00;">()</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga3cd8f1" class="outline-2">
+<h2 id="orga3cd8f1">Object Oriented Style</h2>
+<div class="outline-text-2" id="text-orga3cd8f1">
+<p>
+This chaining form is simply not a syntactic sugar, it is the
+functional mindset of composing functions together. By having this
+operator builtin, it tilts the language as more functional than object
+oriented. Contrast this with <a href="https://en.wikipedia.org/wiki/Method_chaining">method chaining</a> with object oriented
+languages such as <a href="https://www.java.com/">Java</a> or <a href="https://www.python.org/">Python</a>, our example problem in <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">JavaScript</a>
+would look like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js">String.<span style="color: #afc0fd; font-weight: bold;">prototype</span>.duplicate = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">times</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">new</span> <span style="color: #f5b55f;">Array</span><span style="color: #7fff00;">(</span>times + 1<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>.join<span style="color: #ff1493;">(</span><span style="color: #afc0fd; font-weight: bold;">this</span><span style="color: #ff1493;">)</span>;
+<span style="color: #ff8c00;">}</span>;
+
+<span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"Amy"</span>, <span style="color: #68f6cb;">"Pond"</span>, <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff8c00;">]</span>
+    .join<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"-"</span><span style="color: #ff8c00;">)</span>
+    .replace<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">/-/</span>g, <span style="color: #68f6cb;">"&amp;"</span><span style="color: #ff8c00;">)</span>
+    .duplicate<span style="color: #ff8c00;">(</span>3<span style="color: #ff8c00;">)</span>
+    .reverse<span style="color: #ff8c00;">()</span>;
+</pre>
+</div>
+
+<p>
+Notice that the snippet above works because of <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/prototype">object prototyping</a>;
+however, what if that wasn't allowed? The problem with <a href="https://en.wikipedia.org/wiki/Method_chaining">method chaining</a>
+is that the object returned should conveniently have the method or
+function to continue the pipeline. If the method is missing, the chain
+is broken. To demonstrate:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js">duplicate = <span style="color: #96a5d9; font-weight: bold;">function</span> <span style="color: #ff8c00;">(</span><span style="color: #ff694d;">text</span> <span style="color: #ff694d;">times</span><span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">return</span> <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">new</span> <span style="color: #f5b55f;">Array</span><span style="color: #7fff00;">(</span>times + 1<span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>.join<span style="color: #ff1493;">(</span>text<span style="color: #ff1493;">)</span>;
+<span style="color: #ff8c00;">}</span>;
+
+duplicate<span style="color: #ff8c00;">(</span>
+    <span style="color: #ff1493;">[</span><span style="color: #68f6cb;">"Amy"</span>, <span style="color: #68f6cb;">"Pond"</span>, <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff1493;">]</span>
+        .join<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"-"</span><span style="color: #ff1493;">)</span>
+        .replace<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">/-/</span>g, <span style="color: #68f6cb;">"&amp;"</span><span style="color: #ff1493;">)</span>
+    , 3<span style="color: #ff8c00;">)</span>
+    .reverse<span style="color: #ff8c00;">()</span>;
+</pre>
+</div>
+
+<p>
+The intention to transform data with a series of methods or functions
+exist although lacking. In a way, the pipe operator is a bit more
+powerful and generic that does not need object methods to chain.
+Fascinating still, the pipe operator acts like the dot syntax of
+invoking methods from objects. Like so in <a href="https://elixir-lang.org/">Elixir</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">JavaScript</a>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #68f6cb;">"Hello World"</span>
+|&gt; <span style="color: #f5b55f;">String</span>.upcase<span style="color: #ff8c00;">()</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #68f6cb;">"Hello World"</span>
+    .toUpperCase<span style="color: #ff8c00;">()</span>;
+</pre>
+</div>
+
+<p>
+For those coming from the object oriented paradigm, these similarities
+indicate that the pipe operator is a bridge to the functional paradigm
+and style meant for <a href="https://elixir-lang.org/">Elixir</a>. Not a comparison between paradigms but an
+anchor and operator to better understand and learn. Learning the pipe
+operator is more than just a syntax sugar but also the data
+transformation paradigm.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7c133c2" class="outline-2">
+<h2 id="org7c133c2">(Optional) Threading Macros</h2>
+<div class="outline-text-2" id="text-org7c133c2">
+<blockquote>
+<p>
+This is an optional section. No need to understand the code or know
+Emacs Lisp, just the form and possibility.
+</p>
+</blockquote>
+
+<p>
+<a href="https://elixir-lang.org/">Elixir</a> does not hold monopoly over the pipe operator. Languages with
+<a href="https://en.wikipedia.org/wiki/Macro_(computer_science)">macro</a> functionality such as <a href="https://clojure.org/guides/threading_macros">Clojure</a> and <a href="https://docs.racket-lang.org/threading/index.html">Racket</a> have threading macros.
+Although not a definition, threading macros are a step higher than the
+pipe operator. An issue with the pipe operator is that it can only
+pass the result as the first argument, what if you wanted to pass it
+as the last argument or anywhere in the middle? This is troublesome
+where function design or decisions don't align in the first argument.
+</p>
+
+<p>
+The pipe operator is one of the threading macros. As a demonstration,
+I use Emacs Lisp with <a href="https://github.com/magnars/dash.el#threading-macros-1">dash.el</a> threading macros. The pipe operator or
+thread first in this library is represented by <code>-&gt;</code> and applying it to
+our motivating problem:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">dash</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">string-duplicate</span> <span style="color: #ff1493;">(</span>text times<span style="color: #ff1493;">)</span>
+  <span style="color: #ff1493;">(</span>string-join
+   <span style="color: #7fff00;">(</span>-map <span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-weight: bold;">lambda</span> <span style="color: #ffff00;">(</span>_i<span style="color: #ffff00;">)</span> text<span style="color: #00bfff;">)</span>
+           <span style="color: #00bfff;">(</span>number-sequence 1 times<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+   <span style="color: #68f6cb;">""</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">defun</span> <span style="color: #bad6e2;">string-replace</span> <span style="color: #ff1493;">(</span>text from to<span style="color: #ff1493;">)</span> <span style="color: #2872b2;">;; </span><span style="color: #2872b2;">Written to fit the pipe operator</span>
+  <span style="color: #ff1493;">(</span>replace-regexp-in-string from to text<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">Without pipe macro</span>
+<span style="color: #ff8c00;">(</span>string-reverse
+ <span style="color: #ff1493;">(</span>string-duplicate
+  <span style="color: #7fff00;">(</span>string-replace
+   <span style="color: #00bfff;">(</span>string-join
+    '<span style="color: #ffff00;">(</span><span style="color: #68f6cb;">"Amy"</span> <span style="color: #68f6cb;">"Pond"</span> <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ffff00;">)</span>
+    <span style="color: #68f6cb;">"-"</span><span style="color: #00bfff;">)</span>
+   <span style="color: #68f6cb;">"/"</span>
+   <span style="color: #68f6cb;">"&amp;"</span><span style="color: #7fff00;">)</span>
+  3<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">With pipe macro</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">-&gt;</span> '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Amy"</span> <span style="color: #68f6cb;">"Pond"</span> <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff1493;">)</span>
+    <span style="color: #ff1493;">(</span>string-join <span style="color: #68f6cb;">"-"</span><span style="color: #ff1493;">)</span>
+    <span style="color: #ff1493;">(</span>string-replace <span style="color: #68f6cb;">"/"</span> <span style="color: #68f6cb;">"&amp;"</span><span style="color: #ff1493;">)</span>
+    <span style="color: #ff1493;">(</span>string-duplicate 3<span style="color: #ff1493;">)</span>
+    <span style="color: #ff1493;">(</span>string-reverse<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Seems similar enough but do note that I had to write the duplication
+function when a standard string utility exist. This library is <code>s.el</code>
+and we will use its <code>s-repeat</code> function. To apply:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #ff8c00;">(</span>s-repeat 3 <span style="color: #68f6cb;">"Me!"</span><span style="color: #ff8c00;">)</span>               <span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">Me!Me!Me!</span>
+<span style="color: #2872b2;">;; </span><span style="color: #2872b2;">(string-duplicate "Me!" 3)    ;;; Notice the argument placement</span>
+
+<span style="color: #ff8c00;">(</span>s-replace <span style="color: #68f6cb;">"/"</span> <span style="color: #68f6cb;">"&amp;"</span> <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff8c00;">)</span> <span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">09&amp;01&amp;2012</span>
+</pre>
+</div>
+
+<p>
+However, note that the arguments of <code>s-repeat</code> and <code>string-duplicate</code>
+are reversed thus I cannot simply plug it in with the pipe operator
+macro. The design decision for <code>s</code> is that the target string argument
+is the last argument whereas the native libraries have it as the
+first. To demonstrate the design decision with <code>s</code>, we use the thread
+last macro, <code>-&gt;&gt;</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">require</span> '<span style="color: #afc0fd; font-weight: bold;">s</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">Without the thread last macro</span>
+<span style="color: #ff8c00;">(</span>s-reverse
+ <span style="color: #ff1493;">(</span>s-repeat
+  3
+  <span style="color: #7fff00;">(</span>s-replace
+   <span style="color: #68f6cb;">"/"</span>
+   <span style="color: #68f6cb;">"&amp;"</span>
+   <span style="color: #00bfff;">(</span>s-join
+    <span style="color: #68f6cb;">"-"</span>
+    '<span style="color: #ffff00;">(</span><span style="color: #68f6cb;">"Amy"</span> <span style="color: #68f6cb;">"Pond"</span> <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+
+<span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">With the thread last macro</span>
+<span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">Will not work with -&gt;</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">-&gt;&gt;</span> '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Amy"</span> <span style="color: #68f6cb;">"Pond"</span> <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>s-join <span style="color: #68f6cb;">"-"</span><span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>s-replace <span style="color: #68f6cb;">"/"</span> <span style="color: #68f6cb;">"&amp;"</span><span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>s-repeat 3<span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>s-reverse<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Although they look almost the same, fitting functions arguments for
+the piping macros are tricky. Using unary or single argument functions
+make it look painless. When functions require two or more arguments,
+threading them harmoniously involve some juggling or wrapper
+functions.
+</p>
+
+<p>
+With the most generic threading macro, <code>--&gt;</code>, we can choose how the
+arguments are placed by specifying the position with the symbol <code>it</code>.
+Another demonstration to show the possibilities of joining different
+designs:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #2872b2;">;;; </span><span style="color: #2872b2;">Notice where =it= is placed</span>
+<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">--&gt;</span> '<span style="color: #ff1493;">(</span><span style="color: #68f6cb;">"Amy"</span> <span style="color: #68f6cb;">"Pond"</span> <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>string-join <span style="color: #ff694d;">it</span> <span style="color: #68f6cb;">"-"</span><span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>s-replace <span style="color: #68f6cb;">"/"</span> <span style="color: #68f6cb;">"&amp;"</span> <span style="color: #ff694d;">it</span><span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>s-repeat 3 <span style="color: #ff694d;">it</span><span style="color: #ff1493;">)</span>
+     <span style="color: #ff1493;">(</span>s-reverse <span style="color: #ff694d;">it</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Once you have used the pipe operator, the ability to choose how to
+pipe is quite welcome. For <a href="https://elixir-lang.org/">Elixir</a>, we can use the <a href="https://github.com/taiansu/pipe_to">PipeTo</a> library where
+the syntax is quite familiar in application:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #96a5d9; font-weight: bold;">import</span> <span style="color: #f5b55f;">PipeTo</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">Now use ~&gt; and specify position through _</span>
+<span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"Amy"</span>, <span style="color: #68f6cb;">"Pond"</span>, <span style="color: #68f6cb;">"09/01/2012"</span><span style="color: #ff8c00;">]</span>
+~&gt; <span style="color: #f5b55f;">Enum</span>.join<span style="color: #ff8c00;">(</span><span style="color: #afc0fd; font-weight: bold;">_</span>, <span style="color: #68f6cb;">"-"</span><span style="color: #ff8c00;">)</span>
+~&gt; <span style="color: #f5b55f;">String</span>.replace<span style="color: #ff8c00;">(</span><span style="color: #afc0fd; font-weight: bold;">_</span>, <span style="color: #68f6cb;">"/"</span>, <span style="color: #68f6cb;">"&amp;"</span><span style="color: #ff8c00;">)</span>
+~&gt; <span style="color: #f5b55f;">String</span>.duplicate<span style="color: #ff8c00;">(</span><span style="color: #afc0fd; font-weight: bold;">_</span>, 3<span style="color: #ff8c00;">)</span>
+~&gt; <span style="color: #f5b55f;">String</span>.reverse<span style="color: #ff8c00;">(</span><span style="color: #afc0fd; font-weight: bold;">_</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+The example is somewhat contrived since <a href="https://elixir-lang.org/">Elixir</a> functions are designed
+to work with the pipe operator. This suggest that your function design
+do the same to be consistent and avoid dependencies; however, when the
+need arises, threading macros allow for more generic and fluent
+chaining that the pipe operator can afford.
+</p>
+
+<blockquote>
+<p>
+For why the other threading macros are not included by default, the
+discussion can be found <a href="https://groups.google.com/forum/#!searchin/elixir-lang-core/pipe$20argument%7Csort:relevance/elixir-lang-core/wTK072BdJus/GOUMaUrEEQAJ">here</a>.
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-org3e4c9f1" class="outline-2">
+<h2 id="org3e4c9f1">References</h2>
+<div class="outline-text-2" id="text-org3e4c9f1">
+<ul class="org-ul">
+<li><a href="https://elixir-lang.org/getting-started/enumerables-and-streams.html#the-pipe-operator">Elixir Getting Started</a></li>
+<li><a href="https://hexdocs.pm/elixir/Kernel.html#%7C%3E/2">Hexdocs</a></li>
+<li><a href="https://elixirschool.com/en/lessons/basics/pipe-operator/">Elixir School</a></li>
+<li><a href="https://github.com/elixir-lang/elixir/blob/v1.4.5/lib/elixir/lib/kernel.ex#L2848">Source</a></li>
+<li><a href="https://github.com/christopheradams/elixir_style_guide#pipe-operator">Style Guide</a></li>
+<li><a href="https://groups.google.com/forum/#!searchin/elixir-lang-core/pipe$20argument%7Csort:relevance/elixir-lang-core/wTK072BdJus/GOUMaUrEEQAJ">Pipe Operator Discussion</a></li>
+</ul>
+</div>
+</div>
