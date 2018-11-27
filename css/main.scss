@@ -3,14 +3,12 @@
 ---
 @charset "utf-8";
 
-// My variables
 $background-color: #081724;
 
 $link-color: #268bd2;
 
-// Our variables
-$base-font-family: "Deja Vu Sans Mono" "Source Sans Pro", "Arial";
-$base-font-size:   0.8em;
+$base-font-family: "Source Sans Pro","Deja Vu Sans Mono", "Arial";
+$base-font-size:  0.8em;
 $base-font-weight: 400;
 $small-font-size:  $base-font-size * 0.875;
 $base-line-height: 1.5;
@@ -46,8 +44,13 @@ $mode-segment-fourth-color: #c0392b;
 $mode-segment-right-color: $mode-segment-first-color;
 
 // (Header)Footer Line
-$header-line-color: #3a417a;
+$header-line-color: #2872b2;
 $header-line-text-color: #fffed9;
+$header-line-site-color:  #27ae60;
+$header-line-category-color: #f39c12;
+$header-line-title-color: #f1c40f;
+
+
 
 
 
@@ -77,7 +80,9 @@ $on-laptop:        800px;
 // Import partials from `sass_dir` (defaults to `_sass`)
 @import
 "base",
+"component",
 "layout",
+"header",
 "syntax-highlighting",
 "customization"
 ;

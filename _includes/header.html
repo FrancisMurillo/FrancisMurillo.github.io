@@ -1,4 +1,29 @@
-<section class="mode-line">
+<div class="row header-line">
+  <div class="header-separator header-separator-site">
+  </div>
+  <div class="row header-segment header-line-site">
+    {% if page.title %}
+    % &nbsp;
+    {% endif %}
+    <a  href="/">
+      {{ site.title }}
+    </a>
+  </div>
+  <div class="header-separator header-separator-site-category">
+  </div>
+  <div class="row header-segment header-line-category">
+    Category
+  </div>
+  <div class="header-separator header-separator-category-title">
+  </div>
+  <div class="row header-segment header-line-title">
+    The quick brown fox jumps over the head of the lazy dog
+  </div>
+  <div class="header-separator header-separator-title">
+  </div>
+</div>
+
+<div class="mode-line">
     <ul>
         <li class="segment segment-title segment-first">
             <span>
@@ -55,7 +80,7 @@
         </li>
 
     </ul>
-</section>
+</div>
 
 <section class="mode-line" style="position: inherit;">
     <ul>
