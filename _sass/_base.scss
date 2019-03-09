@@ -253,35 +253,3 @@ code {
     }
   }
 }
-
-/**
- * Separator
- */
-
-
-.right-triangle {
-  overflow: hidden;
-}
-
-.right-triangle:after {
-  content: "";
-  display: block;
-  width: 0;
-  height: 0;
-  margin-top: -500px;
-  margin-left: -500px;
-
-  border-top: 500px solid transparent;
-  border-bottom: 500px solid transparent;
-  border-left: 500px solid #4679BD;
-}
-
-.brand {
-  background-color: green;
-  width: 30%;
-}
-
-.triangle-right {
-  border-top: 1px solid transparent;
-  border-right: 10px solid #4679BD;
-}

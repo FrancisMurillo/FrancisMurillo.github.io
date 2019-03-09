@@ -5,9 +5,9 @@
 
 $background-color: #081724;
 
-$link-color: #268bd2;
+$link-color: white;
 
-$base-font-family: "Source Code Sans Pro","Deja Vu Sans Mono", "Arial";
+$base-font-family: "Source Code Pro Regular","Deja Vu Sans Mono", "Arial";
 $base-font-size:  0.8em;
 $base-font-weight: 400;
 $small-font-size:  $base-font-size * 0.875;
@@ -35,7 +35,6 @@ $grey-color:       #828282;
 $grey-color-light: lighten($grey-color, 40%);
 $grey-color-dark:  darken($grey-color, 25%);
 
-// Mode Line
 $mode-line-color: #2872b2;
 $mode-segment-first-color:  #27ae60;
 $mode-segment-second-color: #f39c12;
@@ -43,16 +42,11 @@ $mode-segment-third-color: #f1c40f;
 $mode-segment-fourth-color: #c0392b;
 $mode-segment-right-color: $mode-segment-first-color;
 
-// (Header)Footer Line
 $header-line-color: #2872b2;
 $header-line-text-color: #fffed9;
 $header-line-site-color:  #27ae60;
 $header-line-category-color: #f39c12;
 $header-line-title-color: #f1c40f;
-
-
-
-
 
 // Width of the content area
 $content-width:    800px;
@@ -60,29 +54,17 @@ $content-width:    800px;
 $on-palm:          600px;
 $on-laptop:        800px;
 
-
-
-// Use media queries like this:
-// @include media-query($on-palm) {
-//     .wrapper {
-//         padding-right: $spacing-unit / 2;
-//         padding-left: $spacing-unit / 2;
-//     }
-// }
 @mixin media-query($device) {
     @media screen and (max-width: $device) {
         @content;
     }
 }
 
-
-
-// Import partials from `sass_dir` (defaults to `_sass`)
 @import
 "base",
 "component",
 "layout",
 "header",
-"syntax-highlighting",
+// "syntax-highlighting",
 "customization"
 ;

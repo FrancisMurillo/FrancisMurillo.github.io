@@ -51,7 +51,7 @@ defaults:
     values:
       layout:       "post"
 
-gems:
+plugins:
   - jekyll-seo-tag
   - jekyll-paginate
   - jekyll-sitemap

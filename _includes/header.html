@@ -1,91 +1,35 @@
 <div class="row header-line">
-  <div class="header-separator header-separator-site">
-  </div>
-  <div class="row header-segment header-line-site">
-    {% if page.title %}
-    % &nbsp;
-    {% endif %}
-    <a  href="/">
-      {{ site.title }}
-    </a>
-  </div>
-  <div class="header-separator header-separator-site-category">
-  </div>
-  <div class="row header-segment header-line-category">
-    Category
-  </div>
-  <div class="header-separator header-separator-category-title">
-  </div>
-  <div class="row header-segment header-line-title">
-    The quick brown fox jumps over the head of the lazy dog.
-  </div>
-  <div class="header-separator header-separator-title">
-  </div>
-</div>
-
-<div class="mode-line">
-    <ul>
-        <li class="segment segment-title segment-first">
-            <span>
-                {% if page.title %}
-                % &nbsp;
-                {% endif %}
-            </span>
-            <a  href="/">
-                {{ site.title }}
-            </a>
-        </li>
-
-        <li class="segment segment-blog segment-second">
-          {% if page.blog-category contains 'blog' %}
-          <p>
-            Welcome
-          </p>
-          {% else %}
-          <a href="/{{ page.blog-category }}">
-            {{ page.blog-category | capitalize }}
-          </a>
-          {% endif %}
-        </li>
-
-
-        {% if page.title %}
-        <li class="segment segment-post-title segment-third">
-            <p>
-                {{ page.title }}
-            </p>
-        </li>
-        {% elsif page.description %}
-        <li class="segment segment-description segment-third">
-            <p>
-                {{ page.description }}
-            </p>
-        </li>
+    <div class="header-separator header-separator-site">
+    </div>
+    <div class="row header-segment header-line-site">
+        <a href="/">
+            % {{ site.title }}
+        </a>
+    </div>
+    <div class="header-separator header-separator-site-category">
+    </div>
+    <div class="row header-segment header-line-category">
+        {% if page.blog-category contains 'blog' %}
+        <p>
+            {{ site.major_mode}}
+        </p>
         {% else %}
-        <li class="segment segment-description segment-third">
-            <p>
-                {{ site.description }}
-            </p>
-        </li>
+        <a href="/{{ page.blog-category }}">
+            {{ page.blog-category | capitalize }}
+        </a>
         {% endif %}
-
-        <li class="segment segment-major-mode segment-fourth">
-            {% if page.major-mode %}
-            {{ page.major-mode }}
-            {% elsif page.category %}
-            {{ page.category | first | capitalize }}
+    </div>
+    <div class="header-separator header-separator-category-title">
+    </div>
+    <div class="row header-segment header-line-title">
+        <span>
+            {% if page.title %}
+            {{ page.title | capitalize }}
             {% else %}
-            {{ site.major_mode }}
+            {{ site.description }}
             {% endif %}
-        </li>
-
-    </ul>
+        </span>
+    </div>
+    <div class="header-separator header-separator-title">
+    </div>
 </div>
-
-<section class="mode-line" style="position: inherit;">
-    <ul>
-        <li class="segment">
-            &nbsp;
-        </li>
-    </ul>
-</section>
