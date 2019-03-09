@@ -26,6 +26,15 @@
   box-sizing: border-box;
 }
 
+.header-inner-separator {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0px 0 35px 18px;
+  display: flex;
+  box-sizing: border-box;
+}
+
 .header-separator-site {
   border-color: transparent transparent transparent $header-line-color;
   background-color: $header-line-site-color;
