@@ -1,9 +1,73 @@
-/**
- * Site header
- */
+a.major-mode-link {
+    color: $inner-link-color;
+    background-color: $inner-link-background;
+    padding: 1px 2px 1px 2px;
+    border: 0.5px outset $background-color;
+    text-transform: lowercase;
+
+    &:hover {
+        color: $background-color;
+        background-color: $inner-link-hover-background;
+        text-decoration: none;
+    }
+}
+
+li.item-definition {
+    display: flex;
+
+    & > div {
+        display: flex;
+        flex: 0.15;
+    }
+    & > span {
+        display: flex;
+        flex: 1;
+    }
+
+}
+
+
+a.internal-link {
+    color: $external-link-color;
+
+    &:hover {
+        color: $background-color;
+        background-color: $inner-link-hover-background;
+        text-decoration: none;
+    }
+}
+
+a.external-link {
+    color: $external-link-color;
+
+    &:hover {
+        color: $background-color;
+        background-color: $inner-link-hover-background;
+        text-decoration: none;
+    }
+
+    &:before {
+        content: "<";
+    }
+    &:after {
+        content: ">";
+    }
+}
 
 html, body {
     height: 100%;
+}
+
+ul, ol {
+    list-style-type: none;
+    list-style-position: inside;
+    margin: 0;
+}
+
+li:before {
+    color: white;
+    content: "*";
+    padding-right: 0.5em;
 }
 
 .container {

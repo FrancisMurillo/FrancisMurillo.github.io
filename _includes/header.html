@@ -10,16 +10,16 @@
     </div>
     <div class="row header-segment header-line-category">
         {% if page.blog-category contains 'blog' %}
-        <p>
+        <span>
             {{ site.major_mode}}
-        </p>
+        </span>
         {% else %}
         <a href="/{{ page.blog-category }}">
             {{ page.blog-category | capitalize }}
         </a>
         {% endif %}
     </div>
-    <div class="header-separator header-separator-category-title">
+    <div class="header-inner-separator header-separator-category-title">
     </div>
     <div class="row header-segment header-line-title">
         <span>

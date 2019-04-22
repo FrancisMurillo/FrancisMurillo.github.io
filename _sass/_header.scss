@@ -13,7 +13,9 @@
   flex: 0 auto;
   box-sizing: border-box;
   align-items: flex-start;
+  justify-content: center;
   padding: 7px 5px;
+  height: 35px;
   white-space: nowrap;
 }
 
@@ -43,10 +45,11 @@
 .header-line-site {
   background-color: $header-line-site-color;
   font-weight: bolder;
-  text-transform: uppercase;
 
   & > a {
+      color: $link-color;
       padding: 1px;
+      text-decoration: none;
 
       &:hover {
           padding: 0px;
@@ -64,10 +67,11 @@
 .header-line-category {
   background-color: $header-line-category-color;
   font-weight: bold;
-  text-transform: uppercase;
 
   & > a {
+      color: $link-color;
       padding: 1px;
+      text-decoration: none;
 
       &:hover {
           padding: 0px;

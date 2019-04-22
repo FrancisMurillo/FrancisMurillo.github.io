@@ -5,7 +5,13 @@
 
 $background-color: #081724;
 
-$link-color: white;
+$link-color: #fffed9;
+
+$inner-link-color: #afc0fd;
+$inner-link-background: #033340;
+$inner-link-hover-background: #fffe4e;
+
+$external-link-color: #68f6cb;
 
 $base-font-family: "Source Code Pro Regular","Deja Vu Sans Mono", "Arial";
 $base-font-size:  0.8em;
@@ -65,6 +71,6 @@ $on-laptop:        800px;
 "component",
 "layout",
 "header",
-// "syntax-highlighting",
+ "syntax-highlighting",
 "customization"
 ;
