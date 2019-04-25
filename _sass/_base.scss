@@ -29,38 +29,6 @@ body {
   font-kerning: normal;
 }
 
-
-/**
- * Section
- */
-.navbar {
-  box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);
-}
-
-.navbar-default {
-  background: #093750 !important;
-  border: none !important;
-}
-
-.navbar-default .navbar-nav > li > a {
-  color: #abc0ca !important;
-}
-.navbar-default .navbar-nav > li > a:hover {
-  color: #03a4fb !important;
-}
-.navbar-default .navbar-nav > li > a:focus {
-  color: #03a4fb !important;
-}
-.navbar-default .navbar-brand {
-  color: #abc0ca !important;
-}
-
-
-
-
-/**
- * Set `margin-bottom` to maintain vertical rhythm
- */
 h1,
 h2,
 h3,
@@ -78,21 +46,11 @@ figure,
   margin-bottom: $spacing-unit / 2;
 }
 
-
-
-/**
- * Images
- */
 img {
   max-width: 100%;
   vertical-align: middle;
 }
 
-
-
-/**
- * Figures
- */
 figure > img {
   display: block;
 }
@@ -101,11 +59,6 @@ figcaption {
   font-size: $small-font-size;
 }
 
-
-
-/**
- * Lists
- */
 ul, ol {
   margin-left: $spacing-unit;
 }
@@ -117,11 +70,6 @@ li {
   }
 }
 
-
-
-/**
- * Headings
- */
 h1,
 h2,
 h3,
@@ -131,9 +79,6 @@ h6 {
   font-weight: $base-font-weight;
 }
 
-/**
- * Blockquotes
- */
 blockquote {
   color: $grey-color;
   border-left: 4px solid $grey-color-light;
@@ -147,12 +92,6 @@ blockquote {
   }
 }
 
-
-
-/**
- * Code formatting
- */
-pre,
 code {
   font-size: 1em;
   border: 1px solid $grey-color-light;
@@ -192,12 +131,7 @@ code {
   border-radius: 0px !important;
 }
 
-
-/**
- * Wrapper
- */
 .wrapper {
-
   max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit} * 2));
   max-width: calc(#{$content-width} - (#{$spacing-unit} * 2));
   margin-right: auto;
@@ -206,12 +140,6 @@ code {
   padding-left: $spacing-unit;
   @extend %clearfix;
 
-  @include media-query($on-laptop) {
-    max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit}));
-    max-width: calc(#{$content-width} - (#{$spacing-unit}));
-    padding-right: $spacing-unit / 2;
-    padding-left: $spacing-unit / 2;
-  }
 }
 
 .container {
@@ -220,11 +148,6 @@ code {
   padding: 0 !important;
 }
 
-
-
-/**
- * Clearfix
- */
 %clearfix {
 
   &:after {
@@ -234,13 +157,7 @@ code {
   }
 }
 
-
-
-/**
- * Icons
- */
 .icon {
-
   > svg {
     display: inline-block;
     width: 16px;

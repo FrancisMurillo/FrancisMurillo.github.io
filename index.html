@@ -1,83 +1,72 @@
 ---
 layout: default
-title: Log Entries
 blog-category: blog
 ---
 
+<br />
+
 <div class="home">
-   <div class="page-aside">
-      Enabled minor modes:
-       <a class="major-mode-link" href="/hacker">
-           Hacker
-       </a>
-       &nbsp;
-       <a class="major-mode-link" href="/watcher">
-           Watcher
-       </a>
-       &nbsp;
-       <a class="major-mode-link" href="/meta">
-           Meta
-       </a>
-   </div>
+    <div class="page-description">
+        I am an <a class="external-link" href="https://www.gnu.org/software/emacs/">Emacs</a> enthusiast, so I welcome you to my <a class="external-link" href="https://github.com/FrancisMurillo/.emacs.d">customized Emacs</a> themed blog.
+        Since I don't have an eye for design, I just emulate my working Emacs environment to pass for personality.
+        <br /><br />
+        My blog is categorized by <a class="external-link" href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Minor-Modes.html#Minor-Modes">minor modes</a>.
+        <ul>
+            <li class="item-definition">
+                <div>
+                    <a class="internal-link" href="/hacker">
+                        Hacker
+                    </a>
+                </div>
+                <span>
+                    Living my life in Emacs, I want to show my love and support on how it changed my life. Also as a polyglot and idealist, I talk about hacks, ideas, lessons and musings from various fields that you might hopefully find useful.
+                </span>
+            </li>
+            <li class="item-definition">
+                <div>
+                    <a class="internal-link" href="/watcher">
+                        Watcher
+                    </a>
+                </div>
+                <span>
+                    I watch too many films and play too much video games. Since I can't play and watch everything, I tend pick and choose quality, meaning and personal value to maximize time and minimize frustration.
+                </span>
+            </li>
+        </ul>
+        <br />
+        To get started, click on any of the minor modes above or checkout the latest posts below. I hope to write something every month but things always seem to happen that take my focus away. Nonetheless, I hope you find these writings useful or entertaining or both.
+    </div>
 
-   <br />
-
-   <div class="page-description">
-       I am an <a class="external-link" href="https://www.gnu.org/software/emacs/">Emacs</a> enthusiast, so I welcome you to my <a class="external-link" href="https://github.com/FrancisMurillo/.emacs.d">customized Emacs</a> themed blog.
-       Since I don't have an eye for design, I just emulate my working Emacs environment to pass for personality.
-       <br /><br />
-       My blog is categorized by <a class="external-link" href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Minor-Modes.html#Minor-Modes">minor modes</a>.
-       <ul>
-           <li class="item-definition">
-               <div>
-                   <a class="internal-link" href="/hacker">
-                       Hacker
-                   </a>
-               </div>
-               <span>
-                   Living my life in Emacs, I want to show my love and support on how it changed my life. Also as a polyglot and idealist, I talk about hacks, ideas, lessons and musings from various fields that you might hopefully find useful.
-               </span>
-           </li>
-           <li class="item-definition">
-               <div>
-                   <a class="internal-link" href="/watcher">
-                       Watcher
-                   </a>
-               </div>
-               <span>
-                   I watch too many films and play too much video games. Since I can't play and watch everything, I tend pick and choose quality, meaning and personal value to maximize time and minimize frustration.
-               </span>
-           </li>
-       </ul>
-   </div>
+    <br />
+    <b>Latest Posts</b>
 
     <ul class="post-list">
-        {% for post in site.posts %}
+        {% assign latest-hacker = site.posts | where: "blog-category","hacker" | first %}
+        {% if latest-hacker %}
         <li class="post-item">
-            <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">
-                {{ post.title }}
-            </a>
-            <p class="post-tagline">
-                {{ post.tagline }}
-            </p>
-            <p class="post-meta">
-              Blog:
-              {{ post.blog-category | capitalize }}
-            </p>
-            <p class="post-meta">
-                Log Date:
-                {{ post.date | date_to_string }}
-            </p>
-            <p class="post-meta">
-                Estimated Reading Time:
-                {% assign words = post.content | number_of_words %}
-                {% if words < 360 %}
-                1 min
-                {% else %}
-                {{ words | divided_by:180 }} mins
-                {% endif %}
-            </p>
+            {% include post-item.html
+            title=latest-hacker.title
+            tagline=latest-hacker.tagline
+            blog-category=latest-hacker.blog-category
+            date=latest-hacker.date
+            content=latest-hacker.content
+            url=latest-hacker.url
+            %}
         </li>
-        {% endfor %}
+        {% endif %}
+
+        {% assign latest-watcher = site.posts | where: "blog-category","watcher" | first %}
+        {% if latest-watcher %}
+        <li class="post-item">
+            {% include post-item.html
+        title=latest-watcher.title
+        tagline=latest-watcher.tagline
+        blog-category=latest-watcher.blog-category
+        date=latest-watcher.date
+        content=latest-watcher.content
+        url=latest-watcher.url
+            %}
+        </li>
+        {% endif %}
     </ul>
 </div>

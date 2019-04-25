@@ -1,0 +1,23 @@
+<a class="post-link" href="{{ include.url | prepend: site.baseurl }}">
+    {{ include.title }}
+</a>
+<p class="post-tagline">
+    {{ include.tagline }}
+</p>
+<p class="post-meta">
+    Blog:
+    {{ include.blog-category | capitalize }}
+</p>
+<p class="post-meta">
+    Log Date:
+    {{ include.date | date_to_string }}
+</p>
+<p class="post-meta">
+    Estimated Reading Time:
+    {% assign words = include.content | number_of_words %}
+    {% if words < 360 %}
+    1 min
+    {% else %}
+    {{ words | divided_by:180 }} mins
+    {% endif %}
+</p>

@@ -7,3 +7,30 @@
     display: flex;
     flex-direction: column;
 }
+
+a.internal-link {
+    color: $external-link-color;
+
+    &:hover {
+        color: $background-color;
+        background-color: $inner-link-hover-background;
+        text-decoration: none;
+    }
+}
+
+a.external-link {
+    color: $external-link-color;
+
+    &:hover {
+        color: $background-color;
+        background-color: $inner-link-hover-background;
+        text-decoration: none;
+    }
+
+    &:before {
+        content: "<";
+    }
+    &:after {
+        content: ">";
+    }
+}

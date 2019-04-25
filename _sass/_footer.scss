@@ -1,0 +1,13 @@
+// Echo Area
+.echo-area {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    background-color: $header-line-color;
+    color: $header-line-text-color;
+
+    padding-left: 1em;
+    padding-right: 1em;
+
+    padding-bottom: 1.5em;
+}
