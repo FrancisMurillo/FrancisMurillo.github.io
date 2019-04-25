@@ -1,0 +1,62 @@
+.watch-list {
+    margin-left: 0;
+    list-style: none;
+}
+
+.watch-description {
+    margin-bottom: 1em;
+}
+
+.watch-item {
+    margin-bottom: 1.8em;
+}
+
+.watch-title {
+    font-size: 1.2em;
+    font-weight: bolder;
+    letter-spacing: -1px;
+    text-aling: left;
+    color: $emphasized-text-color;
+}
+
+.watch-year {
+    font-size: 0.8em;
+}
+
+.watch-type {
+}
+
+
+.watch-year {
+}
+
+.watch-quick-word {
+    font-style: italic;
+}
+
+.watch-meta {
+    width: 100%;
+}
+
+.watch-public-rating {
+}
+
+.watch-personal-rating {
+}
+
+.watch-date {
+}
+
+.watch-column {
+    width: 30%;
+    float: left;
+}
+
+.watch-key {
+    font-size: 0.8em;
+}
+
+.watch-value {
+    font-size: 0.9em;
+    font-weight: bold;
+}

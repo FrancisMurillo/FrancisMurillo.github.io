@@ -5,12 +5,6 @@ blog-category: watcher
 ---
 
 <div class="home">
-
-  <span class="page-aside">
-    Also checkout my <a href="watch-list">watch list</a>
-  </span>
-
-
   <ul class="post-list">
     {% for post in site.posts %}
     {% if post.categories contains page.blog-category  %}
@@ -41,6 +35,6 @@ blog-category: watcher
 
   <p class="rss-subscribe">
     <span>Subscribe to my {{ page.blog-category }} log</span>
-    <a href="{{  '/feed.xml' | prepend: page.blog-category | prepend: '/' | prepend: site.baseurl }}">via RSS</a>
+    <a class="external-link" href="{{  '/feed.xml' | prepend: page.blog-category | prepend: '/' | prepend: site.baseurl }}">via RSS</a>
   </p>
 </div>
