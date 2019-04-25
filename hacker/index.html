@@ -5,34 +5,21 @@ blog-category: hacker
 ---
 
 <div class="home">
-
-  <ul class="post-list">
-    {% for post in site.posts %}
-    {% if post.categories contains page.blog-category %}
-    <li class="post-item">
-      <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">
-        {{ post.title }}
-      </a>
-      <p class="post-tagline">
-        {{ post.tagline }}
-      </p>
-      <p class="post-meta">
-        Log Date:
-        {{ post.date | date_to_string }}
-      </p>
-      <p class="post-meta">
-        Estimated Reading Time:
-        {% assign words = post.content | number_of_words %}
-        {% if words < 360 %}
-                      1 min
-                      {% else %}
-                      {{ words | divided_by:180 }} mins
-                      {% endif %}
-                      </p>
-    </li>
-    {% endif %}
-    {% endfor %}
-  </ul>
+    <ul class="post-list">
+        {% assign blog-posts = site.posts | where: "blog-category", page.blog-category %}
+        {% for post in blog-posts %}
+        <li class="post-item">
+            {% include post-item.html
+            title=post.title
+            tagline=post.tagline
+            blog-category=ppost.blog-category
+            date=post.date
+            content=post.content
+            url=post.url
+            %}
+        </li>
+        {% endfor %}
+    </ul>
 
   <p class="rss-subscribe">
     <span>Subscribe to my {{ page.blog-category }} log </span>
