@@ -26,7 +26,6 @@ li.item-definition {
 
 }
 
-
 html, body {
     display: flex;
     flex-direction: column;
@@ -38,7 +37,6 @@ ul, ol {
     list-style-position: inside;
     margin: 0;
 }
-
 
 li.item-definition:before {
     color: white;
@@ -97,61 +95,4 @@ li.item-definition:before {
 
     position: fixed;
     width: 100%;
-}
-
-.page-content {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    flex-shrink: 0;
-    padding: $spacing-unit 0;
-}
-
-.page-heading {
-    font-size: 20px;
-}
-
-.post-header {
-    margin-bottom: $spacing-unit;
-}
-
-.post-title {
-    font-size: 42px;
-    letter-spacing: -1px;
-    line-height: 1;
-    color: $emphasized-text-color;
-
-    @include media-query($on-laptop) {
-        font-size: 36px;
-    }
-}
-
-.post-content {
-    margin-bottom: $spacing-unit;
-
-    h2 {
-        font-size: 32px;
-
-        color: $emphasized-text-color;
-
-        @include media-query($on-laptop) {
-            font-size: 28px;
-        }
-    }
-
-    h3 {
-        font-size: 26px;
-
-        @include media-query($on-laptop) {
-            font-size: 22px;
-        }
-    }
-
-    h4 {
-        font-size: 20px;
-
-        @include media-query($on-laptop) {
-            font-size: 18px;
-        }
-    }
 }

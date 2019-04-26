@@ -59,12 +59,26 @@ blog-category: blog
         {% if latest-watcher %}
         <li class="post-item">
             {% include post-item.html
-        title=latest-watcher.title
-        tagline=latest-watcher.tagline
-        blog-category=latest-watcher.blog-category
-        date=latest-watcher.date
-        content=latest-watcher.content
-        url=latest-watcher.url
+            title=latest-watcher.title
+            tagline=latest-watcher.tagline
+            blog-category=latest-watcher.blog-category
+            date=latest-watcher.date
+            content=latest-watcher.content
+            url=latest-watcher.url
+            %}
+        </li>
+        {% endif %}
+
+        {% assign latest-meta = site.posts | where: "blog-category","meta" | first %}
+        {% if latest-meta %}
+        <li class="post-item">
+            {% include post-item.html
+            title=latest-meta.title
+            tagline=latest-meta.tagline
+            blog-category=latest-meta.blog-category
+            date=latest-meta.date
+            content=latest-meta.content
+            url=latest-meta.url
             %}
         </li>
         {% endif %}
