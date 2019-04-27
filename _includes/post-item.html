@@ -4,10 +4,12 @@
 <p class="post-tagline">
     {{ include.tagline }}
 </p>
+{% unless include.blog-category contains page.blog-category %}
 <p class="post-meta">
     Blog:
     {{ include.blog-category | capitalize }}
 </p>
+{% endunless %}
 <p class="post-meta">
     Log Date:
     {{ include.date | date_to_string }}

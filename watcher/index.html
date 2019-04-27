@@ -1,10 +1,55 @@
 ---
 layout: default
-description: "Anything I have seen that deserve my attention."
 blog-category: watcher
 ---
 
+<br />
+
 <div class="home">
+    <div class="page-description">
+        As a child of video games, my love for interactive fiction bled over to cinematic story telling. For games, I prefer challenging (not punishing) games to unwind and grow. For movies, I like animation and cartoons since it nourishes my imagination. I am not necessarily an expert but I've seen enough and want to write about them.
+        <br /><br />
+        To be clear, I don't write reviews; I write notes and thoughts. I am not here to change what you to with your money or the value of your experience. My priority is to further understand and appreciate the media, not simply be entertained, and write about it. In particular, the qualities I emphasize are:
+        <br /><br />
+        <ul>
+            <li class="item-definition">
+                <div>
+                    <b>
+                        Meaning
+                    </b>
+                </div>
+                <span>
+                    This is not just what the story is but what it is trying to say. The metaphor, imagery and message. If and how they fit together to address themes or issues.
+                </span>
+            </li>
+            <li class="item-definition">
+                <div>
+                    <b>
+                        Execution
+                    </b>
+                </div>
+                <span>
+                    This is how the overall package works, not just its element. Even if the visuals, songs, characters are strong, it must stand together to make a coherent product.
+                </span>
+            </li>
+            <li class="item-definition">
+                <div>
+                    <b>
+                        Value
+                    </b>
+                </div>
+                <span>
+                    The personal value I put on the media. No matter the polish or quality, if its message or intent doesn't resonate positively with me, it might not be worth sharing or discussing.
+                </span>
+            </li>
+        </ul>
+        <br />
+        I believe in enjoying the media we consume while being critical of it. So I hope my views and opinions though subjective are hopefully reasonable, fair, thorough, constructive and logical. I just hope we can find media that has value and positive impacts on us.
+    </div>
+
+    <br />
+    <b>Posts</b>
+
     <ul class="post-list">
         {% assign blog-posts = site.posts | where: "blog-category", page.blog-category %}
         {% for post in blog-posts %}
@@ -12,7 +57,7 @@ blog-category: watcher
             {% include post-item.html
             title=post.title
             tagline=post.tagline
-            blog-category=ppost.blog-category
+            blog-category=post.blog-category
             date=post.date
             content=post.content
             url=post.url

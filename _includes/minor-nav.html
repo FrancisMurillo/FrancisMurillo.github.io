@@ -1,12 +1,23 @@
 {% unless page.title %}
 <div class="page-aside">
     Enabled minor modes:
+    {% unless page.blog-category contains 'hacker' %}
     <a class="major-mode-link" href="/hacker">
         Hacker
     </a>
     &nbsp;
+    {% endunless %}
+    {% unless page.blog-category contains 'watcher' %}
     <a class="major-mode-link" href="/watcher">
         Watcher
     </a>
+    &nbsp;
+    {% endunless %}
+    {% unless page.blog-category contains 'meta' %}
+    <a class="major-mode-link" href="/meta">
+        Meta
+    </a>
+    &nbsp;
+    {% endunless %}
 </div>
 {% endunless %}

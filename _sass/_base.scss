@@ -132,11 +132,12 @@ code {
 }
 
 .wrapper {
-    max-width: 100vw;
+  max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit} * 2));
+  max-width: calc(#{$content-width} - (#{$spacing-unit} * 2));
+  margin-right: auto;
+  margin-left: auto;
   padding-right: $spacing-unit;
   padding-left: $spacing-unit;
-  @extend %clearfix;
-
 }
 
 .container {
@@ -145,7 +146,7 @@ code {
   padding: 0 !important;
 }
 
-%clearfix {
+.clearfix {
 
   &:after {
     content: "";
