@@ -10,6 +10,7 @@
 
 a.internal-link {
     color: $external-link-color;
+    height: fit-content;
 
     &:hover {
         color: $background-color;
