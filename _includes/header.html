@@ -15,7 +15,11 @@
         </span>
         {% else %}
         <a href="/{{ page.blog-category }}">
+            {% if page.original-blog-category %}
+            {{ page.original-blog-category | capitalize }}
+            {% else %}
             {{ page.blog-category | capitalize }}
+            {% endif %}
         </a>
         {% endif %}
     </div>
