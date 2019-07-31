@@ -43,6 +43,7 @@ ol,
 dl,
 figure,
 %vertical-rhythm {
+  margin-top: $spacing-unit / 2;
   margin-bottom: $spacing-unit / 2;
 }
 
@@ -105,8 +106,9 @@ code {
 }
 
 pre {
-  padding: 8px 12px;
+  padding: 0;
   overflow-x: auto;
+  max-width: 85vw;
 
   > code {
     border: 0;
@@ -121,7 +123,7 @@ pre {
   border: none !important;
   border-radius: 0px !important;
   font-size: 1.2em !important;
-  padding: 1.5em !important;
+  padding: 0.75em 1em !important;
   color: #d3f9ee !important;
 }
 
@@ -133,12 +135,18 @@ code {
 }
 
 .wrapper {
-  max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit} * 2));
-  max-width: calc(#{$content-width} - (#{$spacing-unit} * 2));
   margin-right: auto;
   margin-left: auto;
   padding-right: $spacing-unit;
   padding-left: $spacing-unit;
+
+  max-width: -webkit-calc(#{$content-width} - (#{$spacing-unit} * 2));
+  max-width: calc(#{$content-width} - (#{$spacing-unit} * 2));
+
+  @include media-query($on-laptop) {
+      max-width: -webkit-calc(100vw - (#{$spacing-unit} * 2));
+      max-width: calc(100vw - (#{$spacing-unit} * 2));
+  }
 }
 
 .container {

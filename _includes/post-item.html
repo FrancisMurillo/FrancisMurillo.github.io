@@ -15,11 +15,12 @@
     {{ include.date | date_to_string }}
 </p>
 <p class="post-meta">
-    Estimated Reading Time:
     {% assign words = include.content | number_of_words %}
     {% if words < 360 %}
-    1 min
+    Estimated Reading Time: 1 min
+    {% elsif words < 10000 %}
+    Estimated Reading Time: {{ words | divided_by:180 }} mins
     {% else %}
-    {{ words | divided_by:180 }} mins
+    Long Post
     {% endif %}
 </p>
