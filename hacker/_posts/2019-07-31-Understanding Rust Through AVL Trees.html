@@ -15,7 +15,8 @@ tag:
 <h2 id="org5700ff4">From&lt;Elixir&gt;, Into&lt;Rust&gt;</h2>
 <div class="outline-text-2" id="text-org5700ff4">
 <p>
-I loved learning the <a href="https://elixir-lang.org/">Elixir</a> language and how its pragmatic <a href="https://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html">supervision
+I loved learning the <a href="https://elixir-lang.org/">Elixir</a> language and how its pragmatic
+<a href="https://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html">supervision
 trees</a> and <a href="https://elixir-lang.org/getting-started/processes.html">process model</a> taught me the value <a href="https://en.wikipedia.org/wiki/Fault_tolerance">fault tolerance</a> as a
 quality of code than of infrastructure. Having safety and failure
 recovery as an idiomatic culture and mindset of the language made me a
@@ -75,18 +76,28 @@ an <i>AVL Tree</i> in <i>Rust</i>?
 </p>
 
 <p>
-<b>CAVEAT:</b> This is not a tutorial. I assume you have read the book
-yourself and somewhat familiar with binary trees or sets. Although my
-writing may not be technically precise, I want to focus on discussing
-<i>Rust</i> from a newcomer's perspective. I do my best to link relevant
-sections from the book to help me explain syntax and concepts, so do
-visit them if you need to refresh yourself. You can also try running
-<code>rustup doc --std</code> that opens a local copy of the standard
-documentation. I found it quite helpful and convenient in
+<b>REQUIREMENT:</b>: This article assumes a <code>rustc</code> version of at least
+<code>1.38</code> for the <a href="https://github.com/rust-lang/rfcs/blob/master/text/2094-nll.md">non-lexical lifetimes</a> if you want to compile or follow
+the code.
+</p>
+
+<p>
+<b>CAVEAT:</b> This is not a tutorial on Rust. I assume you have read the
+book yourself and somewhat familiar with binary trees or sets.
+Although my writing may not be technically precise, I want to focus on
+discussing <i>Rust</i> from a newcomer's perspective. I do my best to link
+relevant sections from the book to help me explain syntax and
+concepts, so do visit them if you need to refresh yourself. You can
+also try running <code>rustup doc --std</code> that opens a local copy of the
+standard documentation. I found it quite helpful and convenient in
 understanding functions and methods. If I make any incriminating
 errors in terminology or code, do file an issue in the article's
-<a href="https://github.com/FrancisMurillo/avl_tree_set_rs/issues">repository</a>, so we can rectify it.
+<a href="https://github.com/FrancisMurillo/avl_tree_set_rs/issues">repository</a>, so we can rectify it and my thanks.
 </p>
+
+<ul class="org-ul">
+<li><a href="https://github.com/FrancisMurillo/avl_tree_set_rs/issues?q=is%3Aopen+is%3Aissue+label%3Aarticle">Corrections</a></li>
+</ul>
 </div>
 </div>
 
@@ -194,7 +205,7 @@ chapter</a>, we will use a recursive tree design:
     <span style="color: #ff694d;">root</span>: <span style="color: #f5b55f;">AvlTree</span><span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">T</span><span style="color: #ff1493;">&gt;</span>,
 <span style="color: #ff8c00;">}</span>
 
-<span style="color: #96a5d9; font-weight: bold;">impl</span><span style="color: #ff8c00;">&lt;</span><span style="color: #ff694d;">T</span>: <span style="color: #f5b55f;">Ord</span><span style="color: #ff8c00;">&gt;</span> <span style="color: #f5b55f;">AvlTree</span><span style="color: #ff8c00;">&lt;</span><span style="color: #f5b55f;">T</span><span style="color: #ff8c00;">&gt;</span> <span style="color: #ff8c00;">{</span>
+<span style="color: #96a5d9; font-weight: bold;">impl</span><span style="color: #ff8c00;">&lt;</span><span style="color: #ff694d;">T</span>: <span style="color: #f5b55f;">Ord</span><span style="color: #ff8c00;">&gt;</span> <span style="color: #f5b55f;">AvlTreeSet</span><span style="color: #ff8c00;">&lt;</span><span style="color: #f5b55f;">T</span><span style="color: #ff8c00;">&gt;</span> <span style="color: #ff8c00;">{</span>
     <span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #bad6e2;">new</span><span style="color: #ff1493;">()</span> -&gt; <span style="color: #f5b55f;">Self</span> <span style="color: #ff1493;">{</span>
         <span style="color: #f5b55f;">Self</span> <span style="color: #7fff00;">{</span> <span style="color: #ff694d;">root</span>: <span style="color: #f5b55f;">None</span> <span style="color: #7fff00;">}</span>
     <span style="color: #ff1493;">}</span>
@@ -675,9 +686,9 @@ the tree, we only crafted a standard binary tree but it is a start.
 </div>
 </div>
 
-<div id="outline-container-org80e97b6" class="outline-3">
-<h3 id="org80e97b6">Reflection</h3>
-<div class="outline-text-3" id="text-org80e97b6">
+<div id="outline-container-org306affb" class="outline-3">
+<h3 id="org306affb">Reflection</h3>
+<div class="outline-text-3" id="text-org306affb">
 <p>
 Working with <i>Rust</i> in this first section is not bad. Going back to a
 static type system is reinvigorating. I really liked that structs,
@@ -1470,9 +1481,9 @@ We now have a self-balancing tree and can now proclaim victory.
 </div>
 </div>
 
-<div id="outline-container-orgbf4ce5a" class="outline-3">
-<h3 id="orgbf4ce5a">Reflection</h3>
-<div class="outline-text-3" id="text-orgbf4ce5a">
+<div id="outline-container-orga6956e1" class="outline-3">
+<h3 id="orga6956e1">Reflection</h3>
+<div class="outline-text-3" id="text-orga6956e1">
 <p>
 This was a challenging section. In particular with rotation, it was
 hard to negotiate with the compiler how to move the nodes correctly.
@@ -2017,9 +2028,9 @@ test set::properties::take_parity ... ok
 </div>
 </div>
 
-<div id="outline-container-orgb3f71c5" class="outline-3">
-<h3 id="orgb3f71c5">Reflection</h3>
-<div class="outline-text-3" id="text-orgb3f71c5">
+<div id="outline-container-org49f1980" class="outline-3">
+<h3 id="org49f1980">Reflection</h3>
+<div class="outline-text-3" id="text-org49f1980">
 <p>
 Originally, I used <a href="https://github.com/rust-rspec/rspec">rspec</a> and <a href="https://github.com/cksac/fake-rs">fake-rs</a> as my testing strategy that gave
 me a good quality test workflow. In writing this article, I moved to
