@@ -1,0 +1,129 @@
+---
+title: ConduitNSQ - An NSQ Adapter for Elixir
+tagline:
+blog-category: meta
+major-mode: Announcement
+category:
+- meta
+tag:
+- meta
+- message queue
+- nsq
+- elixir
+---
+
+<div id="outline-container-org924d312" class="outline-2">
+<h2 id="org924d312">A Short Update</h2>
+<div class="outline-text-2" id="text-org924d312">
+<p>
+After writing the <a href="http://francismurillo.github.io/2019-07-31-Understanding-Rust-Through-AVL-Trees/">Rust AVL Tree Set post</a>, I decided to study the
+parser combinator library, <a href="https://github.com/Geal/nom">nom</a>, to work on <a href="https://github.com/kanaka/mal">a Rust Lisp interpreter</a>
+next. I am currently stuck on implementing custom parsers but will
+work through it nonetheless. During my work this week, I needed to
+decide what message queue to use for my project since we are using a
+micro service architecture. Majority of the services or modules are
+Elixir umbrella apps, so it would be fascinating to consider the
+<a href="https://elixir-lang.org/getting-started/mix-otp/distributed-tasks.html">native distributed remote call</a> Erlang is famous for. Alas, I cannot
+make the assumption that every service is written in Elixir and
+researching message queues will better prepare me for the future.
+</p>
+
+<p>
+After three days of research and attempts, this is the findings I had
+for each message queue:
+</p>
+
+<dl class="org-dl">
+<dt><a href="https://www.rabbitmq.com/">RabbitMQ</a></dt><dd>The default message queue to consider. Good documentation and
+library support makes it quite viable; however, production
+headaches and war stories made me reconsider safer alternatives.</dd>
+<dt><a href="https://kafka.apache.org/intro">Kafka</a></dt><dd>My preferred choice for production stability; however, it
+requires as a heavy infrastructure dependency (<a href="https://zookeeper.apache.org/">Zookeeper</a>)
+that is beyond the limits of the project.</dd>
+<dt><a href="https://zeromq.org/">ZeroMQ</a></dt><dd>A low level and lightweight message queue that garnered my interest.
+Sadly, it is lacked out of the box support and the Elixir (not
+Erlang) support.</dd>
+<dt><a href="https://nats.io/">NATS</a></dt><dd>I would have picked this message queue if it had good documentation
+for its Elixir client since it offers a good balance between weight
+and stability.</dd>
+</dl>
+
+<p>
+Despite not selecting them, they are still good choices for different
+circumstances. I stumbled across <a href="https://nsq.io/">NSQ</a> message queue that is lightweight
+and distributed. However, I bit off more than I can chew as I thought
+the <a href="https://github.com/wistia/elixir_nsq">Elixir client library</a> was good enough since no documentation exist
+in managing consumer and producer processes as a whole. I pondered
+making a wrapper library for my project's needs.
+</p>
+
+<p>
+Before I slept, I found <a href="https://github.com/conduitframework/conduit">conduit</a>, a generic message queue library that
+can be configured to work with <a href="https://aws.amazon.com/sqs/">Amazon SQS</a> and <a href="https://www.amqp.org/">AMQP</a>. Perhaps, it can be
+configured for <i>NSQ</i>? Three days later, I published <a href="https://github.com/DigixGlobal/conduit_nsq">conduit_nsq</a>.
+Although not perfect or battle tested yet, I can now use <code>conduit</code>'s
+<a href="https://github.com/elixir-plug/plug">plug</a>-like composability that drew me in the first place:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">MyApp.Broker</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">use</span> <span style="color: #f5b55f;">Conduit.Broker</span>, <span style="color: #87cefa;">otp_app:</span> <span style="color: #87cefa;">:my_app</span>
+
+  configure <span style="color: #96a5d9; font-weight: bold;">do</span>
+    queue<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"my-topic"</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  pipeline <span style="color: #87cefa;">:in_tracking</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.CorrelationId</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.LogIncoming</span>, <span style="color: #87cefa;">log:</span> <span style="color: #87cefa;">:debug</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  pipeline <span style="color: #87cefa;">:out_tracking</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.CorrelationId</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.CreatedBy</span>, <span style="color: #87cefa;">app:</span> <span style="color: #68f6cb;">"MyApp"</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.CreatedAt</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.LogOutgoing</span>, <span style="color: #87cefa;">log:</span> <span style="color: #87cefa;">:debug</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  pipeline <span style="color: #87cefa;">:serialize</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Wrap</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Encode</span>, <span style="color: #87cefa;">content_encoding:</span> <span style="color: #68f6cb;">"json"</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  pipeline <span style="color: #87cefa;">:deserialize</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Decode</span>, <span style="color: #87cefa;">content_encoding:</span> <span style="color: #68f6cb;">"json"</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Unwrap</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  pipeline <span style="color: #87cefa;">:error_handling</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.NackException</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.DeadLetter</span>, <span style="color: #87cefa;">broker:</span> <span style="color: #f5b55f;">MyApp.Broker</span>, <span style="color: #87cefa;">publish_to:</span> <span style="color: #87cefa;">:error</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Retry</span>, <span style="color: #87cefa;">attempts:</span> 3<span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  incoming <span style="color: #f5b55f;">MyApp</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    pipe_through<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">[</span><span style="color: #87cefa;">:in_tracking</span>, <span style="color: #87cefa;">:error_handling</span>, <span style="color: #87cefa;">:deserialize</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+
+    subscribe<span style="color: #ff8c00;">(</span><span style="color: #87cefa;">:my_subscriber</span>, <span style="color: #f5b55f;">BasicSubscriber</span>, <span style="color: #87cefa;">topic:</span> <span style="color: #68f6cb;">"my-topic"</span>, <span style="color: #87cefa;">channel:</span> <span style="color: #68f6cb;">"my-channel"</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  outgoing <span style="color: #96a5d9; font-weight: bold;">do</span>
+    pipe_through<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">[</span><span style="color: #87cefa;">:out_tracking</span>, <span style="color: #87cefa;">:serialize</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+
+    publish<span style="color: #ff8c00;">(</span><span style="color: #87cefa;">:my_publisher</span>, <span style="color: #87cefa;">topic:</span> <span style="color: #68f6cb;">"my-topic"</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+The strange thing about the wrapper implementation is that it could
+easily use another client library. If <i>NSQ</i> does not work out, it can
+be easily changed to <a href="https://github.com/nats-io/nats.ex">nats.ex</a> or fallback to <a href="https://github.com/conduitframework/conduit_amqp">conduit_amqp</a>. Either way,
+now that the adapter is more or less done. I still have to handle <a href="https://nsq.io/overview/features_and_guarantees.html#messages-are-delivered-at-least-once">at
+least one delivery</a> or data deduplication from the client-side that can
+be interestingly implemented in a plug library which maybe a story for
+another time.
+</p>
+</div>
+</div>
