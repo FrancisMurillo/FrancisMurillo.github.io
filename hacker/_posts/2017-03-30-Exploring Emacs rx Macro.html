@@ -11,9 +11,9 @@ tag:
 - rx
 ---
 
-<div id="outline-container-org245e00a" class="outline-2">
-<h2 id="org245e00a">Regular Expression</h2>
-<div class="outline-text-2" id="text-org245e00a">
+<div id="outline-container-org9f24b13" class="outline-2">
+<h2 id="org9f24b13">Regular Expression</h2>
+<div class="outline-text-2" id="text-org9f24b13">
 <p>
 <i><b>Some people, when confronted with a problem, think "I know, I'll use
 regular expressions." Now they have two problems.</b></i> - <i>Jamie Zawinski</i>
@@ -71,9 +71,9 @@ author and buy the book.)
 </div>
 </div>
 
-<div id="outline-container-org7e5cb02" class="outline-2">
-<h2 id="org7e5cb02">Strings And Quoting</h2>
-<div class="outline-text-2" id="text-org7e5cb02">
+<div id="outline-container-orga3d0134" class="outline-2">
+<h2 id="orga3d0134">Strings And Quoting</h2>
+<div class="outline-text-2" id="text-orga3d0134">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">STRING
      matches string STRING literally.
@@ -117,9 +117,9 @@ is like inserting values with backquoting.
 </div>
 </div>
 
-<div id="outline-container-orgb8e5105" class="outline-2">
-<h2 id="orgb8e5105">Variables And Ranges</h2>
-<div class="outline-text-2" id="text-orgb8e5105">
+<div id="outline-container-orge4c999e" class="outline-2">
+<h2 id="orge4c999e">Variables And Ranges</h2>
+<div class="outline-text-2" id="text-orge4c999e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">&#8216;<span style="color: #ff8c00;">(</span>any SET ...<span style="color: #ff8c00;">)</span>&#8217;
 &#8216;<span style="color: #ff8c00;">(</span>in SET ...<span style="color: #ff8c00;">)</span>&#8217;
@@ -207,9 +207,9 @@ worthy to be explored.
 </div>
 </div>
 
-<div id="outline-container-org0f2559e" class="outline-2">
-<h2 id="org0f2559e">Alternatives And Depth</h2>
-<div class="outline-text-2" id="text-org0f2559e">
+<div id="outline-container-orgbe0c915" class="outline-2">
+<h2 id="orgbe0c915">Alternatives And Depth</h2>
+<div class="outline-text-2" id="text-orgbe0c915">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">&#8216;<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span> SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
 &#8216;<span style="color: #ff8c00;">(</span>| SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
@@ -271,7 +271,7 @@ the possibility of making it nuanced exist.
                           <span style="color: #ffff00;">(</span><span style="color: #96a5d9; font-weight: bold;">or</span>
                            <span style="color: #da70d6;">(</span>sequence <span style="color: #00ff7f;">(</span>any <span style="color: #68f6cb;">"0-4"</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>optional digit<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
                            <span style="color: #da70d6;">(</span>sequence <span style="color: #68f6cb;">"5"</span> <span style="color: #00ff7f;">(</span>optional <span style="color: #ff8247;">(</span>any <span style="color: #68f6cb;">"0-5"</span><span style="color: #ff8247;">)</span><span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span>
-                           <span style="color: #da70d6;">(</span>sequence <span style="color: #00ff7f;">(</span>any <span style="color: #68f6cb;">"6-9"</span><span style="color: #00ff7f;">)</span> <span style="color: #00ff7f;">(</span>optional digit<span style="color: #00ff7f;">)</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
+                           <span style="color: #da70d6;">(</span>any <span style="color: #68f6cb;">"6-9"</span><span style="color: #da70d6;">)</span><span style="color: #ffff00;">)</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>
            <span style="color: #7fff00;">(</span>sequence <span style="color: #00bfff;">(</span>any <span style="color: #68f6cb;">"3-9"</span><span style="color: #00bfff;">)</span> <span style="color: #00bfff;">(</span>optional digit<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
 
 <span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">setq</span> range-pattern <span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-weight: bold;">rx</span> bol <span style="color: #7fff00;">(</span>eval range-expression<span style="color: #7fff00;">)</span> eol<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
@@ -332,9 +332,9 @@ but it isn't a huge cost.
 </div>
 </div>
 
-<div id="outline-container-org0595e9b" class="outline-2">
-<h2 id="org0595e9b">Groups And Backreferencs</h2>
-<div class="outline-text-2" id="text-org0595e9b">
+<div id="outline-container-orga47ed15" class="outline-2">
+<h2 id="orga47ed15">Groups And Backreferencs</h2>
+<div class="outline-text-2" id="text-orga47ed15">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">&#8216;<span style="color: #ff8c00;">(</span>submatch SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
 &#8216;<span style="color: #ff8c00;">(</span>group SEXP1 SEXP2 ...<span style="color: #ff8c00;">)</span>&#8217;
@@ -419,9 +419,9 @@ complicated.
 </div>
 </div>
 
-<div id="outline-container-org11d0dc8" class="outline-2">
-<h2 id="org11d0dc8">re-builder</h2>
-<div class="outline-text-2" id="text-org11d0dc8">
+<div id="outline-container-org2a53ed4" class="outline-2">
+<h2 id="org2a53ed4">re-builder</h2>
+<div class="outline-text-2" id="text-org2a53ed4">
 <p>
 To conclude this exploration, a UI exist for testing and experimenting
 on regular expressions: <code>re-builder</code>. Execute the command,
@@ -443,9 +443,9 @@ programmatic, it is handy as a quick experiment and check.
 </div>
 </div>
 
-<div id="outline-container-org558c83d" class="outline-2">
-<h2 id="org558c83d">Conclusion</h2>
-<div class="outline-text-2" id="text-org558c83d">
+<div id="outline-container-orgd12fb3a" class="outline-2">
+<h2 id="orgd12fb3a">Conclusion</h2>
+<div class="outline-text-2" id="text-orgd12fb3a">
 <p>
 This macro is not a replacement for learning regular expressions since
 there are nuances that a DSL can cover such language specific syntax
