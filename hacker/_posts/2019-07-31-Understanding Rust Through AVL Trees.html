@@ -11,12 +11,11 @@ tag:
 - avl tree
 ---
 
-<div id="outline-container-org5700ff4" class="outline-2">
-<h2 id="org5700ff4">From&lt;Elixir&gt;, Into&lt;Rust&gt;</h2>
-<div class="outline-text-2" id="text-org5700ff4">
+<div id="outline-container-orgc392d10" class="outline-2">
+<h2 id="orgc392d10">From&lt;Elixir&gt;, Into&lt;Rust&gt;</h2>
+<div class="outline-text-2" id="text-orgc392d10">
 <p>
-I loved learning the <a href="https://elixir-lang.org/">Elixir</a> language and how its pragmatic
-<a href="https://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html">supervision
+I loved learning the <a href="https://elixir-lang.org/">Elixir</a> language and how its pragmatic <a href="https://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html">supervision
 trees</a> and <a href="https://elixir-lang.org/getting-started/processes.html">process model</a> taught me the value <a href="https://en.wikipedia.org/wiki/Fault_tolerance">fault tolerance</a> as a
 quality of code than of infrastructure. Having safety and failure
 recovery as an idiomatic culture and mindset of the language made me a
@@ -98,12 +97,17 @@ errors in terminology or code, do file an issue in the article's
 <ul class="org-ul">
 <li><a href="https://github.com/FrancisMurillo/avl_tree_set_rs/issues?q=is%3Aopen+is%3Aissue+label%3Aarticle">Corrections</a></li>
 </ul>
+
+<p>
+<b>UPDATE 2019-12-18:</b> Credits to <b><b>jbj</b></b> for filing a <a href="https://github.com/FrancisMurillo/avl_tree_set_rs/pull/3">PR</a> in rewriting
+<code>take</code> and <code>insert</code> without using <code>unsafe</code> by using recursion.
+</p>
 </div>
 </div>
 
-<div id="outline-container-orgaf97ae9" class="outline-2">
-<h2 id="orgaf97ae9">AVL Trees</h2>
-<div class="outline-text-2" id="text-orgaf97ae9">
+<div id="outline-container-orge5755b0" class="outline-2">
+<h2 id="orge5755b0">AVL Trees</h2>
+<div class="outline-text-2" id="text-orge5755b0">
 <p>
 As a short discussion, <a href="https://en.wikipedia.org/wiki/Binary_search_tree">ordered binary trees</a> are good at searching
 values. As more values expand the tree, it becomes less efficient
@@ -154,18 +158,18 @@ their subsections:
 </p>
 
 <ul class="org-ul">
-<li><a href="#orga9f1645">Insertion</a></li>
-<li><a href="#orgb5d98d9">Rebalancing</a></li>
-<li><a href="#orgd96f9ea">Deletion</a></li>
-<li><a href="#org51543a4">Beyond Parity</a> (<i>Optional</i>)</li>
-<li><a href="#org625beb5">Reflecting On Rust</a></li>
+<li><a href="#orgb7a42c9">Insertion</a></li>
+<li><a href="#org67ca508">Rebalancing</a></li>
+<li><a href="#org751b358">Deletion</a></li>
+<li><a href="#org48d7f72">Beyond Parity</a> (<i>Optional</i>)</li>
+<li><a href="#orgaa91b9a">Reflecting On Rust</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orga9f1645" class="outline-2">
-<h2 id="orga9f1645">Insertion</h2>
-<div class="outline-text-2" id="text-orga9f1645">
+<div id="outline-container-orgb7a42c9" class="outline-2">
+<h2 id="orgb7a42c9">Insertion</h2>
+<div class="outline-text-2" id="text-orgb7a42c9">
 <p>
 To begin our journey, we will implement the insertion (<code>.insert</code>)
 method to populate our set and test the values with an iterator
@@ -175,16 +179,16 @@ cycle and momentum.
 </p>
 
 <ul class="org-ul">
-<li><a href="#orgece79bf">Data Types</a></li>
-<li><a href="#orga269f4b">Insert Method</a></li>
-<li><a href="#orgf095383">Iterator</a></li>
-<li><a href="#orgb8c9f6b">Testing Insert</a></li>
+<li><a href="#orgea9b4b4">Data Types</a></li>
+<li><a href="#orga1ff405">Insert Method</a></li>
+<li><a href="#orgdc4450a">Iterator</a></li>
+<li><a href="#org0d52e2b">Testing Insert</a></li>
 </ul>
 </div>
 
-<div id="outline-container-orgece79bf" class="outline-3">
-<h3 id="orgece79bf">Data Types</h3>
-<div class="outline-text-3" id="text-orgece79bf">
+<div id="outline-container-orgea9b4b4" class="outline-3">
+<h3 id="orgea9b4b4">Data Types</h3>
+<div class="outline-text-3" id="text-orgea9b4b4">
 <p>
 What is the design of our tree structure? With some hint from <a href="https://rust-unofficial.github.io/too-many-lists/second-option.html">this
 chapter</a>, we will use a recursive tree design:
@@ -289,9 +293,9 @@ done, we proceed with the main method.
 </div>
 </div>
 
-<div id="outline-container-orga269f4b" class="outline-3">
-<h3 id="orga269f4b">Insert Method</h3>
-<div class="outline-text-3" id="text-orga269f4b">
+<div id="outline-container-orga1ff405" class="outline-3">
+<h3 id="orga1ff405">Insert Method</h3>
+<div class="outline-text-3" id="text-orga1ff405">
 <p>
 <b>Parity:</b> <a href="https://doc.rust-lang.org/std/collections/btree_set/struct.BTreeSet.html#method.insert">BTreeSet::insert</a>
 </p>
@@ -383,9 +387,9 @@ implement next.
 </div>
 </div>
 
-<div id="outline-container-orgf095383" class="outline-3">
-<h3 id="orgf095383">Iterator</h3>
-<div class="outline-text-3" id="text-orgf095383">
+<div id="outline-container-orgdc4450a" class="outline-3">
+<h3 id="orgdc4450a">Iterator</h3>
+<div class="outline-text-3" id="text-orgdc4450a">
 <p>
 <b>Parity:</b> <a href="https://doc.rust-lang.org/std/collections/btree_set/struct.BTreeSet.html#method.iter">BTreeSet::iter</a>
 </p>
@@ -529,7 +533,7 @@ in ascending order:
 <div class="org-src-container">
 <pre class="src src-rust"><span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">set</span> = <span style="color: #f5b55f;">AvlTreeSet</span>::new<span style="color: #ff8c00;">()</span>;
 
-<span style="color: #96a5d9; font-weight: bold;">for</span> i <span style="color: #96a5d9; font-weight: bold;">in</span> <span style="color: #ff8c00;">(</span>1..4 <span style="color: #96a5d9; font-weight: bold;">as</span> <span style="color: #f5b55f;">usize</span><span style="color: #ff8c00;">)</span>.rev<span style="color: #ff8c00;">()</span> <span style="color: #ff8c00;">{</span>
+<span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">i</span> <span style="color: #96a5d9; font-weight: bold;">in</span> <span style="color: #ff8c00;">(</span>1..4 <span style="color: #96a5d9; font-weight: bold;">as</span> <span style="color: #f5b55f;">usize</span><span style="color: #ff8c00;">)</span>.rev<span style="color: #ff8c00;">()</span> <span style="color: #ff8c00;">{</span>
     set.insert<span style="color: #ff1493;">(</span>i<span style="color: #ff1493;">)</span>;
 <span style="color: #ff8c00;">}</span>
 
@@ -552,9 +556,9 @@ go.
 </div>
 </div>
 
-<div id="outline-container-orgb8c9f6b" class="outline-3">
-<h3 id="orgb8c9f6b">Testing Insert</h3>
-<div class="outline-text-3" id="text-orgb8c9f6b">
+<div id="outline-container-org0d52e2b" class="outline-3">
+<h3 id="org0d52e2b">Testing Insert</h3>
+<div class="outline-text-3" id="text-org0d52e2b">
 <p>
 To test <code>.iter</code> and <code>.insert</code> together, we do the following:
 </p>
@@ -593,7 +597,7 @@ easily transforms iterators into other collections as shown below:
     <span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #bad6e2;">from_iter</span><span style="color: #ff1493;">&lt;</span><span style="color: #ff694d;">I</span>: <span style="color: #f5b55f;">IntoIterator</span><span style="color: #7fff00;">&lt;</span><span style="color: #f5b55f;">Item</span> = <span style="color: #f5b55f;">T</span><span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;(</span><span style="color: #ff694d;">iter</span>: <span style="color: #f5b55f;">I</span><span style="color: #ff1493;">)</span> -&gt; <span style="color: #f5b55f;">Self</span> <span style="color: #ff1493;">{</span>
         <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">set</span> = <span style="color: #f5b55f;">Self</span>::new<span style="color: #7fff00;">()</span>;
 
-        <span style="color: #96a5d9; font-weight: bold;">for</span> i <span style="color: #96a5d9; font-weight: bold;">in</span> iter <span style="color: #7fff00;">{</span>
+        <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">i</span> <span style="color: #96a5d9; font-weight: bold;">in</span> iter <span style="color: #7fff00;">{</span>
             set.insert<span style="color: #00bfff;">(</span>i<span style="color: #00bfff;">)</span>;
         <span style="color: #7fff00;">}</span>
 
@@ -686,9 +690,9 @@ the tree, we only crafted a standard binary tree but it is a start.
 </div>
 </div>
 
-<div id="outline-container-org306affb" class="outline-3">
-<h3 id="org306affb">Reflection</h3>
-<div class="outline-text-3" id="text-org306affb">
+<div id="outline-container-orge54f2b1" class="outline-3">
+<h3 id="orge54f2b1">Reflection</h3>
+<div class="outline-text-3" id="text-orge54f2b1">
 <p>
 Working with <i>Rust</i> in this first section is not bad. Going back to a
 static type system is reinvigorating. I really liked that structs,
@@ -711,9 +715,9 @@ language with some of the best modern features I value.
 </div>
 </div>
 
-<div id="outline-container-orgb5d98d9" class="outline-2">
-<h2 id="orgb5d98d9">Rebalancing</h2>
-<div class="outline-text-2" id="text-orgb5d98d9">
+<div id="outline-container-org67ca508" class="outline-2">
+<h2 id="org67ca508">Rebalancing</h2>
+<div class="outline-text-2" id="text-org67ca508">
 <p>
 With a working binary tree, we apply the rebalancing strategy by
 deciding how to implement height and node rotation. We then integrate
@@ -721,18 +725,18 @@ it back to <code>.insert</code> and update our test.
 </p>
 
 <ul class="org-ul">
-<li><a href="#orgcd9522d">Balance Factor And Height</a></li>
-<li><a href="#org73565fa">Unsafe Decision</a></li>
-<li><a href="#orgd9650d9">Height Testing</a></li>
-<li><a href="#org9cfb2e9">Node Rotation</a></li>
-<li><a href="#org1316dfa">Rotation Testing</a></li>
-<li><a href="#org1a87747">Rebalancing Insert</a></li>
+<li><a href="#org27f7b7d">Balance Factor And Height</a></li>
+<li><a href="#org5312708">Unsafe Decision</a></li>
+<li><a href="#orga721430">Height Testing</a></li>
+<li><a href="#org551824d">Node Rotation</a></li>
+<li><a href="#orge1f3df9">Rotation Testing</a></li>
+<li><a href="#orge04009a">Rebalancing Insert</a></li>
 </ul>
 </div>
 
-<div id="outline-container-orgcd9522d" class="outline-3">
-<h3 id="orgcd9522d">Balance Factor And Height</h3>
-<div class="outline-text-3" id="text-orgcd9522d">
+<div id="outline-container-org27f7b7d" class="outline-3">
+<h3 id="org27f7b7d">Balance Factor And Height</h3>
+<div class="outline-text-3" id="text-org27f7b7d">
 <p>
 Given a node, it has a <b>balance factor</b> that is the height of the
 left tree minus the height of the right tree. The idea is that when
@@ -830,9 +834,9 @@ implementing rotations was my first real struggle in <i>Rust</i>.
 </div>
 </div>
 
-<div id="outline-container-org73565fa" class="outline-3">
-<h3 id="org73565fa">Unsafe Decision</h3>
-<div class="outline-text-3" id="text-org73565fa">
+<div id="outline-container-org5312708" class="outline-3">
+<h3 id="org5312708">Unsafe Decision</h3>
+<div class="outline-text-3" id="text-org5312708">
 <p>
 How do we traverse upwards in our tree after every node insertion? A
 quick solution is to add a mutable reference to the parent node and
@@ -887,7 +891,7 @@ Going back to <code>.insert</code>, we can track them with a stack instead via
     <span style="color: #2872b2;">// </span><span style="color: #2872b2;">snip</span>
 
     <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Traversing a list as a stack needs to be reversed via .rev first</span>
-    <span style="color: #96a5d9; font-weight: bold;">for</span> node <span style="color: #96a5d9; font-weight: bold;">in</span> prev_nodes.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">node</span> <span style="color: #96a5d9; font-weight: bold;">in</span> prev_nodes.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
         node.update_height<span style="color: #7fff00;">()</span>;
     <span style="color: #ff1493;">}</span>
 
@@ -943,7 +947,7 @@ pointers allows our implementation to be uncomplicated:
 
     <span style="color: #2872b2;">// </span><span style="color: #2872b2;">... insert ...</span>
 
-    <span style="color: #96a5d9; font-weight: bold;">for</span> node_ptr <span style="color: #96a5d9; font-weight: bold;">in</span> prev_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">node_ptr</span> <span style="color: #96a5d9; font-weight: bold;">in</span> prev_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
         <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff694d;">node</span> = <span style="color: #f5b55f; text-decoration: underline;">unsafe</span> <span style="color: #7fff00;">{</span> &amp;<span style="color: #96a5d9; font-weight: bold;">mut</span> *node_ptr <span style="color: #7fff00;">}</span>;  <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Converting a mutable pointer back to a reference</span>
         node.update_height<span style="color: #7fff00;">()</span>;
     <span style="color: #ff1493;">}</span>
@@ -968,9 +972,9 @@ also need to test the height property.
 </div>
 </div>
 
-<div id="outline-container-orgd9650d9" class="outline-3">
-<h3 id="orgd9650d9">Height Testing</h3>
-<div class="outline-text-3" id="text-orgd9650d9">
+<div id="outline-container-orga721430" class="outline-3">
+<h3 id="orga721430">Height Testing</h3>
+<div class="outline-text-3" id="text-orga721430">
 <p>
 <b>Given any AVL tree set, each node's height is one more than the
 larger height of the left or right subtree</b>. To make testing easier,
@@ -1076,9 +1080,9 @@ rotation.
 </div>
 </div>
 
-<div id="outline-container-org9cfb2e9" class="outline-3">
-<h3 id="org9cfb2e9">Node Rotation</h3>
-<div class="outline-text-3" id="text-org9cfb2e9">
+<div id="outline-container-org551824d" class="outline-3">
+<h3 id="org551824d">Node Rotation</h3>
+<div class="outline-text-3" id="text-org551824d">
 <p>
 After inserting a node in a balanced AVL tree, it becomes
 <b>imbalanced</b> when a node has a left and right subtree height
@@ -1188,9 +1192,9 @@ nothing short of bliss. As we did before, we need to prove it works.
 </div>
 </div>
 
-<div id="outline-container-org1316dfa" class="outline-3">
-<h3 id="org1316dfa">Rotation Testing</h3>
-<div class="outline-text-3" id="text-org1316dfa">
+<div id="outline-container-orge1f3df9" class="outline-3">
+<h3 id="orge1f3df9">Rotation Testing</h3>
+<div class="outline-text-3" id="text-orge1f3df9">
 <p>
 We have two statements to test about node rotation: <b>rotations should
 preserve order and adjust the balance factor</b>. With everything
@@ -1353,9 +1357,9 @@ finish our insert method.
 </div>
 </div>
 
-<div id="outline-container-org1a87747" class="outline-3">
-<h3 id="org1a87747">Rebalancing Insert</h3>
-<div class="outline-text-3" id="text-org1a87747">
+<div id="outline-container-orge04009a" class="outline-3">
+<h3 id="orge04009a">Rebalancing Insert</h3>
+<div class="outline-text-3" id="text-orge04009a">
 <p>
 If we have an imbalanced node, then wouldn't one correct rotation
 restore balance? It is a good first intuition but our small
@@ -1431,7 +1435,7 @@ We directly integrate this method back to <code>.insert</code> as planned:
 <pre class="src src-rust"><span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #bad6e2;">insert</span><span style="color: #ff8c00;">(</span>&amp;<span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #96a5d9; font-weight: bold;">self</span>, <span style="color: #ff694d;">value</span>: <span style="color: #f5b55f;">T</span><span style="color: #ff8c00;">)</span> -&gt; <span style="color: #f5b55f;">bool</span> <span style="color: #ff8c00;">{</span>
     <span style="color: #2872b2;">// </span><span style="color: #2872b2;">snip</span>
 
-    <span style="color: #96a5d9; font-weight: bold;">for</span> node_ptr <span style="color: #96a5d9; font-weight: bold;">in</span> prev_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">node_ptr</span> <span style="color: #96a5d9; font-weight: bold;">in</span> prev_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
         <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff694d;">node</span> = <span style="color: #f5b55f; text-decoration: underline;">unsafe</span> <span style="color: #7fff00;">{</span> &amp;<span style="color: #96a5d9; font-weight: bold;">mut</span> *node_ptr <span style="color: #7fff00;">}</span>;
 
         node.update_height<span style="color: #7fff00;">()</span>;
@@ -1481,9 +1485,9 @@ We now have a self-balancing tree and can now proclaim victory.
 </div>
 </div>
 
-<div id="outline-container-orga6956e1" class="outline-3">
-<h3 id="orga6956e1">Reflection</h3>
-<div class="outline-text-3" id="text-orga6956e1">
+<div id="outline-container-orga2066bb" class="outline-3">
+<h3 id="orga2066bb">Reflection</h3>
+<div class="outline-text-3" id="text-orga2066bb">
 <p>
 This was a challenging section. In particular with rotation, it was
 hard to negotiate with the compiler how to move the nodes correctly.
@@ -1498,9 +1502,9 @@ resisting the compiler and started to accept it.
 </div>
 </div>
 
-<div id="outline-container-orgd96f9ea" class="outline-2">
-<h2 id="orgd96f9ea">Deletion</h2>
-<div class="outline-text-2" id="text-orgd96f9ea">
+<div id="outline-container-org751b358" class="outline-2">
+<h2 id="org751b358">Deletion</h2>
+<div class="outline-text-2" id="text-org751b358">
 <p>
 After all the struggle with <code>.insert</code>, the deletion method, <code>.take</code>,
 is surprisingly the harder of the two methods. When deleting nodes, we
@@ -1510,16 +1514,16 @@ culmination of all the techniques.
 </p>
 
 <ul class="org-ul">
-<li><a href="#org204fd7b">Delete Method</a></li>
-<li><a href="#orgd8eef00">Zero Or One Child</a></li>
-<li><a href="#orge4f19ea">Two Children</a></li>
-<li><a href="#orgc1befbf">Deletion Testing</a></li>
+<li><a href="#org5902901">Delete Method</a></li>
+<li><a href="#org548e1a5">Zero Or One Child</a></li>
+<li><a href="#org73303ed">Two Children</a></li>
+<li><a href="#orgd1d4e25">Deletion Testing</a></li>
 </ul>
 </div>
 
-<div id="outline-container-org204fd7b" class="outline-3">
-<h3 id="org204fd7b">Delete Method</h3>
-<div class="outline-text-3" id="text-org204fd7b">
+<div id="outline-container-org5902901" class="outline-3">
+<h3 id="org5902901">Delete Method</h3>
+<div class="outline-text-3" id="text-org5902901">
 <p>
 <b>Parity:</b> <a href="https://doc.rust-lang.org/std/collections/btree_set/struct.BTreeSet.html#method.take">BTreeSet::take</a>
 </p>
@@ -1588,7 +1592,7 @@ first few are done in the same manner as we did with <code>.insert</code>:
     <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">taken_value</span> = <span style="color: #96a5d9; font-weight: bold; font-style: italic;">???</span>;
 
     <span style="color: #2872b2;">// </span><span style="color: #2872b2;">Retrace the path and update them accordingly</span>
-    <span style="color: #96a5d9; font-weight: bold;">for</span> node_ptr <span style="color: #96a5d9; font-weight: bold;">in</span> prev_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">node_ptr</span> <span style="color: #96a5d9; font-weight: bold;">in</span> prev_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
         <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff694d;">node</span> = <span style="color: #f5b55f; text-decoration: underline;">unsafe</span> <span style="color: #7fff00;">{</span> &amp;<span style="color: #96a5d9; font-weight: bold;">mut</span> *node_ptr <span style="color: #7fff00;">}</span>;
         node.update_height<span style="color: #7fff00;">()</span>;
         node.rebalance<span style="color: #7fff00;">()</span>;
@@ -1619,9 +1623,9 @@ with the safer case of zero or one child for the deleted node.
 </div>
 </div>
 
-<div id="outline-container-orgd8eef00" class="outline-3">
-<h3 id="orgd8eef00">Zero Or One Child</h3>
-<div class="outline-text-3" id="text-orgd8eef00">
+<div id="outline-container-org548e1a5" class="outline-3">
+<h3 id="org548e1a5">Zero Or One Child</h3>
+<div class="outline-text-3" id="text-org548e1a5">
 <p>
 The case of deleting an empty node is about detaching the target
 node. With one child either left or right, we still delete the node
@@ -1714,9 +1718,9 @@ of two children.
 </div>
 </div>
 
-<div id="outline-container-orge4f19ea" class="outline-3">
-<h3 id="orge4f19ea">Two Children</h3>
-<div class="outline-text-3" id="text-orge4f19ea">
+<div id="outline-container-org73303ed" class="outline-3">
+<h3 id="org73303ed">Two Children</h3>
+<div class="outline-text-3" id="text-org73303ed">
 <p>
 For two children, we replace the deleted node with the node of the
 next value or the leftmost child of the right child of the deleted
@@ -1774,7 +1778,7 @@ Applying all the prior techniques for this final challenge:
     parent_left_node.update_height<span style="color: #ff1493;">()</span>;
     parent_left_node.rebalance<span style="color: #ff1493;">()</span>;
 
-    <span style="color: #96a5d9; font-weight: bold;">for</span> node_ptr <span style="color: #96a5d9; font-weight: bold;">in</span> inner_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">node_ptr</span> <span style="color: #96a5d9; font-weight: bold;">in</span> inner_ptrs.into_iter<span style="color: #ff1493;">()</span>.rev<span style="color: #ff1493;">()</span> <span style="color: #ff1493;">{</span>
         <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff694d;">node</span> = <span style="color: #f5b55f; text-decoration: underline;">unsafe</span> <span style="color: #7fff00;">{</span> &amp;<span style="color: #96a5d9; font-weight: bold;">mut</span> *node_ptr <span style="color: #7fff00;">}</span>;
         node.update_height<span style="color: #7fff00;">()</span>;
         node.rebalance<span style="color: #7fff00;">()</span>;
@@ -1832,9 +1836,9 @@ to test.
 </div>
 </div>
 
-<div id="outline-container-orgc1befbf" class="outline-3">
-<h3 id="orgc1befbf">Deletion Testing</h3>
-<div class="outline-text-3" id="text-orgc1befbf">
+<div id="outline-container-orgd1d4e25" class="outline-3">
+<h3 id="orgd1d4e25">Deletion Testing</h3>
+<div class="outline-text-3" id="text-orgd1d4e25">
 <p>
 To test deletion, we need to test for existence that we do by
 finally implementing a <a href="https://doc.rust-lang.org/std/collections/btree_set/struct.BTreeSet.html#method.contains">BTreeSet::contains</a> method. With everything
@@ -1951,7 +1955,7 @@ which is our comfortable iterator equality test.
     <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">avl_set</span> = xs.iter<span style="color: #ff1493;">()</span>.cloned<span style="color: #ff1493;">()</span>.collect::<span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">AvlTreeSet</span><span style="color: #7fff00;">&lt;</span>_<span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;()</span>;
     <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">btree_set</span> = xs.iter<span style="color: #ff1493;">()</span>.cloned<span style="color: #ff1493;">()</span>.collect::<span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">BTreeSet</span><span style="color: #7fff00;">&lt;</span>_<span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;()</span>;
 
-    <span style="color: #96a5d9; font-weight: bold;">for</span> five <span style="color: #96a5d9; font-weight: bold;">in</span> fives <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">five</span> <span style="color: #96a5d9; font-weight: bold;">in</span> fives <span style="color: #ff1493;">{</span>
         <span style="color: #96a5d9;">assert_eq!</span><span style="color: #7fff00;">(</span>avl_set.take<span style="color: #00bfff;">(</span>&amp;five<span style="color: #00bfff;">)</span>, btree_set.take<span style="color: #00bfff;">(</span>&amp;five<span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span>;
     <span style="color: #ff1493;">}</span>
 
@@ -1972,7 +1976,7 @@ iterator:
     <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #ff694d;">negatives</span> = xs.iter<span style="color: #ff1493;">()</span>.cloned<span style="color: #ff1493;">()</span>.filter<span style="color: #ff1493;">(</span>|&amp;x| x &lt; 0<span style="color: #ff1493;">)</span>.collect::<span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">Vec</span><span style="color: #7fff00;">&lt;</span>_<span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;()</span>;
     <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">set</span> = xs.iter<span style="color: #ff1493;">()</span>.cloned<span style="color: #ff1493;">()</span>.collect::<span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">AvlTreeSet</span><span style="color: #7fff00;">&lt;</span>_<span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;()</span>;
 
-    <span style="color: #96a5d9; font-weight: bold;">for</span> negative <span style="color: #96a5d9; font-weight: bold;">in</span> negatives <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">negative</span> <span style="color: #96a5d9; font-weight: bold;">in</span> negatives <span style="color: #ff1493;">{</span>
         set.take<span style="color: #7fff00;">(</span>&amp;negative<span style="color: #7fff00;">)</span>;
     <span style="color: #ff1493;">}</span>
 
@@ -1999,7 +2003,7 @@ mechanics:
         .collect::<span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">Vec</span><span style="color: #7fff00;">&lt;</span>_<span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;()</span>;n
     <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">set</span> = xs.iter<span style="color: #ff1493;">()</span>.cloned<span style="color: #ff1493;">()</span>.collect::<span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">AvlTreeSet</span><span style="color: #7fff00;">&lt;</span>_<span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;()</span>;
 
-    <span style="color: #96a5d9; font-weight: bold;">for</span> odd <span style="color: #96a5d9; font-weight: bold;">in</span> odds <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">odd</span> <span style="color: #96a5d9; font-weight: bold;">in</span> odds <span style="color: #ff1493;">{</span>
         set.take<span style="color: #7fff00;">(</span>&amp;odd<span style="color: #7fff00;">)</span>;
     <span style="color: #ff1493;">}</span>
 
@@ -2028,9 +2032,9 @@ test set::properties::take_parity ... ok
 </div>
 </div>
 
-<div id="outline-container-org49f1980" class="outline-3">
-<h3 id="org49f1980">Reflection</h3>
-<div class="outline-text-3" id="text-org49f1980">
+<div id="outline-container-org4b87d2f" class="outline-3">
+<h3 id="org4b87d2f">Reflection</h3>
+<div class="outline-text-3" id="text-org4b87d2f">
 <p>
 Originally, I used <a href="https://github.com/rust-rspec/rspec">rspec</a> and <a href="https://github.com/cksac/fake-rs">fake-rs</a> as my testing strategy that gave
 me a good quality test workflow. In writing this article, I moved to
@@ -2051,9 +2055,9 @@ am productive.
 </div>
 </div>
 
-<div id="outline-container-org51543a4" class="outline-2">
-<h2 id="org51543a4">Beyond Parity</h2>
-<div class="outline-text-2" id="text-org51543a4">
+<div id="outline-container-org48d7f72" class="outline-2">
+<h2 id="org48d7f72">Beyond Parity</h2>
+<div class="outline-text-2" id="text-org48d7f72">
 <p>
 In this article, we are done with the major goals of our project.
 During my spare time, I implemented every struct method (not traits)
@@ -2064,14 +2068,14 @@ optional section is about a few things I found interesting.
 </p>
 
 <ul class="org-ul">
-<li><a href="#orgcdaedfe">Benchmark</a></li>
-<li><a href="#org9846065">Memory Safety</a></li>
+<li><a href="#org5187177">Benchmark</a></li>
+<li><a href="#org778a2a0">Memory Safety</a></li>
 </ul>
 </div>
 
-<div id="outline-container-orgcdaedfe" class="outline-3">
-<h3 id="orgcdaedfe">Benchmark</h3>
-<div class="outline-text-3" id="text-orgcdaedfe">
+<div id="outline-container-org5187177" class="outline-3">
+<h3 id="org5187177">Benchmark</h3>
+<div class="outline-text-3" id="text-org5187177">
 <p>
 As a minor fancy, how does our implementation perform against the
 standard library? Consulting a <a href="https://doc.rust-lang.org/1.16.0/book/benchmark-tests.html">benchmarking chapter</a>, we can benchmark
@@ -2131,9 +2135,9 @@ general sense of relative performance for our implementation.
 </div>
 </div>
 
-<div id="outline-container-org9846065" class="outline-3">
-<h3 id="org9846065">Memory Safety</h3>
-<div class="outline-text-3" id="text-org9846065">
+<div id="outline-container-org778a2a0" class="outline-3">
+<h3 id="org778a2a0">Memory Safety</h3>
+<div class="outline-text-3" id="text-org778a2a0">
 <p>
 Aside from the promise of safety, can we further prove our library
 has no memory leaks? Asking this question lead me to <a href="https://creativcoder.github.io/post/checking_memory_leaks_in_rust_ffi/">this article</a> and
@@ -2147,7 +2151,7 @@ main <code>bin.rs</code> file that generates a set and removes every element:
 <span style="color: #96a5d9; font-weight: bold;">pub</span> <span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #bad6e2;">main</span><span style="color: #ff8c00;">()</span> <span style="color: #ff8c00;">{</span>
     <span style="color: #96a5d9; font-weight: bold;">let</span> <span style="color: #96a5d9; font-weight: bold;">mut</span> <span style="color: #ff694d;">set</span> = <span style="color: #ff1493;">(</span>1..10_000 <span style="color: #96a5d9; font-weight: bold;">as</span> <span style="color: #f5b55f;">u32</span><span style="color: #ff1493;">)</span>.rev<span style="color: #ff1493;">()</span>.collect::<span style="color: #ff1493;">&lt;</span><span style="color: #f5b55f;">AvlTreeSet</span><span style="color: #7fff00;">&lt;</span>_<span style="color: #7fff00;">&gt;</span><span style="color: #ff1493;">&gt;()</span>;
 
-    <span style="color: #96a5d9; font-weight: bold;">for</span> i <span style="color: #96a5d9; font-weight: bold;">in</span> 1..10_000 <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">for</span> <span style="color: #ff694d;">i</span> <span style="color: #96a5d9; font-weight: bold;">in</span> 1..10_000 <span style="color: #ff1493;">{</span>
         set.take<span style="color: #7fff00;">(</span>&amp;i<span style="color: #7fff00;">)</span>;
     <span style="color: #ff1493;">}</span>
 <span style="color: #ff8c00;">}</span>
@@ -2246,9 +2250,9 @@ passes, it is good to check running code.
 </div>
 </div>
 
-<div id="outline-container-org625beb5" class="outline-2">
-<h2 id="org625beb5">Reflecting On Rust</h2>
-<div class="outline-text-2" id="text-org625beb5">
+<div id="outline-container-orgaa91b9a" class="outline-2">
+<h2 id="orgaa91b9a">Reflecting On Rust</h2>
+<div class="outline-text-2" id="text-orgaa91b9a">
 <p>
 Although not a shining example of <i>AVL Trees</i>, it has been a good
 first project. I believe it was a good vertical slice of <i>Rust</i>. In
