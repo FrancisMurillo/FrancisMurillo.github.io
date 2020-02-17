@@ -1,0 +1,1556 @@
+---
+title: Elixir Musing - GraphQL Over A Message Queue
+tagline: Check out this new post
+blog-category: hacker
+major-mode: Analysis
+category:
+- hacker
+tag:
+- hacker
+- elixir
+- absinthe
+- nsq
+- microservices
+---
+
+<div id="outline-container-org2902f31" class="outline-2">
+<h2 id="org2902f31">Introspection</h2>
+<div class="outline-text-2" id="text-org2902f31">
+<p>
+After releasing an <a href="https://elixir-lang.org/">Elixir</a> project to production, it is time for
+introspection. Context, the project uses a microservice architecture
+over a <a href="https://nsq.io/">nsq</a> message queue where each service is mostly an umbrella
+<a href="https://www.phoenixframework.org/">phoenix</a> app that offers a GraphQL interface via <a href="https://github.com/absinthe-graphql/absinthe">absinthe</a>. While I am
+happy with the language and GraphQL in general, I am not a fan of the
+complexity that microservices implied. Grievances aside, among the many
+lessons and insights earned, one of them was worth some research.
+</p>
+
+<p>
+The choice for using <code>nsq</code> over <a href="https://www.rabbitmq.com/">rabbitmq</a>, <a href="https://kafka.apache.org/">kafka</a>, <a href="https://zeromq.org/">zeromq</a> or <a href="https://nats.io/">nats</a> was
+primarily its lightweight nature because of the project's small
+messaging requirement. With an offbeat decision, does <code>nsq</code> have
+language support? Thankfully, it does with <a href="https://github.com/wistia/elixir_nsq">elixir_nsq</a> but using it
+directly is clunky for an standard application. Good news, <a href="https://github.com/conduitframework/conduit">conduit</a> is an
+library for abstracting message queues inspired by <a href="https://github.com/elixir-plug/plug">plug</a> that looks nice.
+Bad news, it does not support <code>nsq</code>. After much time and thought, the
+best plan was to stick with <code>conduit</code> and attempt to write an adapter
+library. If the venture failed, the popular <code>rabbitmq</code> is always a
+fallback. Thankfully, <a href="https://github.com/DigixGlobal/conduit_nsq">conduit_nsq</a> was born and thus <code>nsq</code> stays.
+</p>
+
+<p>
+Reviewing the workflow, so when one service needs something from
+another, the following steps are taken:
+</p>
+
+<ol class="org-ol">
+<li>Pick a topic say <code>product</code></li>
+<li>Create a handler for <code>product_request</code> in the responding
+service.</li>
+<li>Implement the domain method for that handler</li>
+<li>Implement a blocking method that publishes <code>product_request</code> and
+waits for <code>product_response</code> in the asking service</li>
+<li>Create a handler for waiting on <code>product_response</code> and pass the
+data to unblock the method</li>
+</ol>
+
+<p>
+Below is a simplified snippet of the changes needed. (Feel free to skim
+it and get a general understanding of the structure and form)
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">responder/broker.ex</span>
+configure <span style="color: #96a5d9; font-weight: bold;">do</span>
+  queue<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"product_response"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+incoming <span style="color: #f5b55f;">Receiver</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  subscribe<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:product_request</span>, <span style="color: #f5b55f;">ProductRequest</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"product_request"</span>, <span style="color: #96a5d9; font-style: italic;">channel:</span> <span style="color: #68f6cb;">"responder"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+outgoing <span style="color: #96a5d9; font-weight: bold;">do</span>
+  publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:product_response</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"product_response"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">responder/product_request.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">Responder.ProductRequest</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">use</span> <span style="color: #f5b55f;">Conduit.Subscriber</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">process</span><span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">%Conduit.Message</span><span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">correlation_id:</span> correlation_id, <span style="color: #96a5d9; font-style: italic;">body:</span> data<span style="color: #ff1493;">}</span> = message, <span style="color: #2872b2;">_opts</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    <span style="color: #ff694d;">types</span> = %<span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">product_id:</span> <span style="color: #96a5d9; font-style: italic;">:string</span><span style="color: #ff8c00;">}</span>
+
+    <span style="color: #ff694d;">data</span> =
+      <span style="color: #ff8c00;">{</span>%<span style="color: #ff1493;">{}</span>, types<span style="color: #ff8c00;">}</span>
+      |&gt; <span style="color: #f5b55f;">Ecto.Changeset</span>.cast<span style="color: #ff8c00;">(</span>data, <span style="color: #f5b55f;">Map</span>.keys<span style="color: #ff1493;">(</span>types<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+      |&gt; <span style="color: #f5b55f;">Ecto.Changeset</span>.validate_required<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Map</span>.keys<span style="color: #ff1493;">(</span>types<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+      |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+        <span style="color: #f5b55f;">%Ecto.Changeset</span><span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">valid?:</span> <span style="color: #96a5d9; font-style: italic;">true</span><span style="color: #ff8c00;">}</span> = changeset -&gt;
+          %<span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">product_id:</span> product_id<span style="color: #ff8c00;">}</span> = <span style="color: #f5b55f;">Ecto.Changeset</span>.apply_changes<span style="color: #ff8c00;">(</span>changeset<span style="color: #ff8c00;">)</span>
+
+          <span style="color: #f5b55f;">Responder.Products</span>.get_by_id<span style="color: #ff8c00;">(</span>product_id<span style="color: #ff8c00;">)</span>
+
+        <span style="color: #afc0fd; font-weight: bold;">_</span> -&gt;
+          <span style="color: #96a5d9; font-style: italic;">nil</span>
+      <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+    <span style="color: #f5b55f;">%Conduit.Message</span><span style="color: #ff8c00;">{}</span>
+    |&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_body<span style="color: #ff8c00;">(</span>data<span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_correlation_id<span style="color: #ff8c00;">(</span>correlation_id<span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #f5b55f;">Responder.Broker</span>.publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:product_response</span><span style="color: #ff8c00;">)</span>
+
+    message
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">receiver/broker.ex</span>
+configure <span style="color: #96a5d9; font-weight: bold;">do</span>
+  queue<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"product_request"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+incoming <span style="color: #f5b55f;">Receiver</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  subscribe<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:product_response</span>, <span style="color: #f5b55f;">ProductResponse</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"product_response"</span>, <span style="color: #96a5d9; font-style: italic;">channel:</span> <span style="color: #68f6cb;">"receiver"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+outgoing <span style="color: #96a5d9; font-weight: bold;">do</span>
+  publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:product_request</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"product_request"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">receiver/client.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">Receiver.Client</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">get_product_by_id</span><span style="color: #ff8c00;">(</span>product_id<span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    <span style="color: #ff694d;">correlation_id</span> = <span style="color: #f5b55f;">Ecto.UUID</span>.generate<span style="color: #ff8c00;">()</span>
+
+    <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, <span style="color: #afc0fd; font-weight: bold;">_</span><span style="color: #ff8c00;">}</span> = <span style="color: #f5b55f;">Registry</span>.register<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Receiver.Client.Registry</span>, correlation_id, <span style="color: #96a5d9; font-style: italic;">:get_product_by_id</span><span style="color: #ff8c00;">)</span>
+
+    <span style="color: #f5b55f;">%Conduit.Message</span><span style="color: #ff8c00;">{}</span>
+    |&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_body<span style="color: #ff8c00;">(</span>%<span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">product_id:</span> product_id<span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_correlation_id<span style="color: #ff8c00;">(</span>correlation_id<span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #f5b55f;">Broker</span>.publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:product_request</span><span style="color: #ff8c00;">)</span>
+
+    <span style="color: #ff694d;">product</span> = <span style="color: #96a5d9; font-weight: bold;">receive</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+      data -&gt; data
+    <span style="color: #96a5d9; font-weight: bold;">after</span>
+      <span style="color: #96a5d9; font-style: italic;">:timer</span>.seconds<span style="color: #ff8c00;">(</span>5<span style="color: #ff8c00;">)</span> -&gt; <span style="color: #96a5d9; font-style: italic;">nil</span>
+    <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+    <span style="color: #96a5d9; font-style: italic;">:ok</span> = <span style="color: #f5b55f;">Registry</span>.unregister<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Receiver.Client.Registry</span>, correlation_id<span style="color: #ff8c00;">)</span>
+
+    product
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">receiver/product_response.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">Receiver.ProductResponse</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">use</span> <span style="color: #f5b55f;">Conduit.Subscriber</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">process</span><span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">%Conduit.Message</span><span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">correlation_id:</span> correlation_id, <span style="color: #96a5d9; font-style: italic;">body:</span> data<span style="color: #ff1493;">}</span> = message, <span style="color: #2872b2;">_opts</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    <span style="color: #ff694d;">types</span> = %<span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">name:</span> <span style="color: #96a5d9; font-style: italic;">:string</span>, <span style="color: #96a5d9; font-style: italic;">price:</span> <span style="color: #96a5d9; font-style: italic;">:float</span><span style="color: #ff8c00;">}</span>
+
+    <span style="color: #ff8c00;">{</span>%<span style="color: #ff1493;">{}</span>, types<span style="color: #ff8c00;">}</span>
+    |&gt; <span style="color: #f5b55f;">Ecto.Changeset</span>.cast<span style="color: #ff8c00;">(</span>data, <span style="color: #f5b55f;">Map</span>.keys<span style="color: #ff1493;">(</span>types<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #f5b55f;">Ecto.Changeset</span>.validate_required<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Map</span>.keys<span style="color: #ff1493;">(</span>types<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+         <span style="color: #f5b55f;">%Ecto.Changeset</span><span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">valid?:</span> <span style="color: #96a5d9; font-style: italic;">true</span><span style="color: #ff8c00;">}</span> = changeset -&gt;
+           <span style="color: #ff694d;">product</span> = <span style="color: #f5b55f;">Ecto.Changeset</span>.apply_changes<span style="color: #ff8c00;">(</span>changeset<span style="color: #ff8c00;">)</span>
+
+           <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #f5b55f;">Registry</span>.lookup<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Receiver.Client.Registry</span>, correlation_id<span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+             <span style="color: #ff8c00;">[</span><span style="color: #ff1493;">{</span>pid, <span style="color: #96a5d9; font-style: italic;">:get_product_by_id</span><span style="color: #ff1493;">}</span><span style="color: #ff8c00;">]</span> -&gt;
+               <span style="color: #96a5d9; font-weight: bold;">send</span><span style="color: #ff8c00;">(</span>pid, product<span style="color: #ff8c00;">)</span>
+
+             <span style="color: #afc0fd; font-weight: bold;">_</span> -&gt;
+               <span style="color: #96a5d9; font-style: italic;">nil</span>
+           <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+         <span style="color: #afc0fd; font-weight: bold;">_</span> -&gt;
+           <span style="color: #96a5d9; font-style: italic;">nil</span>
+       <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+    message
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+The code above is functional and works; however, I do have some
+concerns:
+</p>
+
+<ul class="org-ul">
+<li><b><b>Unstructured Data</b></b></li>
+</ul>
+
+<p>
+Before using the message body, it has to be casted and validated from a
+string map into an atom map. The team standard is to treat string maps
+as unstructured or unsafe data before being used or pattern matched even
+if it comes from the queue but is still boilerplate.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Broker Setup</b></b></li>
+</ul>
+
+<p>
+Setting up the topics and identical routes is error prone if not
+careful. Being confused with the topics used in receiver or handler is
+not a rare occurrence which led to some self-loathing.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Request/Response Boilerplate</b></b></li>
+</ul>
+
+<p>
+Creating two small modules for new service interactions seems menial.
+Not to say that it does not make sense just that creating multiple tiny
+files adds up and is a maintenance cost.
+</p>
+
+<p>
+Rather, what this reminds me is the comparison between GraphQL and REST.
+I am not here to argue their merits but I favor GraphQL for establishing
+a typed contract between the consumer and provider. The problems above
+can be solved if GraphQL can work with a message queue transport.
+Fascinating, can it be done?
+</p>
+
+<p>
+<b><b>NOTE:</b></b> Other communication library or technologies exist such as <a href="https://grpc.io/">grpc</a>
+or <a href="https://thrift.apache.org/">thrift</a> to solve the problem; however, this increases the technology
+stack which is exciting but a risk. While this exercise or idea may not
+be the most efficient for the task, it works within the constraints and
+serves as a different perspective of GraphQL.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge9410fb" class="outline-2">
+<h2 id="orge9410fb">Proof Of Concept</h2>
+<div class="outline-text-2" id="text-orge9410fb">
+<p>
+Programmers are optimistic so whether it can be done is yes if not a
+matter of time; however more than the binary answer, our concern is how
+does this style or design affect productivity, stability or efficiency
+of a project. To test this idea, we will be creating a sandbox project
+with four services for a hypothetical product API:
+</p>
+
+<ul class="org-ul">
+<li><b><b>Accounts Service</b></b> - Holds user data</li>
+<li><b><b>Products Service</b></b> - Stores product data</li>
+<li><b><b>Transactions Service</b></b> - Contains the transactions made by a user</li>
+<li><b><b>API Gateway</b></b> - The main GraphQL interface for integrating the
+services</li>
+</ul>
+
+<p>
+The quick sketch of the operations and interactions are:
+</p>
+
+<ol class="org-ol">
+<li>A user will register through the <code>registerUser</code> mutation via the
+account service</li>
+<li>That user can look at the available products at <code>products</code> query via
+product service</li>
+<li>The user can pick several products by id and use the
+<code>createTransaction</code> mutation via the transactions service. To make
+this interesting, this calls the product service to fetch the current
+price of goods.</li>
+</ol>
+
+<p>
+In building the project, I took the following steps:
+</p>
+
+<ol class="org-ol">
+<li>Create the account service and <code>users</code> query</li>
+<li>Build the gateway and connect to the other service</li>
+<li>Implement and expose the <code>registerUser</code> mutation</li>
+<li>Create the product service, the <code>products</code> query, and integrate with
+it the gateway</li>
+<li>Implement the <code>createTransaction</code> mutation</li>
+<li>Add <code>User.transactions</code> field</li>
+<li>Add GraphiQL to each service</li>
+</ol>
+
+<p>
+You can follow along or checkout the <a href="https://github.com/FrancisMurillo/graphql_over_nsq">working code</a> and try it out for
+yourself which uses <a href="https://duckduckgo.com/?t=ffab&amp;q=docker-compose&amp;ia=web">docker-compose</a> for ease. Nonetheless, I will be
+working through the design and implementation process starting with the
+basic account service.
+</p>
+
+<p>
+<b><b>NOTE:</b></b> I will only show relevant code in building the research.
+Things like the migrations, changesets or domain functions will pad the
+article and is not that interesting. I also assume you are familiar with
+implementing your own <code>absinthe</code> and <code>phoenix</code> GraphQL API; however, I
+will not assume you know <code>conduit</code> or <code>nsq</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org759a09c" class="outline-2">
+<h2 id="org759a09c">Account Service</h2>
+<div class="outline-text-2" id="text-org759a09c">
+<p>
+Our initial objective is to setup the account service which can be
+easily setup via <code>mix new --sup account_service</code>. We then set up the
+following:
+</p>
+
+<ul class="org-ul">
+<li><a href="https://github.com/elixir-ecto/ecto">ecto</a> with <a href="https://www.postgresql.org/">postgresql</a></li>
+</ul>
+
+<p>
+We need a database or storage to store the users.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">sudo systemctl start postgresql   <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Assuming a standard postgres</span>
+sudo -u postgres -i
+
+createuser -d -P mq_user          <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Enter passwod: mq_pass</span>
+createdb mq_db -O mq_user
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-elixir">config <span style="color: #96a5d9; font-style: italic;">:account_service</span>, <span style="color: #f5b55f;">AccountService.Repo</span>,
+  <span style="color: #96a5d9; font-style: italic;">username:</span> <span style="color: #68f6cb;">"mq_user"</span>,
+  <span style="color: #96a5d9; font-style: italic;">password:</span> <span style="color: #68f6cb;">"mq_pass"</span>,
+  <span style="color: #96a5d9; font-style: italic;">database:</span> <span style="color: #68f6cb;">"mq_db"</span>,
+  <span style="color: #96a5d9; font-style: italic;">hostname:</span> <span style="color: #68f6cb;">"localhost"</span>,
+  <span style="color: #96a5d9; font-style: italic;">port:</span> 5432,
+  <span style="color: #96a5d9; font-style: italic;">show_sensitive_data_on_connection_error:</span> <span style="color: #96a5d9; font-style: italic;">true</span>,
+  <span style="color: #96a5d9; font-style: italic;">pool_size:</span> 10
+</pre>
+</div>
+
+<p>
+While I could have used an <code>Agent</code>, I wanted to simulate changeset
+errors when doing mutation testing.
+</p>
+
+<ul class="org-ul">
+<li><a href="https://github.com/conduitframework/conduit">conduit</a> with <a href="https://nsq.io/components/nsqd.html">nsqd</a></li>
+</ul>
+
+<p>
+We need a running <code>nsqd</code> at port <code>14150</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">nsqd --tcp-address=0.0.0.0:14150 --http-address=0.0.0.0:14151
+</pre>
+</div>
+
+<p>
+While you can use the default port <code>4150</code>, I prefer to run them in a
+different port in every project.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir">config <span style="color: #96a5d9; font-style: italic;">:account_service</span>, <span style="color: #f5b55f;">AccountService.Broker</span>,
+  <span style="color: #96a5d9; font-style: italic;">adapter:</span> <span style="color: #f5b55f;">ConduitNSQ</span>,
+  <span style="color: #96a5d9; font-style: italic;">producer_nsqds:</span> <span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"localhost:14150"</span><span style="color: #ff8c00;">]</span>,
+  <span style="color: #96a5d9; font-style: italic;">nsqds:</span> <span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"localhost:14150"</span><span style="color: #ff8c00;">]</span>
+</pre>
+</div>
+
+<p>
+Setting up the <code>broker.ex</code> with a JSON parsing is easy to setup:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">account_service/broker.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">AccountService.Broker</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">use</span> <span style="color: #f5b55f;">Conduit.Broker</span>, <span style="color: #96a5d9; font-style: italic;">otp_app:</span> <span style="color: #96a5d9; font-style: italic;">:account_service</span>
+
+  <span style="color: #96a5d9;">@channel</span> <span style="color: #68f6cb;">"account_service"</span>
+
+  pipeline <span style="color: #96a5d9; font-style: italic;">:serialize</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Wrap</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Encode</span>, <span style="color: #96a5d9; font-style: italic;">content_encoding:</span> <span style="color: #68f6cb;">"json"</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  pipeline <span style="color: #96a5d9; font-style: italic;">:deserialize</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Decode</span>, <span style="color: #96a5d9; font-style: italic;">content_encoding:</span> <span style="color: #68f6cb;">"json"</span><span style="color: #ff8c00;">)</span>
+    plug<span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">Conduit.Plug.Unwrap</span><span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">config.exs</span>
+config <span style="color: #96a5d9; font-style: italic;">:conduit</span>, <span style="color: #f5b55f;">Conduit.Encoding</span>, <span style="color: #ff8c00;">[</span>
+  <span style="color: #ff1493;">{</span><span style="color: #68f6cb;">"json"</span>, <span style="color: #f5b55f;">Absinthe.Conduit.Json</span><span style="color: #ff1493;">}</span>   <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Custom JSON encoding to use Jason</span>
+<span style="color: #ff8c00;">]</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li><a href="https://github.com/absinthe-graphql/absinthe">absinthe</a></li>
+</ul>
+
+<p>
+Personally, it feels strange install <code>absinthe</code> without <code>phoenix</code> or
+<code>plug</code> but we will install them near the end.
+</p>
+
+
+<p>
+With a fresh <code>schema.ex</code>, we can start with our <code>User</code> type and <code>users</code> query:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">account_service/schema.ex</span>
+object <span style="color: #96a5d9; font-style: italic;">:user</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  description<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"User of this wonderful platform"</span><span style="color: #ff8c00;">)</span>
+
+  field<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:id</span>, non_null<span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-style: italic;">:id</span><span style="color: #ff1493;">)</span>, <span style="color: #96a5d9; font-style: italic;">description:</span> <span style="color: #68f6cb;">"User ID"</span><span style="color: #ff8c00;">)</span>
+  field<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:email</span>, non_null<span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-style: italic;">:string</span><span style="color: #ff1493;">)</span>, <span style="color: #96a5d9; font-style: italic;">description:</span> <span style="color: #68f6cb;">"User email"</span><span style="color: #ff8c00;">)</span>
+  field<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:first_name</span>, non_null<span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-style: italic;">:string</span><span style="color: #ff1493;">)</span>, <span style="color: #96a5d9; font-style: italic;">description:</span> <span style="color: #68f6cb;">"User first name"</span><span style="color: #ff8c00;">)</span>
+  field<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:last_name</span>, non_null<span style="color: #ff1493;">(</span><span style="color: #96a5d9; font-style: italic;">:string</span><span style="color: #ff1493;">)</span>, <span style="color: #96a5d9; font-style: italic;">description:</span> <span style="color: #68f6cb;">"User last name"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+query <span style="color: #96a5d9; font-weight: bold;">do</span>
+  field<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:users</span>, non_null<span style="color: #ff1493;">(</span>list_of<span style="color: #7fff00;">(</span>non_null<span style="color: #00bfff;">(</span><span style="color: #96a5d9; font-style: italic;">:user</span><span style="color: #00bfff;">)</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span>,
+    <span style="color: #96a5d9; font-style: italic;">resolve:</span> <span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #afc0fd; font-weight: bold;">_</span>, <span style="color: #afc0fd; font-weight: bold;">_</span>, <span style="color: #afc0fd; font-weight: bold;">_</span> -&gt;
+      <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, <span style="color: #f5b55f;">AccountService</span>.get_users<span style="color: #7fff00;">()</span><span style="color: #ff1493;">}</span>   <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Basically Repo.all(User)</span>
+    <span style="color: #96a5d9; font-weight: bold;">end</span>
+  <span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+The corresponding <code>user.ex</code> schema and migration easily follows from
+that. To check if its all fired up:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">mix do ecto.drop, ecto.setup    <span style="color: #2872b2;"># </span><span style="color: #2872b2;">ecto.setup = [ecto.create, ecto.migrate, ecto.seed]</span>
+
+iex -S mix run --no-halt
+iex&gt; AccountService.Repo.all<span style="color: #ff8c00;">(</span>AccountService.User<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org045911e" class="outline-2">
+<h2 id="org045911e">Absinthe via Conduit</h2>
+<div class="outline-text-2" id="text-org045911e">
+<p>
+Taking our cue from the motivation, we will expose a request and
+response topic:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">account_service/broker.ex</span>
+configure <span style="color: #96a5d9; font-weight: bold;">do</span>
+  queue<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"account_graphql_response"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+incoming <span style="color: #f5b55f;">AccountService</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  pipe_through<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">[</span><span style="color: #96a5d9; font-style: italic;">:deserialize</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+
+  subscribe<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:graphql_request</span>, <span style="color: #f5b55f;">GraphQLRequest</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"account_graphql_request"</span>, <span style="color: #96a5d9; font-style: italic;">channel:</span> <span style="color: #96a5d9;">@channel</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+outgoing <span style="color: #96a5d9; font-weight: bold;">do</span>
+  pipe_through<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">[</span><span style="color: #96a5d9; font-style: italic;">:serialize</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+
+  publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:graphql_response</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"account_graphql_response"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+Working through the snippet above, we receive on the
+<code>account_graphql_request</code> topic and send on the
+<code>account_graphql_response</code> topic as our convention. More importantly,
+the request handler module is <code>AccountService.GraphQLRequest</code> where the
+magic happens:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">AccountService.GraphQLRequest</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">use</span> <span style="color: #f5b55f;">Conduit.Subscriber</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">process</span><span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">%Conduit.Message</span><span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">correlation_id:</span> correlation_id, <span style="color: #96a5d9; font-style: italic;">body:</span> body<span style="color: #ff1493;">}</span> = message, <span style="color: #2872b2;">_opts</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    <span style="color: #ff694d;">types</span> = %<span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">query:</span> <span style="color: #96a5d9; font-style: italic;">:string</span>, <span style="color: #96a5d9; font-style: italic;">variables:</span> <span style="color: #96a5d9; font-style: italic;">:map</span>, <span style="color: #96a5d9; font-style: italic;">context:</span> <span style="color: #96a5d9; font-style: italic;">:map</span><span style="color: #ff8c00;">}</span>
+
+    <span style="color: #ff8c00;">{</span>%<span style="color: #ff1493;">{}</span>, types<span style="color: #ff8c00;">}</span>
+    |&gt; <span style="color: #f5b55f;">Ecto.Changeset</span>.cast<span style="color: #ff8c00;">(</span>body, <span style="color: #f5b55f;">Map</span>.keys<span style="color: #ff1493;">(</span>types<span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #f5b55f;">Ecto.Changeset</span>.validate_required<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">[</span><span style="color: #96a5d9; font-style: italic;">:query</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+         <span style="color: #f5b55f;">%Ecto.Changeset</span><span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">valid?:</span> <span style="color: #96a5d9; font-style: italic;">true</span><span style="color: #ff8c00;">}</span> = changeset -&gt;
+           <span style="color: #ff694d;">data</span> = <span style="color: #f5b55f;">Ecto.Changeset</span>.apply_changes<span style="color: #ff8c00;">(</span>changeset<span style="color: #ff8c00;">)</span>
+
+           <span style="color: #ff694d;">query</span> = <span style="color: #f5b55f;">Map</span>.fetch!<span style="color: #ff8c00;">(</span>data, <span style="color: #96a5d9; font-style: italic;">:query</span><span style="color: #ff8c00;">)</span>
+           <span style="color: #ff694d;">variables</span> = <span style="color: #f5b55f;">Map</span>.get<span style="color: #ff8c00;">(</span>data, <span style="color: #96a5d9; font-style: italic;">:variables</span>, %<span style="color: #ff1493;">{}</span><span style="color: #ff8c00;">)</span>
+           <span style="color: #ff694d;">context</span> = <span style="color: #f5b55f;">Map</span>.get<span style="color: #ff8c00;">(</span>data, <span style="color: #96a5d9; font-style: italic;">:context</span>, %<span style="color: #ff1493;">{}</span><span style="color: #ff8c00;">)</span>
+
+           <span style="color: #2872b2;"># </span><span style="color: #2872b2;">NEXT: What to do here?</span>
+
+         changeset -&gt;
+           <span style="color: #96a5d9; font-style: italic;">nil</span>
+       <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+    <span style="color: #2872b2;"># </span><span style="color: #2872b2;">Need to return the message to mark it as acknowledged</span>
+    message
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+So for every message, we assume it has a payload/body of a string map
+with a required <code>query</code> string and optional <code>variables</code> and <code>context</code>
+map. With an <a href="https://hexdocs.pm/ecto/Ecto.Changeset.html#module-schemaless-changesets">schemaless changeset</a>, those fields are easily extracted. We
+also require it to have a <code>correlation_id</code> to have a way to return it to
+the sender.
+</p>
+
+<p>
+Browsing around the <code>absinthe</code> documentation, I found <a href="https://hexdocs.pm/absinthe/Absinthe.html#run/3">Absinthe.run</a> and
+quickly capitalized:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, response<span style="color: #ff8c00;">}</span> = <span style="color: #f5b55f;">Absinthe</span>.run<span style="color: #ff8c00;">(</span>query, <span style="color: #f5b55f;">AccountService.Schema</span>, <span style="color: #96a5d9; font-style: italic;">variables:</span> variables, <span style="color: #96a5d9; font-style: italic;">context:</span> context<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Excellent, we just need to return the data back which is easily done:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #f5b55f;">%Conduit.Message</span><span style="color: #ff8c00;">{}</span>
+|&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_body<span style="color: #ff8c00;">(</span>response<span style="color: #ff8c00;">)</span>
+|&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_correlation_id<span style="color: #ff8c00;">(</span>correlation_id<span style="color: #ff8c00;">)</span>
+|&gt; <span style="color: #f5b55f;">AccountService.Broker</span>.publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:graphql_response</span><span style="color: #ff8c00;">)</span>    <span style="color: #2872b2;"># </span><span style="color: #2872b2;">The topic ID in broker.ex, not the topic itself</span>
+</pre>
+</div>
+
+<p>
+Testing it out, we run <code>mix run --no-halt</code> again and use the logging
+commands <code>nsq_tail</code> to watch any messages being published in the GraphQL
+topics:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">In one terminal</span>
+nsq_tail --nsqd-tcp-address=0.0.0.0:14150 --topic=account_graphql_request
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">In another terminal</span>
+nsq_tail --nsqd-tcp-address=0.0.0.0:14150 --topic=account_graphql_response
+</pre>
+</div>
+
+<p>
+Once the listeners are in place, we can <code>curl</code> the HTTP <a href="https://nsq.io/components/nsqd.html#post-pub">publish</a> endpoint
+with this JSON payload to simulate a call:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json"><span style="color: #ff8c00;">{</span>
+  <span style="color: #96a5d9; font-weight: bold;">"body"</span>: <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">"query"</span>: <span style="color: #68f6cb;">"query { users { email firstName lastName } }"</span>
+  <span style="color: #ff1493;">}</span>,
+  <span style="color: #96a5d9; font-weight: bold;">"fields"</span>: <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">"correlation_id"</span>: <span style="color: #68f6cb;">"ABC"</span>
+  <span style="color: #ff1493;">}</span>,
+  <span style="color: #96a5d9; font-weight: bold;">"headers"</span>: <span style="color: #ff1493;">{}</span>
+<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-shell">curl -i -H Content-Type<span style="color: #68f6cb;">\:\ </span>application/json -XPOST http<span style="color: #68f6cb;">\:</span>//localhost<span style="color: #68f6cb;">\:</span>14151/pub<span style="color: #68f6cb;">\?</span>topic<span style="color: #68f6cb;">\=</span>account_graphql_request -d <span style="color: #68f6cb;">\{\"</span>body<span style="color: #68f6cb;">\"\:\ \{\"</span>query<span style="color: #68f6cb;">\"\:\"</span>query<span style="color: #68f6cb;">\ \{\ </span>users<span style="color: #68f6cb;">\ \{\ </span>email<span style="color: #68f6cb;">\ </span>firstName<span style="color: #68f6cb;">\ </span>lastName<span style="color: #68f6cb;">\ \}\ \}\"\,\ \"</span>variables<span style="color: #68f6cb;">\"\:\ \{\"</span>a<span style="color: #68f6cb;">\"\:\ </span>1<span style="color: #68f6cb;">\}\}\,\ \"</span>fields<span style="color: #68f6cb;">\"\:\ \{\"</span>correlation_id<span style="color: #68f6cb;">\"\:\ </span>1<span style="color: #68f6cb;">\}\,\ \"</span>headers<span style="color: #68f6cb;">\"\:\ \{\}\}</span>
+</pre>
+</div>
+
+<p>
+The extra fields and wrapping of the <code>query</code> field is because of the
+JSON encoding pipeline in <code>Broker</code> which is also the way to set a
+header/meta field such as <code>correlation_id</code> in the message itself. More
+importantly, a snippet from the output of <code>account_graphql_response</code>
+proves that it works.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json"><span style="color: #ff8c00;">{</span>
+  <span style="color: #96a5d9; font-weight: bold;">"body"</span>: <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">"data"</span>: <span style="color: #7fff00;">{</span>
+      <span style="color: #96a5d9; font-weight: bold;">"users"</span>: <span style="color: #00bfff;">[</span>
+        <span style="color: #ffff00;">{</span>
+          <span style="color: #96a5d9; font-weight: bold;">"email"</span>: <span style="color: #68f6cb;">"hollie.ullrich@towne.net"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"firstName"</span>: <span style="color: #68f6cb;">"OSCAR"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"lastName"</span>: <span style="color: #68f6cb;">"MAX"</span>
+        <span style="color: #ffff00;">}</span>,
+        <span style="color: #ffff00;">{</span>
+          <span style="color: #96a5d9; font-weight: bold;">"email"</span>: <span style="color: #68f6cb;">"kaitlin2094@gutkowski.biz"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"firstName"</span>: <span style="color: #68f6cb;">"POPPY"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"lastName"</span>: <span style="color: #68f6cb;">"MAX"</span>
+        <span style="color: #ffff00;">}</span>,
+        <span style="color: #ffff00;">{</span>
+          <span style="color: #96a5d9; font-weight: bold;">"email"</span>: <span style="color: #68f6cb;">"marjolaine2098@lowe.org"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"firstName"</span>: <span style="color: #68f6cb;">"LILY"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"lastName"</span>: <span style="color: #68f6cb;">"DAISY"</span>
+        <span style="color: #ffff00;">}</span>,
+        <span style="color: #ffff00;">{</span>
+          <span style="color: #96a5d9; font-weight: bold;">"email"</span>: <span style="color: #68f6cb;">"emelia_mosciski@balistreri.info"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"firstName"</span>: <span style="color: #68f6cb;">"JASPER"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"lastName"</span>: <span style="color: #68f6cb;">"MAX"</span>
+        <span style="color: #ffff00;">}</span>,
+        <span style="color: #ffff00;">{</span>
+          <span style="color: #96a5d9; font-weight: bold;">"email"</span>: <span style="color: #68f6cb;">"arnoldo.stehr@herzog.info"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"firstName"</span>: <span style="color: #68f6cb;">"LILY"</span>,
+          <span style="color: #96a5d9; font-weight: bold;">"lastName"</span>: <span style="color: #68f6cb;">"SHADOW"</span>
+        <span style="color: #ffff00;">}</span>
+      <span style="color: #00bfff;">]</span>
+    <span style="color: #7fff00;">}</span>
+  <span style="color: #ff1493;">}</span>,
+  <span style="color: #96a5d9; font-weight: bold;">"fields"</span>: <span style="color: #ff1493;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">"correlation_id"</span>: <span style="color: #68f6cb;">"ABC"</span>,
+    <span style="color: #96a5d9; font-weight: bold;">"destination"</span>: <span style="color: #68f6cb;">"graphql_response"</span>
+  <span style="color: #ff1493;">}</span>,
+  <span style="color: #96a5d9; font-weight: bold;">"headers"</span>: <span style="color: #afc0fd; font-weight: bold;">null</span>
+<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgfcc634d" class="outline-2">
+<h2 id="orgfcc634d">API Gateway</h2>
+<div class="outline-text-2" id="text-orgfcc634d">
+<p>
+With account service ready to accept GraphQL queries via message queue,
+we now set up the gateway to connect our new services. We create our
+<code>phoenix</code> app via <code>phx.new</code> with the barest of options:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">mix phx.new api_gateway --no-ecto --no-html --no-gettext --no-webpack
+</pre>
+</div>
+
+<p>
+Similar to account service, we install <code>conduit</code> and <code>absinthe</code> but with
+<a href="https://github.com/absinthe-graphql/absinthe_plug">absinthe_plug</a> this time:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway_web/router.ex</span>
+scope <span style="color: #68f6cb;">"/"</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  pipe_through <span style="color: #96a5d9; font-style: italic;">:api</span>
+
+  forward <span style="color: #68f6cb;">"/graphql"</span>, <span style="color: #f5b55f;">Absinthe.Plug</span>, <span style="color: #96a5d9; font-style: italic;">schema:</span> <span style="color: #f5b55f;">ApiGateway.Schema</span>
+  forward <span style="color: #68f6cb;">"/graphiql"</span>, <span style="color: #f5b55f;">Absinthe.Plug.GraphiQL</span>, <span style="color: #96a5d9; font-style: italic;">schema:</span> <span style="color: #f5b55f;">ApiGateway.Schema</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+The setup for the broker is similar as well:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway.broker.ex</span>
+<span style="color: #96a5d9;">@channel</span> <span style="color: #68f6cb;">"api_gateway"</span>
+
+configure <span style="color: #96a5d9; font-weight: bold;">do</span>
+  queue<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"account_graphql_request"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+incoming <span style="color: #f5b55f;">ApiGateway</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  pipe_through<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">[</span><span style="color: #96a5d9; font-style: italic;">:deserialize</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+
+  subscribe<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:account_graphql_response</span>, <span style="color: #f5b55f;">AccountGraphQLResponse</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"account_graphql_response"</span>, <span style="color: #96a5d9; font-style: italic;">channel:</span> <span style="color: #96a5d9;">@channel</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+outgoing <span style="color: #96a5d9; font-weight: bold;">do</span>
+  pipe_through<span style="color: #ff8c00;">(</span><span style="color: #ff1493;">[</span><span style="color: #96a5d9; font-style: italic;">:serialize</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+
+  publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:account_graphql_request</span>, <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"account_graphql_request"</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+</pre>
+</div>
+
+<p>
+We then copy the <code>User</code> type and <code>users</code> query but this we need to
+resolve it by calling the GraphQL interface of accounts service:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway/schema.ex</span>
+field <span style="color: #96a5d9; font-style: italic;">:users</span>, non_null<span style="color: #ff8c00;">(</span>list_of<span style="color: #ff1493;">(</span>non_null<span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-style: italic;">:user</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  resolve<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #afc0fd; font-weight: bold;">_</span>, <span style="color: #afc0fd; font-weight: bold;">_</span>, <span style="color: #afc0fd; font-weight: bold;">_</span> -&gt;
+    <span style="color: #2872b2;"># </span><span style="color: #2872b2;">NEXT: What to do here?</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+We wrap this functionality in a client similar to the motivating
+example:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway/account_client.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">ApiGateway.AccountClient</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">run</span><span style="color: #ff8c00;">(</span>query, variables \\ %<span style="color: #ff1493;">{}</span>, context \\ %<span style="color: #ff1493;">{}</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    <span style="color: #ff694d;">request_id</span> = <span style="color: #f5b55f;">Ecto.UUID</span>.uuid4<span style="color: #ff8c00;">()</span>
+
+    <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, <span style="color: #afc0fd; font-weight: bold;">_</span><span style="color: #ff8c00;">}</span> = <span style="color: #f5b55f;">Registry</span>.register<span style="color: #ff8c00;">(</span><span style="color: #96a5d9;">@registry</span>, request_id, <span style="color: #96a5d9; font-style: italic;">:graphql</span><span style="color: #ff8c00;">)</span>
+
+    <span style="color: #ff694d;">result</span> =
+      <span style="color: #f5b55f;">%Conduit.Message</span><span style="color: #ff8c00;">{}</span>
+      |&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_correlation_id<span style="color: #ff8c00;">(</span>request_id<span style="color: #ff8c00;">)</span>
+      |&gt; <span style="color: #f5b55f;">Conduit.Message</span>.put_body<span style="color: #ff8c00;">(</span>%<span style="color: #ff1493;">{</span>
+          <span style="color: #96a5d9; font-style: italic;">query:</span> query,
+          <span style="color: #96a5d9; font-style: italic;">variables:</span> variables,
+          <span style="color: #96a5d9; font-style: italic;">context:</span> context
+      <span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span>
+      |&gt; <span style="color: #f5b55f;">ApiGateway.Broker</span>.publish<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:account_graphql_request</span><span style="color: #ff8c00;">)</span>
+      |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+           <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, <span style="color: #afc0fd; font-weight: bold;">_</span><span style="color: #ff8c00;">}</span> -&gt;
+             <span style="color: #96a5d9; font-weight: bold;">receive</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+               response -&gt; <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, response<span style="color: #ff8c00;">}</span>
+             <span style="color: #96a5d9; font-weight: bold;">after</span>
+               <span style="color: #96a5d9; font-style: italic;">:timer</span>.seconds<span style="color: #ff8c00;">(</span>15<span style="color: #ff8c00;">)</span> -&gt; <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:error</span>, <span style="color: #96a5d9; font-style: italic;">:response_timeout</span><span style="color: #ff8c00;">}</span>
+             <span style="color: #96a5d9; font-weight: bold;">end</span>
+           error -&gt; error
+         <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+      <span style="color: #96a5d9; font-style: italic;">:ok</span> = <span style="color: #f5b55f;">Registry</span>.unregister<span style="color: #ff8c00;">(</span><span style="color: #96a5d9;">@registry</span>, request_id<span style="color: #ff8c00;">)</span>
+
+      result
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+To call the account service <code>users</code> query in the resolver:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway/schema.ex</span>
+<span style="color: #f5b55f;">AccountClient</span>.run<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"""</span>
+<span style="color: #68f6cb;">query {</span>
+<span style="color: #68f6cb;">  users {</span>
+<span style="color: #68f6cb;">    id</span>
+<span style="color: #68f6cb;">    email</span>
+<span style="color: #68f6cb;">    firstName</span>
+<span style="color: #68f6cb;">    lastName</span>
+<span style="color: #68f6cb;">  }</span>
+<span style="color: #68f6cb;">}</span>
+<span style="color: #68f6cb;">"""</span><span style="color: #ff8c00;">)</span>
+|&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+     <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, %<span style="color: #ff1493;">{</span><span style="color: #68f6cb;">"data"</span> =&gt; %<span style="color: #7fff00;">{</span><span style="color: #68f6cb;">"users"</span> =&gt; users<span style="color: #7fff00;">}</span><span style="color: #ff1493;">}</span><span style="color: #ff8c00;">}</span> -&gt;
+       <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, users<span style="color: #ff8c00;">}</span>
+
+     error -&gt;
+       error
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span><span style="color: #88090B;">)</span>
+</pre>
+</div>
+
+<p>
+Notice the naming convention in the query or GraphQL in general is
+<code>camelCase</code> while for Elixir it is <code>under_scored</code>. The issue is that
+<code>absinthe</code> expects the data to be in <code>under_score</code> and converts it into
+<code>camelCase</code>. So when we use the query above, <code>first_name</code> since it
+receives <code>firstName</code>. As a quick fix, we can convert the data received
+from the response via <a href="https://github.com/ruby2elixir/atomic_map">atomic_map</a> or create a middleware to do the same.
+Either fix is converting converted data which seems inefficient, instead
+vwe can tell <code>absinthe</code> to retain the <code>under_score</code> convention by setting
+the adapter to <a href="https://hexdocs.pm/absinthe/Absinthe.Adapter.Passthrough.html">Absinthe.Adapter.Passthrough</a>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">account_service/config/config.exs</span>
+config <span style="color: #96a5d9; font-style: italic;">:absinthe</span>,
+  <span style="color: #96a5d9; font-style: italic;">adapter:</span> <span style="color: #f5b55f;">Absinthe.Adapter.Passthrough</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway/schema.ex</span>
+<span style="color: #68f6cb;">"""</span>
+<span style="color: #68f6cb;">query {</span>
+<span style="color: #68f6cb;">  users {</span>
+<span style="color: #68f6cb;">    id</span>
+<span style="color: #68f6cb;">    email</span>
+<span style="color: #68f6cb;">    first_name</span>
+<span style="color: #68f6cb;">    last_name</span>
+<span style="color: #68f6cb;">  }</span>
+<span style="color: #68f6cb;">}</span>
+<span style="color: #68f6cb;">"""</span>
+</pre>
+</div>
+
+<p>
+This is also useful when other services need to communicate with each
+other later on. Within the internal network or system, the convention is
+<code>under_score</code>; when it leaves the gateway, it becomes <code>camelCase</code>. One
+more thing remains before it completely works, the response from a
+GraphQL endpoint is a string map and by default <code>absinthe</code> only picks up
+atom keys. So even with the correct keys, we need to tell <code>absinthe</code> to
+pick up both atom and string keys. Taking cues from the <a href="https://hexdocs.pm/absinthe/Absinthe.Middleware.html#module-default-middleware">default
+middleware guide</a>, we can change the default middleware to check for
+both:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway/schema.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">middleware</span><span style="color: #ff8c00;">(</span>middleware, %<span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">identifier:</span> identifier<span style="color: #ff1493;">}</span> = field, object<span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #ff694d;">field_name</span> = <span style="color: #f5b55f;">Atom</span>.to_string<span style="color: #ff8c00;">(</span>identifier<span style="color: #ff8c00;">)</span>
+
+  <span style="color: #ff694d;">new_middleware_spec</span> = <span style="color: #ff8c00;">{</span><span style="color: #ff1493;">{</span><span style="color: #afc0fd; font-weight: bold;">__MODULE__</span>, <span style="color: #96a5d9; font-style: italic;">:get_field_key</span><span style="color: #ff1493;">}</span>, <span style="color: #ff1493;">{</span>field_name, identifier<span style="color: #ff1493;">}</span><span style="color: #ff8c00;">}</span>
+
+  <span style="color: #f5b55f;">Absinthe.Schema</span>.replace_default<span style="color: #ff8c00;">(</span>middleware, new_middleware_spec, field, object<span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+<span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">get_field_key</span><span style="color: #ff8c00;">(</span><span style="color: #f5b55f;">%Resolution</span><span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">source:</span> source<span style="color: #ff1493;">}</span> = res, <span style="color: #ff1493;">{</span>key, fallback_key<span style="color: #ff1493;">}</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #ff694d;">new_value</span> =
+    <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #f5b55f;">Map</span>.fetch<span style="color: #ff8c00;">(</span>source, key<span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+      <span style="color: #ff8c00;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, value<span style="color: #ff8c00;">}</span> -&gt;
+        value
+
+      <span style="color: #96a5d9; font-style: italic;">:error</span> -&gt;
+        <span style="color: #f5b55f;">Map</span>.get<span style="color: #ff8c00;">(</span>source, fallback_key<span style="color: #ff8c00;">)</span>
+    <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  %<span style="color: #ff8c00;">{</span>res | <span style="color: #96a5d9; font-style: italic;">state:</span> <span style="color: #96a5d9; font-style: italic;">:resolved</span>, <span style="color: #96a5d9; font-style: italic;">value:</span> new_value<span style="color: #ff8c00;">}</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+All pieces are now in place and we can use the GraphiQL
+endpoint(<a href="http://localhost:14000/graphiql">http://localhost:14000/graphiql</a>) to check our work. Running the
+original query above leads to the same result as the account service.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd8776d5" class="outline-2">
+<h2 id="orgd8776d5">registerUser Mutation</h2>
+<div class="outline-text-2" id="text-orgd8776d5">
+<p>
+With a working query, we can test mutations with a new <code>registerUser</code>
+mutation which should look like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-graphql">mutation<span style="color: #ff8c00;">(</span><span style="color: #ff694d;">$email</span>: <span style="color: #f5b55f;">String</span>!, <span style="color: #ff694d;">$firstName</span>: <span style="color: #f5b55f;">String</span>!, <span style="color: #ff694d;">$lastName</span>: <span style="color: #f5b55f;">String</span>!<span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+  register_user<span style="color: #ff1493;">(</span>
+    <span style="color: #ff694d;">input</span>: <span style="color: #7fff00;">{</span>
+      <span style="color: #ff694d;">email</span>: <span style="color: #ff694d;">$email</span>
+      firstName: <span style="color: #ff694d;">$firstName</span>
+      lastName: <span style="color: #ff694d;">$lastName</span>
+    <span style="color: #7fff00;">}</span>
+  <span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+    errors <span style="color: #7fff00;">{</span>
+      field
+      message
+    <span style="color: #7fff00;">}</span>
+    user <span style="color: #7fff00;">{</span>
+      id
+      email
+      firstName
+      lastName
+    <span style="color: #7fff00;">}</span>
+  <span style="color: #ff1493;">}</span>
+<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+
+<p>
+Aside from using <a href="https://github.com/absinthe-graphql/absinthe_relay">absinthe_relay</a>, creating the whole vertical slice for
+the mutation from the account service to the gateway is straightforward.
+Calling a mutation and passing the arguments from one endpoint to
+another is surprisingly clear:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway/schema.ex</span>
+resolve<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #afc0fd; font-weight: bold;">_</span>, args, res -&gt;
+  <span style="color: #f5b55f;">AccountClient</span>.run<span style="color: #ff1493;">(</span>
+    <span style="color: #68f6cb;">"""</span>
+<span style="color: #68f6cb;">    mutation($email: String!, $first_name: String!, $last_name: String!) {</span>
+<span style="color: #68f6cb;">      register_user(</span>
+<span style="color: #68f6cb;">        input: {</span>
+<span style="color: #68f6cb;">          email: $email</span>
+<span style="color: #68f6cb;">          first_name: $first_name</span>
+<span style="color: #68f6cb;">          last_name: $last_name</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">      ) {</span>
+<span style="color: #68f6cb;">        errors {</span>
+<span style="color: #68f6cb;">          field</span>
+<span style="color: #68f6cb;">          message</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">        user {</span>
+<span style="color: #68f6cb;">          id</span>
+<span style="color: #68f6cb;">          email</span>
+<span style="color: #68f6cb;">          first_name</span>
+<span style="color: #68f6cb;">          last_name</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">      }</span>
+<span style="color: #68f6cb;">    }</span>
+<span style="color: #68f6cb;">    """</span>,
+    args       <span style="color: #2872b2;"># </span><span style="color: #2872b2;">HERE: Passing arguments</span>
+  <span style="color: #ff1493;">)</span>
+  |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+       <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, %<span style="color: #7fff00;">{</span><span style="color: #68f6cb;">"data"</span> =&gt; %<span style="color: #00bfff;">{</span><span style="color: #68f6cb;">"register_user"</span> =&gt; register_user<span style="color: #00bfff;">}</span><span style="color: #7fff00;">}</span><span style="color: #ff1493;">}</span> -&gt;
+         <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, register_user<span style="color: #ff1493;">}</span>
+       error -&gt;
+         error
+     <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+Going back the reason we used a database instead of an <code>Agent</code> is to
+test concurrency errors specially when two instances of the same service
+receives the same request. Thanks to <code>ecto</code>, I am confident that this
+cannot happen because of the unique database index; however, what if the
+operation has no index like with the upcoming <code>createTransaction</code>
+mutation? Our message queue also has our back with this because when two
+or more clients subscribe to the same topic but all the same channel,
+only one gets it (see <a href="https://nsq.io/overview/design.html">NSQ Design</a>); however, messages can be still
+delivered many times (see <a href="https://nsq.io/overview/features_and_guarantees.html#messages-are-delivered-at-least-once">NSQ Guarantees</a>) so we are back where we
+started. Message deduplication is beyond the scope of this
+investigation. (<a href="https://github.com/DigixGlobal/conduit_plugs#conduitplugsdeduplication">ConduitPlugs.Deduplication</a> is my quick stab at that.)
+</p>
+
+<p>
+I have another concern but that is down the road and we can move on for
+now. If you do want to simulate the issue above, you can do the
+following:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">account_service/broker.ex</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">If you want to have different channels for every run,</span>
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">replace channel with a random value</span>
+subscribe<span style="color: #ff8c00;">(</span>
+  <span style="color: #96a5d9; font-style: italic;">:graphql_request</span>,
+  <span style="color: #f5b55f;">GraphQLRequest</span>,
+  <span style="color: #96a5d9; font-style: italic;">topic:</span> <span style="color: #68f6cb;">"account_graphql_request"</span>,
+  <span style="color: #96a5d9; font-style: italic;">channel:</span> <span style="color: #68f6cb;">"</span><span style="color: #ff694d;">#{@channel}</span><span style="color: #68f6cb;">-</span><span style="color: #ff694d;">#{Enum.random(1..100)}</span><span style="color: #68f6cb;">"</span>  <span style="color: #2872b2;"># </span><span style="color: #2872b2;">HERE: From @channel</span>
+<span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">In one terminal</span>
+mix run --no-halt
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">In another terminal</span>
+mix run --no-halt
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">With docker</span>
+docker-compose up --scale <span style="color: #ff694d;">account_service</span>=2
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc69cfbe" class="outline-2">
+<h2 id="orgc69cfbe">Product and Transaction Service</h2>
+<div class="outline-text-2" id="text-orgc69cfbe">
+<p>
+What we want next is to implement the following query:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-graphql">mutation<span style="color: #ff8c00;">(</span><span style="color: #ff694d;">$items</span>: <span style="color: #ff1493;">[</span><span style="color: #f5b55f;">CreateTransactionItem</span>!<span style="color: #ff1493;">]</span>!<span style="color: #ff8c00;">)</span> <span style="color: #ff8c00;">{</span>
+  createTransaction<span style="color: #ff1493;">(</span>
+    <span style="color: #ff694d;">input</span>: <span style="color: #7fff00;">{</span>
+      <span style="color: #ff694d;">items</span>: <span style="color: #ff694d;">$items</span>
+    <span style="color: #7fff00;">}</span>
+  <span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+    errors <span style="color: #7fff00;">{</span>
+      field
+      message
+    <span style="color: #7fff00;">}</span>
+    transaction <span style="color: #7fff00;">{</span>
+      id
+      code
+      items <span style="color: #00bfff;">{</span>
+        id
+        productId
+        price
+        quantity
+      <span style="color: #00bfff;">}</span>
+    <span style="color: #7fff00;">}</span>
+  <span style="color: #ff1493;">}</span>
+<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+
+<p>
+The idea is that the user will buy a list of products from this API. To
+test that out, we need to create the product and transaction service.
+Given our template with account service, we can quickly copy and paste
+to produce both services. For products, it exposes the two queries:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-graphql">query <span style="color: #ff8c00;">{</span>
+  products <span style="color: #ff1493;">{</span>
+    id
+    code
+    name
+    price
+  <span style="color: #ff1493;">}</span>
+  product<span style="color: #ff1493;">(</span><span style="color: #ff694d;">$id</span>: <span style="color: #f5b55f;">ID</span>!<span style="color: #ff1493;">)</span> <span style="color: #ff1493;">{</span>
+    ...
+  <span style="color: #ff1493;">}</span>
+<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+
+<p>
+The first one is self-evident like with <code>users</code> query, the second one is
+where we make it interesting. The <code>createTransaction</code> accepts a list of
+product id and corresponding quantity. For each product id, the
+transaction service will invoke the <code>product</code> query to fetch the current
+price. Not the most efficient which is another issue down the road but
+it does work.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir">resolve<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">fn</span> <span style="color: #afc0fd; font-weight: bold;">_</span>, args, res -&gt;
+  <span style="color: #f5b55f;">TransactionClient</span>.run<span style="color: #ff1493;">(</span>
+    <span style="color: #68f6cb;">"""</span>
+<span style="color: #68f6cb;">    mutation($items: [CreateTransactionItem!]!) {</span>
+<span style="color: #68f6cb;">      create_transaction(</span>
+<span style="color: #68f6cb;">        input: {</span>
+<span style="color: #68f6cb;">          items: $items</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">      ) {</span>
+<span style="color: #68f6cb;">        errors {</span>
+<span style="color: #68f6cb;">          field</span>
+<span style="color: #68f6cb;">          message</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">        transaction {</span>
+<span style="color: #68f6cb;">          id</span>
+<span style="color: #68f6cb;">          code</span>
+<span style="color: #68f6cb;">          items {</span>
+<span style="color: #68f6cb;">            id</span>
+<span style="color: #68f6cb;">            product_id</span>
+<span style="color: #68f6cb;">            price</span>
+<span style="color: #68f6cb;">            quantity</span>
+<span style="color: #68f6cb;">          }</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">      }</span>
+<span style="color: #68f6cb;">    }</span>
+<span style="color: #68f6cb;">    """</span>,
+    args,
+    res.context     <span style="color: #2872b2;"># </span><span style="color: #2872b2;">HERE: Context based here</span>
+  <span style="color: #ff1493;">)</span>
+  |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+       <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, %<span style="color: #7fff00;">{</span><span style="color: #68f6cb;">"data"</span> =&gt; %<span style="color: #00bfff;">{</span><span style="color: #68f6cb;">"create_transaction"</span> =&gt; create_transaction<span style="color: #00bfff;">}</span><span style="color: #7fff00;">}</span><span style="color: #ff1493;">}</span> -&gt;
+         <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, create_transaction<span style="color: #ff1493;">}</span>
+
+       error -&gt;
+         error
+     <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+For the astute reader, the <code>user_id</code> is nowhere to be seen so how will
+the transaction know which user is assigned? It comes from the OAauth
+header <code>Authorization</code> like with <a href="https://github.com/ueberauth/guardian">guardian</a> but uses the user email
+instead:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">api_gateway/context.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">ApiGatewayWeb.Context</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9;">@behaviour</span> <span style="color: #f5b55f;">Plug</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">alias</span> <span style="color: #f5b55f;">Plug.Conn</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">init</span><span style="color: #ff8c00;">(</span>opts<span style="color: #ff8c00;">)</span>, <span style="color: #96a5d9; font-style: italic;">do:</span> opts
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">call</span><span style="color: #ff8c00;">(</span>conn, <span style="color: #afc0fd; font-weight: bold;">_</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    <span style="color: #ff694d;">context</span> = build_context<span style="color: #ff8c00;">(</span>conn<span style="color: #ff8c00;">)</span>
+
+    <span style="color: #f5b55f;">Absinthe.Plug</span>.put_options<span style="color: #ff8c00;">(</span>conn, <span style="color: #96a5d9; font-style: italic;">context:</span> context<span style="color: #ff8c00;">)</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">build_context</span><span style="color: #ff8c00;">(</span>conn<span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    %<span style="color: #ff8c00;">{</span>
+      <span style="color: #96a5d9; font-style: italic;">current_user:</span> get_current_user<span style="color: #ff1493;">(</span>conn<span style="color: #ff1493;">)</span>
+    <span style="color: #ff8c00;">}</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">defp</span> <span style="color: #bad6e2;">get_current_user</span><span style="color: #ff8c00;">(</span>conn<span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    conn
+    |&gt; <span style="color: #f5b55f;">Conn</span>.get_req_header<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"authorization"</span><span style="color: #ff8c00;">)</span>
+    |&gt; <span style="color: #f5b55f;">List</span>.first<span style="color: #ff8c00;">()</span>
+    |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+      <span style="color: #68f6cb;">"Bearer "</span> &lt;&gt; email -&gt;
+        <span style="color: #f5b55f;">AccountClient</span>.get_by_email<span style="color: #ff8c00;">(</span>email<span style="color: #ff8c00;">)</span>
+
+      <span style="color: #afc0fd; font-weight: bold;">_</span> -&gt;
+        <span style="color: #96a5d9; font-style: italic;">nil</span>
+    <span style="color: #96a5d9; font-weight: bold;">end</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+It just follows the <a href="https://hexdocs.pm/absinthe/context-and-authentication.html#content">context and authentication guide</a> for a quick
+authentication plug. More importantly, the question is how does context
+passing occur over multiple services? In this case, the context is
+passed down the wire and read the same way; however, the better strategy
+is to make the <code>user_id</code> an explicit argument than a context variable.
+Nonetheless, it works like a charm but you need to handle string maps
+again:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">transaction_service/parse_context.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">TransactionService.ParseContext</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9;">@behaviour</span> <span style="color: #f5b55f;">Absinthe.Middleware</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">call</span><span style="color: #ff8c00;">(</span>%<span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">state:</span> <span style="color: #96a5d9; font-style: italic;">:unresolved</span><span style="color: #ff1493;">}</span> = res, <span style="color: #2872b2;">_opts</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+    <span style="color: #ff694d;">ctx</span> = res.context
+
+    <span style="color: #ff694d;">id</span> = get_in<span style="color: #ff8c00;">(</span>ctx, <span style="color: #ff1493;">[</span><span style="color: #68f6cb;">"current_user"</span>, <span style="color: #68f6cb;">"id"</span><span style="color: #ff1493;">]</span><span style="color: #ff8c00;">)</span>
+
+    %<span style="color: #ff8c00;">{</span>res | <span style="color: #96a5d9; font-style: italic;">context:</span> %<span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">current_user:</span> %<span style="color: #7fff00;">{</span><span style="color: #96a5d9; font-style: italic;">id:</span> id<span style="color: #7fff00;">}</span><span style="color: #ff1493;">}</span><span style="color: #ff8c00;">}</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span>
+
+  <span style="color: #96a5d9; font-weight: bold;">def</span> <span style="color: #bad6e2;">call</span><span style="color: #ff8c00;">(</span>res, <span style="color: #afc0fd; font-weight: bold;">_</span><span style="color: #ff8c00;">)</span>, <span style="color: #96a5d9; font-style: italic;">do:</span> res
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+</pre>
+</div>
+
+<p>
+To test this mutation in GraphiQL, you need to do the following things:
+</p>
+
+<ol class="org-ol">
+<li>Register a new user or pick a random user from <code>users</code> query and take
+note of the email(<code>$EMAIL</code>)</li>
+<li>Add the header <code>Authorization: Bearer $EMAIL</code> which you can do via
+<code>Headers</code> &gt; <code>Add</code> button</li>
+<li>Pick a random product and take note of its id (<code>$PRODUCT_ID</code>)</li>
+<li>Copy the source mutation above and use the payload via variables:</li>
+</ol>
+
+<div class="org-src-container">
+<pre class="src src-json"><span style="color: #ff8c00;">{</span>
+    <span style="color: #96a5d9; font-weight: bold;">"items"</span>: <span style="color: #ff1493;">[</span>
+        <span style="color: #7fff00;">{</span>
+            <span style="color: #96a5d9; font-weight: bold;">"productId"</span>: <span style="color: #68f6cb;">"$PRODUCT_ID"</span>,
+            <span style="color: #96a5d9; font-weight: bold;">"quantity"</span>: <span style="color: #afc0fd; font-weight: bold;">1</span>
+        <span style="color: #7fff00;">}</span>
+    <span style="color: #ff1493;">]</span>
+<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+
+<p>
+With that we have one thing left to verify the experiment.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org723e982" class="outline-2">
+<h2 id="org723e982">transactions Field</h2>
+<div class="outline-text-2" id="text-org723e982">
+<p>
+Once the user has made transactions, we will add a <code>User.transactions</code>
+field to fetch that:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-graphql">query <span style="color: #ff8c00;">{</span>
+  users <span style="color: #ff1493;">{</span>
+    id
+    email
+    transactions <span style="color: #7fff00;">{</span>
+      id
+      code
+      items <span style="color: #00bfff;">{</span>
+        product <span style="color: #ffff00;">{</span>
+          id
+          code
+          name
+          price
+        <span style="color: #ffff00;">}</span>
+        price
+        quantity
+      <span style="color: #00bfff;">}</span>
+    <span style="color: #7fff00;">}</span>
+  <span style="color: #ff1493;">}</span>
+<span style="color: #ff8c00;">}</span>
+</pre>
+</div>
+
+<p>
+The interesting fact here is that the gateway now provides a custom
+field and fetches multiple services to provide that. This is not <a href="https://www.apollographql.com/docs/apollo-server/federation/introduction/">Apollo
+Federation</a> but it is rather fun. Anyway to resolve <code>User.transactions</code>,
+we need the transaction service to return all transactions for a user
+via <code>user_transaction</code> query:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir">field <span style="color: #96a5d9; font-style: italic;">:transactions</span>, non_null<span style="color: #ff8c00;">(</span>list_of<span style="color: #ff1493;">(</span>non_null<span style="color: #7fff00;">(</span><span style="color: #96a5d9; font-style: italic;">:user_transaction</span><span style="color: #7fff00;">)</span><span style="color: #ff1493;">)</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  description<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"User transactions"</span><span style="color: #ff8c00;">)</span>
+
+  resolve<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">fn</span> %<span style="color: #ff1493;">{</span><span style="color: #68f6cb;">"id"</span> =&gt; id<span style="color: #ff1493;">}</span>, <span style="color: #afc0fd; font-weight: bold;">_</span>, res -&gt;
+    <span style="color: #f5b55f;">TransactionClient</span>.run<span style="color: #ff1493;">(</span>
+      <span style="color: #68f6cb;">"""</span>
+<span style="color: #68f6cb;">      query($user_id: ID!) {</span>
+<span style="color: #68f6cb;">        user_transactions(user_id: $user_id) {</span>
+<span style="color: #68f6cb;">          id</span>
+<span style="color: #68f6cb;">          code</span>
+<span style="color: #68f6cb;">          items {</span>
+<span style="color: #68f6cb;">            id</span>
+<span style="color: #68f6cb;">            product_id</span>
+<span style="color: #68f6cb;">            price</span>
+<span style="color: #68f6cb;">            quantity</span>
+<span style="color: #68f6cb;">          }</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">      }</span>
+<span style="color: #68f6cb;">      """</span>,
+      %<span style="color: #7fff00;">{</span><span style="color: #96a5d9; font-style: italic;">user_id:</span> id<span style="color: #7fff00;">}</span>,
+      res.context
+    <span style="color: #ff1493;">)</span>
+    |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+         <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, %<span style="color: #7fff00;">{</span><span style="color: #68f6cb;">"data"</span> =&gt; %<span style="color: #00bfff;">{</span><span style="color: #68f6cb;">"user_transactions"</span> =&gt; user_transactions<span style="color: #00bfff;">}</span><span style="color: #7fff00;">}</span><span style="color: #ff1493;">}</span> -&gt;
+           <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, user_transactions<span style="color: #ff1493;">}</span>
+
+         error -&gt;
+           error
+       <span style="color: #96a5d9; font-weight: bold;">end</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+Lastly, we reuse the <code>product</code> query for product service to provide the
+<code>TransactionItem.product</code> field:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir">field <span style="color: #96a5d9; font-style: italic;">:product</span>, non_null<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-style: italic;">:product</span><span style="color: #ff8c00;">)</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  description<span style="color: #ff8c00;">(</span><span style="color: #68f6cb;">"Transaction product"</span><span style="color: #ff8c00;">)</span>
+
+  resolve<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">fn</span> %<span style="color: #ff1493;">{</span><span style="color: #68f6cb;">"product_id"</span> =&gt; product_id<span style="color: #ff1493;">}</span>, <span style="color: #afc0fd; font-weight: bold;">_</span>, res -&gt;
+    <span style="color: #f5b55f;">ProductClient</span>.run<span style="color: #ff1493;">(</span>
+      <span style="color: #68f6cb;">"""</span>
+<span style="color: #68f6cb;">      query($id: ID!) {</span>
+<span style="color: #68f6cb;">        product(id: $id) {</span>
+<span style="color: #68f6cb;">          id</span>
+<span style="color: #68f6cb;">          code</span>
+<span style="color: #68f6cb;">          name</span>
+<span style="color: #68f6cb;">          price</span>
+<span style="color: #68f6cb;">        }</span>
+<span style="color: #68f6cb;">      }</span>
+<span style="color: #68f6cb;">      """</span>,
+      %<span style="color: #7fff00;">{</span><span style="color: #96a5d9; font-style: italic;">id:</span> product_id<span style="color: #7fff00;">}</span>,
+      res.context
+    <span style="color: #ff1493;">)</span>
+    |&gt; <span style="color: #96a5d9; font-weight: bold;">case</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+         <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, %<span style="color: #7fff00;">{</span><span style="color: #68f6cb;">"data"</span> =&gt; %<span style="color: #00bfff;">{</span><span style="color: #68f6cb;">"product"</span> =&gt; product<span style="color: #00bfff;">}</span><span style="color: #7fff00;">}</span><span style="color: #ff1493;">}</span> -&gt;
+           <span style="color: #ff1493;">{</span><span style="color: #96a5d9; font-style: italic;">:ok</span>, product<span style="color: #ff1493;">}</span>
+
+         error -&gt;
+           error
+       <span style="color: #96a5d9; font-weight: bold;">end</span>
+  <span style="color: #96a5d9; font-weight: bold;">end</span><span style="color: #ff8c00;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+With all that, it now works although slow. Indeed, this is where <a href="https://hexdocs.pm/absinthe/Absinthe.Middleware.Batch.html#content">Batch</a>
+or <a href="https://hexdocs.pm/absinthe/Absinthe.Middleware.Dataloader.html#content">Dataloader</a> middleware come in and where each service must provide the
+supporting queries. In general, each communication increases latency and
+risk but natural under the microservice style.
+</p>
+
+<p>
+Another issue I noticed with this approach is that multiple services are
+listening to the same GraphQL response topic. Remember that the gateway
+and transaction service are listening to the product response so if
+either service makes a GraphQL request, both receive the response but
+only one will find it useful. As this scales, so will the waste thus the
+service dependencies must be watched.
+</p>
+
+<p>
+Now that all services are ready, we can the final touch.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org69a99f0" class="outline-2">
+<h2 id="org69a99f0">GraphiQL</h2>
+<div class="outline-text-2" id="text-org69a99f0">
+<p>
+One of the nice things about GraphQL is GraphiQL which alongside the
+typed contract forces some form of documentation and experimentation.
+We should also put <code>absinthe_plug</code> via <code>plug</code> for each service to make
+it easier to access and introspect:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">account_service/router.ex</span>
+<span style="color: #96a5d9; font-weight: bold;">defmodule</span> <span style="color: #f5b55f;">AccountService.Router</span> <span style="color: #96a5d9; font-weight: bold;">do</span>
+  <span style="color: #96a5d9; font-weight: bold;">use</span> <span style="color: #f5b55f;">Plug.Router</span>
+
+  plug <span style="color: #f5b55f;">Plug.RequestId</span>
+  plug <span style="color: #f5b55f;">Plug.Logger</span>
+
+  plug <span style="color: #f5b55f;">Plug.Parsers</span>,
+    <span style="color: #96a5d9; font-style: italic;">parsers:</span> <span style="color: #ff8c00;">[</span><span style="color: #96a5d9; font-style: italic;">:urlencoded</span>, <span style="color: #96a5d9; font-style: italic;">:multipart</span>, <span style="color: #96a5d9; font-style: italic;">:json</span>, <span style="color: #f5b55f;">Absinthe.Plug.Parser</span><span style="color: #ff8c00;">]</span>,
+    <span style="color: #96a5d9; font-style: italic;">pass:</span> <span style="color: #ff8c00;">[</span><span style="color: #68f6cb;">"*/*"</span><span style="color: #ff8c00;">]</span>,
+    <span style="color: #96a5d9; font-style: italic;">json_decoder:</span> <span style="color: #f5b55f;">Jason</span>
+
+  plug <span style="color: #96a5d9; font-style: italic;">:match</span>
+
+  forward <span style="color: #68f6cb;">"/graphql"</span>,
+    <span style="color: #96a5d9; font-style: italic;">to:</span> <span style="color: #f5b55f;">Absinthe.Plug</span>,
+    <span style="color: #96a5d9; font-style: italic;">init_opts:</span> <span style="color: #ff8c00;">[</span><span style="color: #96a5d9; font-style: italic;">schema:</span> <span style="color: #f5b55f;">AccountService.Schema</span><span style="color: #ff8c00;">]</span>
+
+  forward <span style="color: #68f6cb;">"/graphiql"</span>,
+    <span style="color: #96a5d9; font-style: italic;">to:</span> <span style="color: #f5b55f;">Absinthe.Plug.GraphiQL</span>,
+    <span style="color: #96a5d9; font-style: italic;">init_opts:</span> <span style="color: #ff8c00;">[</span><span style="color: #96a5d9; font-style: italic;">schema:</span> <span style="color: #f5b55f;">AccountService.Schema</span>, <span style="color: #96a5d9; font-style: italic;">interface:</span> <span style="color: #96a5d9; font-style: italic;">:advanced</span><span style="color: #ff8c00;">]</span>
+
+  plug <span style="color: #96a5d9; font-style: italic;">:dispatch</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span>
+
+<span style="color: #2872b2;"># </span><span style="color: #2872b2;">account_service/application.ex</span>
+<span style="color: #ff694d;">children</span> = <span style="color: #ff8c00;">[</span>
+  <span style="color: #ff1493;">{</span><span style="color: #f5b55f;">Plug.Cowboy</span>, <span style="color: #96a5d9; font-style: italic;">scheme:</span> <span style="color: #96a5d9; font-style: italic;">:http</span>, <span style="color: #96a5d9; font-style: italic;">plug:</span> <span style="color: #f5b55f;">AccountService.Router</span>, <span style="color: #96a5d9; font-style: italic;">options:</span> <span style="color: #7fff00;">[</span><span style="color: #96a5d9; font-style: italic;">port:</span> 15000<span style="color: #7fff00;">]</span><span style="color: #ff1493;">}</span>,
+  <span style="color: #f5b55f;">Broker</span>,
+  <span style="color: #f5b55f;">Repo</span>
+<span style="color: #ff8c00;">]</span>
+</pre>
+</div>
+
+<p>
+For each service, you might also nned the <code>middleware</code> fix because the
+GraphiQL UI cannot handle <code>under_score</code> convention or that it reverts
+back to being <code>camelCase</code>. Whichever the case, having a working GraphQL
+UI is wonderful. The ports for each service is listed below:
+</p>
+
+<ul class="org-ul">
+<li>Account Service: <a href="http://localhost:15000/graphiql">http://localhost:15000/graphiql</a></li>
+<li>Product Service: <a href="http://localhost:16000/graphiql">http://localhost:16000/graphiql</a></li>
+<li>Transaction Service: <a href="http://localhost:17000/graphiql">http://localhost:17000/graphiql</a></li>
+</ul>
+
+<p>
+Now that we are done, what have we learned in this encounter?
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbd1921f" class="outline-2">
+<h2 id="orgbd1921f">Review</h2>
+<div class="outline-text-2" id="text-orgbd1921f">
+<p>
+Providing a GraphQL interface over a message queue was fun. It was not
+as hard as I thought it would be initially, but now is the time to
+address some issues and lessons I learned while writing it.
+</p>
+
+<p>
+First off, the workflow with using GraphQL is more focused on providing
+a good API schema which feels better than worrying about message queue
+topics or mechanics; however, writing the query strings are bulky and
+error prone in its own right. I can imagine writing multiple queries and
+either making a typo or forgetting to update old queries. Testing should
+catch this, but I am not aware of tooling like <a href="https://www.apollographql.com/docs/react/data/fragments/">GraphQL fragments</a>. I
+suppose this is expected as this is the same workflow with frontend
+engineers consuming GraphQL interfaces.
+</p>
+
+<p>
+One of the lost GraphQL qualities during this experiment was that fields
+could be fetched on demand or query optimization. For example, when a
+user wants to only fetch their ids, the internal GraphQL query to
+account service fetches all fields. More strongly for the
+<code>User.transactions</code> query, it fetches all the way down. I tried doing
+some optimization myself using the definitions in the
+<code>Absinthe.Resolution</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-elixir"><span style="color: #2872b2;"># </span><span style="color: #2872b2;">product_service/schema.ex</span>
+resolve<span style="color: #ff8c00;">(</span><span style="color: #96a5d9; font-weight: bold;">fn</span> %<span style="color: #ff1493;">{</span><span style="color: #68f6cb;">"product_id"</span> =&gt; product_id<span style="color: #ff1493;">}</span>, <span style="color: #afc0fd; font-weight: bold;">_</span>, res -&gt;
+  <span style="color: #f5b55f;">ProductClient</span>.run<span style="color: #ff1493;">(</span>
+    <span style="color: #68f6cb;">"""</span>
+<span style="color: #68f6cb;">    query($id: ID!) {</span>
+<span style="color: #68f6cb;">      product(id: $id) {</span>
+<span style="color: #68f6cb;">      </span><span style="color: #ff694d;">#{to_field_query(res.definitions.selections)}</span>
+<span style="color: #68f6cb;">      }</span>
+<span style="color: #68f6cb;">    }</span>
+<span style="color: #68f6cb;">    """</span>,
+    %<span style="color: #7fff00;">{</span><span style="color: #96a5d9; font-style: italic;">id:</span> product_id<span style="color: #7fff00;">}</span>,
+    res.context
+  <span style="color: #ff1493;">)</span>
+<span style="color: #96a5d9; font-weight: bold;">end</span><span style="color: #ff8c00;">)</span>
+</pre>
+</div>
+
+<p>
+However, this only works for flat fields; when nested fields are needed,
+the complexity spikes. Instead of handling it and dealing with edge
+cases such as missing ids or fields, I think its fine to pull all the
+fields since they are in an internal network. Perhaps one can find gold
+with the <code>selections</code> variable for query optimization?
+</p>
+
+<p>
+One concern close to my heart is testing which I did not go into detail
+here since you need <code>conduit</code> experience is better in my opinion. The
+usual tests for each subscriber module is to check for side effects and
+whether messages where <code>acked</code> or not, now we the focus is satisfying
+that GraphQL contract.
+</p>
+
+<p>
+Another concern is error handling. For example a query is outdated and is
+always producing a query error instead of an operation error, how does
+the backend cope? It is good to assume external communication can fail
+even if they are known assumptions. Still, the only option is to log it
+and hopefully catch it in development..
+</p>
+
+<p>
+Finally the shadow of message deduplication and unwanted response
+recipients mean that this method may not be the best fit perhaps even
+for long term.
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-orgedcdd87" class="outline-2">
+<h2 id="orgedcdd87">Summary</h2>
+<div class="outline-text-2" id="text-orgedcdd87">
+<p>
+To summarize all the findings:
+</p>
+
+<p>
+<b><b>Pros</b></b>
+</p>
+
+<ul class="org-ul">
+<li><b><b>Schema Management</b></b></li>
+</ul>
+
+<p>
+Managing schema and types is far more interesting than handling routes
+</p>
+
+<ul class="org-ul">
+<li><b><b>GraphiQL Interface</b></b>-</li>
+</ul>
+
+<p>
+The GraphQL interface is a nice introspection tool.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Unified Request/Response</b></b></li>
+</ul>
+
+<p>
+Only one topic to manage all the request/response messages.
+</p>
+
+<ul class="org-ul">
+<li><b><b>GraphQL Testing</b></b></li>
+</ul>
+
+<p>
+Testing GraphQL responses feel better than asserting message
+acknowledgment or side-effects from handlers.
+</p>
+
+<p>
+<b><b>Cons</b></b>
+</p>
+
+<ul class="org-ul">
+<li><b><b>Higher Latency</b></b></li>
+</ul>
+
+<p>
+More messages means higher latency. Care must be exercised in making the
+gateway as fast as it can be.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Messages Deduplication</b></b></li>
+</ul>
+
+<p>
+Mutations should consider messages being delivered at least once.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Unnecessary Subscribers</b></b></li>
+</ul>
+
+<p>
+Since every GraphQL response endpoint has many subscribers, a response
+to one is broadcast to all making it garbage to all but one.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Query Bulk And Support</b></b></li>
+</ul>
+
+<p>
+Queries occupy space and is just as error prone in editing.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Query Optimization</b></b></li>
+</ul>
+
+<p>
+GraphQL allows select fields to be pulled but the backend must pull all
+the fields for safety.
+</p>
+
+
+<p>
+To be safe, I am not vouching this for production as better techniques
+may already exist. The request/response module per message is still safe
+and efficient. If ever I would make an API gateway, I might consider
+revisiting this or pray that <code>absinthe</code> has better guidance or support
+at that time. Nonetheless, this was a fun excursion.
+</p>
+</div>
+</div>
